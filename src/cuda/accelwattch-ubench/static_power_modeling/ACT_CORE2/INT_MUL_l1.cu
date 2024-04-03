@@ -156,16 +156,26 @@ printf("after\n");
  checkCudaErrors( cudaMemcpy(d_A, h_A, size, cudaMemcpyHostToDevice) );
  checkCudaErrors( cudaMemcpy(d_B, h_B, size, cudaMemcpyHostToDevice) );
 
+ cudaEvent_t start, stop;                   
+ float elapsedTime = 0;                     
+ checkCudaErrors(cudaEventCreate(&start));  
+ checkCudaErrors(cudaEventCreate(&stop));
+
  //VecAdd<<<blocksPerGrid, threadsPerBlock>>>(d_A, d_B, d_C, N);
  dim3 dimGrid(blocks,1);
  dim3 dimBlock(THREADS_PER_BLOCK,1);
  dim3 dimGrid2(1,1);
  dim3 dimBlock2(1,1);
 
-
-
-PowerKernal2<<<dimGrid,dimBlock>>>(d_A, d_B, d_C, N, iterations,div);
-cudaThreadSynchronize();
+ checkCudaErrors(cudaEventRecord(start));              
+ PowerKernal2<<<dimGrid,dimBlock>>>(d_A, d_B, d_C, N, iterations,div);
+ checkCudaErrors(cudaEventRecord(stop));               
+ 
+ checkCudaErrors(cudaEventSynchronize(stop));           
+ checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));  
+ printf("gpu execution time = %.3f ms\n", elapsedTime);  
+ getLastCudaError("kernel launch failure");              
+ cudaThreadSynchronize(); 
 
 
 getLastCudaError("kernel launch failure");

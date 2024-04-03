@@ -260,8 +260,20 @@ int main(int argc, char** argv){
   gpuErrchk( cudaMemcpy(data3_g, data3, total_threads*sizeof(uint32_t), cudaMemcpyHostToDevice) );
   gpuErrchk( cudaMemcpy(data4_g, data4, total_threads*sizeof(uint32_t), cudaMemcpyHostToDevice) );
 
+cudaEvent_t start, stop;                   
+float elapsedTime = 0;                     
+gpuErrchk(cudaEventCreate(&start));  
+gpuErrchk(cudaEventCreate(&stop));
 
+gpuErrchk(cudaEventRecord(start));              
   power_microbench<<<gridDim,blockDim>>>(data1_g, data2_g, data3_g, data4_g, res_g, div, iterations, a_fp16, b_fp16, c_wmma, MATRIX_M, MATRIX_N, MATRIX_K);
+
+gpuErrchk(cudaEventRecord(stop));               
+
+gpuErrchk(cudaEventSynchronize(stop));           
+gpuErrchk(cudaEventElapsedTime(&elapsedTime, start, stop));  
+printf("gpu execution time = %.3f ms\n", elapsedTime);  
+
   gpuErrchk( cudaPeekAtLastError() );
 
 

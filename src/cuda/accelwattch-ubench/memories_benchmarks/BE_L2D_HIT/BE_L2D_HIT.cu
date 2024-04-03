@@ -42,7 +42,7 @@
 #define WARP_SIZE 32
 
 // GPU error check
-#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+#define checkCudaErrors(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true){
         if (code != cudaSuccess) {
                 fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
@@ -121,13 +121,24 @@ int main(int argc, char** argv){
   uint64_t *dsink_g;
   
 
-  gpuErrchk( cudaMalloc(&posArray_g, total_threads*sizeof(uint64_t)) );
-  gpuErrchk( cudaMalloc(&dsink_g, total_threads*sizeof(uint64_t)) );
-  l2_pointers_init<<<1,1>>>(posArray_g);
-  l2_stress<<<NUM_BLOCKS,THREADS_NUM>>>(posArray_g, dsink_g, iterations);
-  gpuErrchk( cudaPeekAtLastError() );
+  checkCudaErrors( cudaMalloc(&posArray_g, total_threads*sizeof(uint64_t)) );
+  checkCudaErrors( cudaMalloc(&dsink_g, total_threads*sizeof(uint64_t)) );
+ cudaEvent_t start, stop;                   
+ float elapsedTime = 0;                     
+ checkCudaErrors(cudaEventCreate(&start));  
+ checkCudaErrors(cudaEventCreate(&stop));
 
-  gpuErrchk( cudaMemcpy(dsink, dsink_g, total_threads*sizeof(uint64_t), cudaMemcpyDeviceToHost) );
+  l2_pointers_init<<<1,1>>>(posArray_g);
+ checkCudaErrors(cudaEventRecord(start));    
+  l2_stress<<<NUM_BLOCKS,THREADS_NUM>>>(posArray_g, dsink_g, iterations);
+ checkCudaErrors(cudaEventRecord(stop));               
+ 
+ checkCudaErrors(cudaEventSynchronize(stop));           
+ checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));  
+ printf("gpu execution time = %.3f ms\n", elapsedTime);  
+  checkCudaErrors( cudaPeekAtLastError() );
+
+  checkCudaErrors( cudaMemcpy(dsink, dsink_g, total_threads*sizeof(uint64_t), cudaMemcpyDeviceToHost) );
 
   return 0;
 } 

@@ -15,6 +15,7 @@ endif
 accelwattch: accelwattch_validation accelwattch_hw_power accelwattch_ubench
 accelwattch_validation: rodinia-3.1_accelwattch_validation parboil_accelwattch_validation cutlass cuda_samples-11.0_accelwattch_validation
 accelwattch_hw_power: rodinia-3.1_hw_power parboil_hw_power cuda_samples-11.0_hw_power
+
 #Disable clean for now, It has a bug!
 # clean_dragon-naive clean_pannotia clean_proxy-apps
 clean: clean_rodinia_2.0-ft clean_dragon-cdp  clean_ispass-2009 clean_lonestargpu-2.0 clean_custom_apps clean_parboil clean_cutlass clean_rodinia-3.1 clean_heterosync clean_cuda_samples
@@ -393,6 +394,14 @@ custom_apps:
 
 accelwattch_ubench:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch-ubench/ power
+
+
+ubench_datatype:
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch-ubench/ datatype
+
+clean_ubench_datatype:
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch-ubench/ cleandatatype
+
 
 clean_accelwattch_ubench:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch-ubench/ cleanpower

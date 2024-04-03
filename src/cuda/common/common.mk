@@ -20,8 +20,8 @@
 
 .SUFFIXES : .cu .cu_dbg.o .c_dbg.o .cpp_dbg.o .cu_rel.o .c_rel.o .cpp_rel.o .cubin .ptx
 
-INCLUDES += -I$(NVIDIA_COMPUTE_SDK_LOCATION)/../4.2/C/common/inc
-ADDITIONAL_LIBS += -L$(NVIDIA_COMPUTE_SDK_LOCATION)/../4.2/C/lib -lcutil_x86_64
+#INCLUDES += -I$(NVIDIA_COMPUTE_SDK_LOCATION)/../4.2/C/common/inc
+#ADDITIONAL_LIBS += -L$(NVIDIA_COMPUTE_SDK_LOCATION)/../4.2/C/lib -lcutil
 
 # Add new SM Versions here as devices with new Compute Capability are released
 SM_VERSIONS   :=  70 75
@@ -104,7 +104,7 @@ CWARN_FLAGS := $(CXXWARN_FLAGS) \
 # architecture flag for nvcc and gcc compilers build
 CUBIN_ARCH_FLAG :=
 CXX_ARCH_FLAGS  :=
-NVCCFLAGS       :=
+NVCCFLAGS       := 
 LIB_ARCH        := $(OSARCH)
 
 # Determining the necessary Cross-Compilation Flags
@@ -370,7 +370,7 @@ endif
 
 ifeq ($(keep), 1)
 	NVCCFLAGS += -keep
-	NVCC_KEEP_CLEAN := *.i* *.cubin *.cu.c *.cudafe* *.fatbin.c *.ptx
+	NVCC_KEEP_CLEAN := *.i* *.cubin *.cu.c *.cudafe* *.fatbin.c *.ptx *.module_id *.fatbin
 endif
 
 ifdef maxregisters
@@ -432,7 +432,7 @@ $(CUBINDIR)/%.cubin : $(SRCDIR)%.cu cubindirectory makedirectories
 	$(VERBOSE)$(NVCC) $(GENCODE_SM70) $(GENCODE_SM75) $(CUBIN_ARCH_FLAG) $(NVCCFLAGS) $(SMVERSIONFLAGS) -o $@ -cubin $<
 
 $(PTXDIR)/%.ptx : $(SRCDIR)%.cu ptxdirectory makedirectories
-	$(VERBOSE)$(NVCC) $(CUBIN_ARCH_FLAG) $(NVCCFLAGS) $(SMVERSIONFLAGS) -o $@ -ptx $<
+	$(VERBOSE)$(NVCC) $(CUBIN_ARCH_FLAG) $(NVCCFLAGS) $(SMVERSIONFLAGS) -o $@ -ptx -src-in-ptx $<
 
 #
 # The following definition is a template that gets instantiated for each SM

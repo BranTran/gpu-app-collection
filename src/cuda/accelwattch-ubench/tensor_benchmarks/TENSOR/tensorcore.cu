@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
    float wmmaTime;
 
    cudaErrCheck(cudaEventElapsedTime(&wmmaTime, startWMMA, stopWMMA));
-   printf("wmma took %fms\n", wmmaTime);
+   printf("gpu execution time = %.3f ms\n", wmmaTime);
    
    cudaErrCheck(cudaEventDestroy(startWMMA));
    cudaErrCheck(cudaEventDestroy(stopWMMA));

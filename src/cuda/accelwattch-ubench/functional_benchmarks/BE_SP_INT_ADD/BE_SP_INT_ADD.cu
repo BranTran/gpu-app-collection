@@ -29,10 +29,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 //#include <cutil.h>
-//#include <mgp.h>
 // Includes
 //#include <stdio.h>
-//#include "../include/ContAcq-IntClk.h"
 
 // includes, project
 //#include "../include/sdkHelper.h"  // helper for shared functions common to CUDA SDK samples
@@ -45,6 +43,7 @@
 #define THREADS_PER_BLOCK 256
 #define NUM_OF_BLOCKS 640
 //#define ITERATIONS 40
+//#include "../include/ContAcq-IntClk.h"
 
 // Variables
 unsigned* h_A;
@@ -93,7 +92,7 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 
 
-__global__ void PowerKernal2(const unsigned* A, const unsigned* B, unsigned* C, int N)
+__global__ void PowerKernal2(const unsigned* A, const unsigned* B, unsigned* C, int iterations)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     //Do Some Computation
@@ -106,28 +105,18 @@ __global__ void PowerKernal2(const unsigned* A, const unsigned* B, unsigned* C, 
 
 #pragma unroll 100
     // Excessive Addition access
-    for(unsigned k=0; k<N;k++) {
-
-      Value1=I1+I2;
-      Value3=I1-I2;
-      Value1+=Value2;
-      Value1+=Value2;
-      Value2=Value3-Value1;
-      Value1=Value2+Value3;
-
-//	Value2= I1+I2;
-//	Value3=I1-I2;
-//	Value1=I1-Value2;
-//	Value3+=Value1;
-//	Value2-=Value3;
-//	Value1+=Value3;
+    for(int k=0; k<iterations;k++) {
+    	Value1=I1+I2;
+    	Value3=I1-I2;
+    	Value1+=Value2;
+    	Value1+=Value2;
+    	Value2=Value3-Value1;
+    	Value1=Value2+Value3;
     }
     __syncthreads();
- 
-    Value=Value1;
 
-    C[i]=Value;
-    __syncthreads();
+    Value=Value1;
+    C[i]=Value+Value2;
 
 }
 
@@ -184,23 +173,21 @@ int main(int argc, char** argv)
  
  checkCudaErrors(cudaEventSynchronize(stop));           
  checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));  
- printf("execution time = %.2f s\n", elapsedTime/1000);  
+ printf("gpu execution time = %.3f ms\n", elapsedTime);  
  getLastCudaError("kernel launch failure");              
  cudaThreadSynchronize(); 
 
-/* CUT_SAFE_CALL(cutCreateTimer(&my_timer)); 
- TaskHandle taskhandle = LaunchDAQ();
- CUT_SAFE_CALL(cutStartTimer(my_timer)); 
- printf("execution time = %f\n", cutGetTimerValue(my_timer));
-
-profileKernel("BE_SP_INT_ADD", "PowerKernal2");
-for (int i = 0; i < 1000; i++)
-{
-	PowerKernal2<<<dimGrid,dimBlock>>>(d_A, d_B, d_C, N);
-	CUDA_SAFE_CALL( cudaThreadSynchronize() );
-}
-haltProfiling();
+/*CUT_SAFE_CALL(cutCreateTimer(&my_timer)); 
+TaskHandle taskhandle = LaunchDAQ();
+CUT_SAFE_CALL(cutStartTimer(my_timer)); 
 printf("execution time = %f\n", cutGetTimerValue(my_timer));
+
+
+
+PowerKernal1<<<dimGrid,dimBlock>>>(d_A, d_B, d_C, N);
+CUDA_SAFE_CALL( cudaThreadSynchronize() );
+printf("execution time = %f\n", cutGetTimerValue(my_timer));
+
 
 getLastCudaError("kernel launch failure");
 CUDA_SAFE_CALL( cudaThreadSynchronize() );
@@ -246,8 +233,7 @@ void CleanupResources(void)
 // Allocates an array with random float entries.
 void RandomInit(unsigned* data, int n)
 {
-  for (int i = 0; i < n; ++i){
-	srand((unsigned)time(0));  
+  for (int i = 0; i < n; ++i){ 
 	data[i] = rand() / RAND_MAX;
   }
 }

@@ -104,7 +104,7 @@ __global__ void PowerKernal1(const float* A, const float* B, float* C, int itera
     float I2=B[i];
 #pragma unroll 100
     // Excessive Addition access
-    for(float k=0; k<(float)iterations;k++) {
+    for(int k=0; k<iterations;k++) {
     	Value1=I1+I2;
     	Value3=I1-I2;
     	Value1+=Value2;
@@ -173,7 +173,7 @@ printf("after\n");
  
  checkCudaErrors(cudaEventSynchronize(stop));           
  checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));  
- printf("execution time = %.2f s\n", elapsedTime/1000);  
+ printf("gpu execution time = %.3f ms\n", elapsedTime);  
  getLastCudaError("kernel launch failure");              
  cudaThreadSynchronize();
 

@@ -11,7 +11,7 @@ static_power:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C static_power_modeling/INT_FP_TEX_STATIC/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C static_power_modeling/INT_FP_SFU_STATIC/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C static_power_modeling/LIGHT_SM/$(OPT)
-	
+
 branching:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C branching_benchmarks/BE_SP_INT_ADD_l1/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C branching_benchmarks/BE_SP_INT_ADD_l4/$(OPT)
@@ -89,6 +89,10 @@ functional:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C functional_benchmarks/BE_SFU_LG2/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C functional_benchmarks/BE_SFU_SIN/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C functional_benchmarks/BE_SFU_SQRT/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C functional_benchmarks/BE_HP_FP_ADD/$(OPT)       
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C functional_benchmarks/BE_HP_FP_MUL/$(OPT)       
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C functional_benchmarks/BE_HP_FP_MAD/$(OPT)       
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C functional_benchmarks/BE_HP_FP_DIV/$(OPT)    
 
 memories:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C memories_benchmarks/BE_TEXTURE_ACCESS_2/$(OPT)
@@ -209,39 +213,43 @@ cleanfunctional:
 	$(SETENV) make $(MAKE_ARGS) clean -C functional_benchmarks/BE_SFU_LG2/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C functional_benchmarks/BE_SFU_SIN/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C functional_benchmarks/BE_SFU_SQRT/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) clean -C functional_benchmarks/BE_HP_FP_ADD/$(OPT)       
+	$(SETENV) make $(MAKE_ARGS) clean -C functional_benchmarks/BE_HP_FP_MUL/$(OPT)       
+	$(SETENV) make $(MAKE_ARGS) clean -C functional_benchmarks/BE_HP_FP_MAD/$(OPT)       
+	$(SETENV) make $(MAKE_ARGS) clean -C functional_benchmarks/BE_HP_FP_DIV/$(OPT)  
 
 cleanmemories:
 	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/BE_TEXTURE_ACCESS_2/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/BE_MEM_SHRD_Acss/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/BE_MEM_CNST_Acss/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/BE_L1D_MISS/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/BE_L1D_MISS/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/BE_L1D_HIT/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/BE_L2D_HIT/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/BE_MEM_DRAM_Acss/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/BE_MEM_ACCESS/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/BE_TEXTURE_ACCESS_2/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/FE_IL0_HIT/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/FE_IL1_HIT/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/FE_IL1_MISS/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l1d_stress/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2r1/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2r2/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2r3/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2r4/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2r5/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2r6/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2r7/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2r8/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2r9/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2w1/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2w2/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2w3/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2w4/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2w5/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2w6/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2w7/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2w8/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2w9/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/FE_IL0_HIT/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/FE_IL1_HIT/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/FE_IL1_MISS/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l1d_stress/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2r1/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2r2/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2r3/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2r4/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2r5/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2r6/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2r7/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2r8/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2r9/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2w1/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2w2/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2w3/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2w4/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2w5/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2w6/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2w7/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2w8/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/l2w9/$(OPT)
 
 cleanbranching:
 	$(SETENV) make $(MAKE_ARGS) clean -C branching_benchmarks/BE_SP_INT_ADD_l1/$(OPT)
@@ -301,11 +309,11 @@ cleanbranching:
 	$(SETENV) make $(MAKE_ARGS) clean -C branching_benchmarks/BE_SP_FP_MUL_leven/$(OPT)	
 
 cleanmix:	
-	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/BE_SP_INT/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/BE_SP_FP/$(OPT)
+	#$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/BE_SP_INT/$(OPT)
+	#$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/BE_SP_FP/$(OPT)
 	#$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/BE_SP_INT_FP
-	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/BE_SFU/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/PP_FP_MEM/$(OPT)
+	#$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/BE_SFU/$(OPT)
+	#$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/PP_FP_MEM/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/BE_TEXTURE_ACCESS/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/add_mem_1/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/add_mem_2/$(OPT)
@@ -322,7 +330,7 @@ cleanmix:
 	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/const_mul/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/immediates_constant/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/immediates_texture/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/shrd_cnst/$(OPT)
+	#$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/shrd_cnst/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/mix1/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/mix2/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/mix3/$(OPT)
@@ -350,3 +358,5 @@ cleanmix:
 
 power: branching functional memories mix tensor static_power
 cleanpower: cleanbranching cleanfunctional cleanmemories cleanmix cleanstatic
+
+	

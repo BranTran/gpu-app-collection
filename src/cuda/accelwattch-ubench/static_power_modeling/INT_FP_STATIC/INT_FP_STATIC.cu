@@ -149,7 +149,18 @@ gpuErrchk( cudaMemcpy(data3_g, data3, total_threads*sizeof(uint32_t), cudaMemcpy
 gpuErrchk( cudaMemcpy(data4_g, data4, total_threads*sizeof(uint32_t), cudaMemcpyHostToDevice) );
 
 
+cudaEvent_t start, stop;                   
+float elapsedTime = 0;                     
+gpuErrchk(cudaEventCreate(&start));  
+gpuErrchk(cudaEventCreate(&stop));
+
+gpuErrchk(cudaEventRecord(start));              
 power_microbench<<<blocks,THREADS_PER_BLOCK>>>(data1_g, data2_g, data3_g, data4_g, res_g, div, iterations);
+gpuErrchk(cudaEventRecord(stop));               
+
+gpuErrchk(cudaEventSynchronize(stop));           
+gpuErrchk(cudaEventElapsedTime(&elapsedTime, start, stop));  
+printf("gpu execution time = %.3f ms\n", elapsedTime);  
 gpuErrchk( cudaPeekAtLastError() );
 
 
