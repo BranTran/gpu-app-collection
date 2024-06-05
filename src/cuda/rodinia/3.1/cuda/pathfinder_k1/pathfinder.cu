@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <assert.h>
+#include <stdint.h>
 
 #define BLOCK_SIZE 256
 #define STR_SIZE 256
@@ -196,7 +197,7 @@ int calc_path(int *gpuWall, int *gpuResult[2], int rows, int cols, \
             int temp = src;
             src = dst;
             dst = temp;
-            for(unsigned long long i = 0; i<1000000000000000; i++)
+            for(unsigned long long i = 0; i<UINT64_MAX; i++)
             dynproc_kernel<<<dimGrid, dimBlock>>>(
                 MIN(pyramid_height, rows-t-1), 
                 gpuWall, gpuResult[src], gpuResult[dst],
