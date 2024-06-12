@@ -84,12 +84,12 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 #define CONFIG 50
 // Device code
-__global__ static void PowerKernal(int* A, int* C, int iterations){
+__global__ static void PowerKernal(int* A, int* C, unsigned long long iterations){
     int tid = blockDim.x * blockIdx.x + threadIdx.x;
     //Do Some Computation
     int size = (LINE_SIZE*ASSOC*SETS)/sizeof(int); //32768
 
-    unsigned j=0, k=0;
+    unsigned long long j=0, k=0;
     int m_sum=0;
 	// Fill the L1 cache, Miss on first LD, Hit on subsequent LDs
 
@@ -123,13 +123,13 @@ __global__ static void PowerKernal(int* A, int* C, int iterations){
 int main(int argc, char** argv) 
 {
 
-	int iterations;
+	unsigned long long iterations;
 	if (argc != 2){
 		fprintf(stderr,"usage: %s #iterations\n",argv[0]);
 		exit(1);
 	}
 	else{
-		iterations = atoi(argv[1]);
+		iterations = atoll(argv[1]);
 	}
 
 	printf("Power Microbenchmark with %d iterations\n",iterations);

@@ -94,7 +94,7 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 
 
-__global__ void PowerKernal2(const float* A, const float* B, float* C, int N)
+__global__ void PowerKernal2(const float* A, const float* B, float* C, unsigned long long N)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     //Do Some Computation
@@ -106,7 +106,7 @@ __global__ void PowerKernal2(const float* A, const float* B, float* C, int N)
     float I2=B[i];
 #pragma unroll 100
     //sinusoidal functions
-    for(unsigned k=0; k<N;k++) {
+    for(unsigned long long k=0; k<N;k++) {
       Value2=__sinf(Value1);
       Value3=__cosf(Value2);
       Value1=__sinf(Value3);
@@ -128,16 +128,16 @@ __global__ void PowerKernal2(const float* A, const float* B, float* C, int N)
 
 int main(int argc, char** argv)
 {
- int iterations;
+ unsigned long long iterations;
  if(argc!=2) {
    fprintf(stderr,"usage: %s #iterations\n",argv[0]);
    exit(1);
  }
  else {
-   iterations = atoi(argv[1]);
+   iterations = atoll(argv[1]);
  }
  
- printf("Power Microbenchmarks with iterations %d\n",iterations);
+ printf("Power Microbenchmarks with iterations %lld\n",iterations);
  int N = THREADS_PER_BLOCK*NUM_OF_BLOCKS;
  size_t size = N * sizeof(float);
  // Allocate input vectors h_A and h_B in host memory

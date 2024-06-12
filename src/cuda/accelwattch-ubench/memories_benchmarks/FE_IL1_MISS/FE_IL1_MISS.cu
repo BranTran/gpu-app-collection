@@ -85,14 +85,14 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 
 // Device code
-__global__ void PowerKernal(const unsigned* A,unsigned* C, int iterations)
+__global__ void PowerKernal(const unsigned* A,unsigned* C, unsigned long long iterations)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     //Do Some Computation
     unsigned I1=A[i];
     #pragma unroll 1
     //Excessive Logical Unit access
-    for(unsigned k=0; k<iterations;k++) {
+    for(unsigned long long k=0; k<iterations;k++) {
     // BLOCK-0 (For instruction size of 16 bytes)
     	__asm volatile (	
     	"B0: bra.uni B1;\n\t"
@@ -214,13 +214,13 @@ __global__ void PowerKernal(const unsigned* A,unsigned* C, int iterations)
 int main(int argc, char** argv) 
 {
 
-  int iterations;
+  unsigned long long iterations;
   if (argc != 2){
     fprintf(stderr,"usage: %s #iterations\n",argv[0]);
     exit(1);
   }
   else{
-    iterations = atoi(argv[1]);
+    iterations = atoll(argv[1]);
   }
 
   printf("Power Microbenchmark with %d iterations\n",iterations);

@@ -87,7 +87,7 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 }
 
 // end of CUDA Helper Functions
-__global__ void PowerKernal2(const float* A, const float* B, float* C, int N)
+__global__ void PowerKernal2(const float* A, const float* B, float* C, unsigned long long N)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     //Do Some Computation
@@ -100,7 +100,7 @@ __global__ void PowerKernal2(const float* A, const float* B, float* C, int N)
 
     // Excessive Addition access
  //   if(i%32==0){
-    for(unsigned k=0; k<ITERATIONS;k++) {
+    for(unsigned long long k=0; k<iterations;k++) {
 
         	Value1=I1*Value1;
         	Value3=I2*Value3;

@@ -90,7 +90,7 @@ texture<float,1,cudaReadModeElementType> texmem2;
 texture<float,1,cudaReadModeElementType> texmem3;
 
 
-__global__ void PowerKernal(unsigned* Value, int iterations)
+__global__ void PowerKernal(unsigned* Value, unsigned long long iterations)
 {
 	int i = blockIdx.x*THREADS_PER_BLOCK + threadIdx.x;
 
@@ -98,7 +98,7 @@ __global__ void PowerKernal(unsigned* Value, int iterations)
 	unsigned Value2=0;
 	unsigned Value3=0;
 	unsigned Value4=0;
-    for(unsigned k=0; k<iterations;k++) {
+    for(unsigned long long k=0; k<iterations;k++) {
 		Value1=ConstArray1[(i+k)%THREADS_PER_BLOCK];
 		Value2=ConstArray2[(i+k+1)%THREADS_PER_BLOCK];
 		Value3=ConstArray3[(i+k+1)%THREADS_PER_BLOCK];
@@ -125,13 +125,13 @@ __global__ void PowerKernal(unsigned* Value, int iterations)
 
 int main(int argc, char** argv) 
 {
-    int iterations;
+    unsigned long long iterations;
     if (argc != 2){
         fprintf(stderr,"usage: %s #iterations\n",argv[0]);
         exit(1);
     }
     else{
-        iterations = atoi(argv[1]);
+        iterations = atoll(argv[1]);
     }
 
     printf("Power Microbenchmark with %d iterations\n",iterations);

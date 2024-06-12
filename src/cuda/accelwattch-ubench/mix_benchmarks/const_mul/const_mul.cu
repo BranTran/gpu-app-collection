@@ -82,7 +82,7 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 
 // Device code
-__global__ void PowerKernal(float* Value, int iterations)
+__global__ void PowerKernal(float* Value, unsigned long long iterations)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     
@@ -92,7 +92,7 @@ __global__ void PowerKernal(float* Value, int iterations)
     float Value2;
     float Value3;
     *Value=1;
-    for(unsigned k=0; k<iterations;k++) {
+    for(unsigned long long k=0; k<iterations;k++) {
     	Value1=ConstArray1[(i+k)%THREADS_PER_BLOCK];
     	Value2=ConstArray2[(i+k+1)%THREADS_PER_BLOCK];
     	Value3=ConstArray3[(i+k+5)%THREADS_PER_BLOCK];
@@ -109,13 +109,13 @@ __global__ void PowerKernal(float* Value, int iterations)
 
 int main(int argc, char** argv) 
 {
-    int iterations;
+    unsigned long long iterations;
     if (argc != 2){
         fprintf(stderr,"usage: %s #iterations\n",argv[0]);
         exit(1);
     }
     else{
-        iterations = atoi(argv[1]);
+        iterations = atoll(argv[1]);
     }
 
   printf("Power Microbenchmark with %d iterations\n",iterations);

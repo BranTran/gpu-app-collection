@@ -104,7 +104,7 @@ __constant__ float ConstArray7[THREADS_PER_BLOCK];
 __constant__ float ConstArray8[THREADS_PER_BLOCK];
 
 
-__global__ void tex_bm_kernel( float* out, unsigned size, int iterations)
+__global__ void tex_bm_kernel( float* out, unsigned size, unsigned long long iterations)
 {
 	int tid = blockIdx.x*MAX_THREADS_PER_BLOCK + threadIdx.x;
 	__device__ __shared__ float I1[THREADS_PER_BLOCK];
@@ -126,7 +126,7 @@ __global__ void tex_bm_kernel( float* out, unsigned size, int iterations)
 	I8[tid%THREADS_PER_BLOCK] = tid/2;
 	
 	if(tid < size){
-		for(unsigned i=0; i<iterations; ++i){
+		for(unsigned long long i=0; i<iterations; ++i){
 			out[tid] = I5[(tid+i)%THREADS_PER_BLOCK]*2;
 			out[tid*2] = ConstArray1[(tid+i)%THREADS_PER_BLOCK];
 			out[tid*3] =  I1[(tid+i)%THREADS_PER_BLOCK];
@@ -147,13 +147,13 @@ __global__ void tex_bm_kernel( float* out, unsigned size, int iterations)
 ////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char** argv) 
 {
-    int iterations;
+    unsigned long long iterations;
     if (argc != 2){
         fprintf(stderr,"usage: %s #iterations\n",argv[0]);
         exit(1);
     }
     else{
-        iterations = atoi(argv[1]);
+        iterations = atoll(argv[1]);
     }
 
     printf("Power Microbenchmark with %d iterations\n",iterations);

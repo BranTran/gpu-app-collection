@@ -105,12 +105,12 @@ texture<float,1,cudaReadModeElementType> texmem8;
 
 
 
-__global__ void tex_bm_kernel( float* out, unsigned size, int iterations)
+__global__ void tex_bm_kernel( float* out, unsigned size, unsigned long long iterations)
 {
 	int tid = blockIdx.x*MAX_THREADS_PER_BLOCK + threadIdx.x;
 	float Value=0;float Value1=0;float Value2=0;float Value3=0;float Value4=0;float Value5=0;
 	if(tid < size){
-		for(unsigned i=0; i<iterations; ++i){
+		for(unsigned long long i=0; i<iterations; ++i){
 			Value1 = tex1Dfetch(texmem1,tid) + Value5;
 			Value2 = tex1Dfetch(texmem2,tid) + Value4;
 			Value3 = tex1Dfetch(texmem3,tid) + Value3;
@@ -130,13 +130,13 @@ __global__ void tex_bm_kernel( float* out, unsigned size, int iterations)
 int main(int argc, char** argv) 
 {
 
-	int iterations;
+	unsigned long long iterations;
 	if (argc != 2){
 		fprintf(stderr,"usage: %s #iterations\n",argv[0]);
 		exit(1);
 	}
 	else{
-		iterations = atoi(argv[1]);
+		iterations = atoll(argv[1]);
 	}
 
 	printf("Power Microbenchmark with %d iterations\n",iterations);

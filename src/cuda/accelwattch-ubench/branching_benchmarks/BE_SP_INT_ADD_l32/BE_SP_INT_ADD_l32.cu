@@ -79,7 +79,7 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 }
 // end of CUDA Helper Functions
 
-__global__ void PowerKernal2(const unsigned* A, const unsigned* B, unsigned* C, int iterations)
+__global__ void PowerKernal2(const unsigned* A, const unsigned* B, unsigned* C, unsigned long long iterations)
 {
   int i = blockDim.x * blockIdx.x + threadIdx.x;
   //Do Some Computation
@@ -93,7 +93,7 @@ __global__ void PowerKernal2(const unsigned* A, const unsigned* B, unsigned* C, 
   // Excessive INT addition access
   if((i%32)<=31){
     #pragma unroll 100
-    for(unsigned k=0; k<iterations;k++) {
+    for(unsigned long long k=0; k<iterations;k++) {
       Value2= I1+I2;
       Value3=I1-I2;
       Value1-=Value2;
@@ -112,13 +112,13 @@ __global__ void PowerKernal2(const unsigned* A, const unsigned* B, unsigned* C, 
 int main(int argc, char** argv) 
 {
 
-  int iterations;
+  unsigned long long iterations;
   if (argc != 2){
   fprintf(stderr,"usage: %s #iterations\n",argv[0]);
   exit(1);
   }
   else{
-    iterations = atoi(argv[1]);
+    iterations = atoll(argv[1]);
   }
 
  printf("Power Microbenchmark with %d iterations\n",iterations);

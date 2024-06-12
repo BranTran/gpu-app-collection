@@ -83,7 +83,7 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 }
 
 // end of CUDA Helper Functions
-__global__ void PowerKernal2(const float* A, const float* B, float* C, int N, unsigned iterations, int div)
+__global__ void PowerKernal2(const float* A, const float* B, float* C, int N, unsigned long long iterations, int div)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     //Do Some Computation
@@ -97,7 +97,7 @@ __global__ void PowerKernal2(const float* A, const float* B, float* C, int N, un
 
     if((i%32)<div){
       #pragma unroll 100
-      for(unsigned i=0; i<iterations; ++i) {	
+      for(unsigned long long i=0; i<iterations; ++i) {	
   		  asm volatile ("nanosleep.u32 1000;");
   	  }
     }
@@ -110,7 +110,7 @@ __global__ void PowerKernal2(const float* A, const float* B, float* C, int N, un
 
 int main(int argc, char** argv)
 {
-  unsigned iterations;
+  unsigned long long iterations;
   int blocks;
   int div;
   if (argc != 4){
@@ -118,7 +118,7 @@ int main(int argc, char** argv)
     exit(1);
   }
   else {
-    iterations = atoi(argv[1]);
+    iterations = atoll(argv[1]);
     blocks = atoi(argv[2]);
     div = atoi(argv[3]);
   }

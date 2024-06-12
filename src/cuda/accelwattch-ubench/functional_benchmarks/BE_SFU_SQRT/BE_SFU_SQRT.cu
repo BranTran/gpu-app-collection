@@ -93,7 +93,7 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 
 
-__global__ void PowerKernal3(const float* A, const float* B, float* C, int iterations)
+__global__ void PowerKernal3(const float* A, const float* B, float* C, unsigned long long iterations)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     //Do Some Computation
@@ -105,7 +105,7 @@ __global__ void PowerKernal3(const float* A, const float* B, float* C, int itera
     float I2=B[i];
 #pragma unroll 100
     //square root
-    for(int k=0; k<iterations;k++) {
+    for(unsigned long long k=0; k<iterations;k++) {
   Value1=sqrt(Value2);
   Value1=sqrt(Value1);
   Value2=sqrt(I2);
@@ -129,15 +129,15 @@ __global__ void PowerKernal3(const float* A, const float* B, float* C, int itera
 
 int main(int argc, char** argv)
 {
- int iterations;
+ unsigned long long iterations;
  if(argc !=2) {
    fprintf(stderr,"usage: %d #iterations\n",argv[0]);
    exit(1);
  }
  else {
-   iterations = atoi(argv[1]);
+   iterations = atoll(argv[1]);
  }
- printf("Power Microbenchmarks with iterations %d\n",iterations);
+ printf("Power Microbenchmarks with iterations %lld\n",iterations);
  int N = THREADS_PER_BLOCK*NUM_OF_BLOCKS;
  size_t size = N * sizeof(float);
  // Allocate input vectors h_A and h_B in host memory

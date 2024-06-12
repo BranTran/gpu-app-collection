@@ -83,7 +83,7 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 
 // Device code
-__global__ void PowerKernal1(const float* A, const float* B, float* C, int iterations)
+__global__ void PowerKernal1(const float* A, const float* B, float* C, unsigned long long iterations)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     //Do Some Computation
@@ -110,7 +110,7 @@ __global__ void PowerKernal1(const float* A, const float* B, float* C, int itera
 
 }
 
-__global__ void PowerKernal2(const float* A, const float* B, float* C, int iterations)
+__global__ void PowerKernal2(const float* A, const float* B, float* C, unsigned long long iterations)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     //Do Some Computation
@@ -139,7 +139,7 @@ __global__ void PowerKernal2(const float* A, const float* B, float* C, int itera
 }
 
 
-__global__ void PowerKernal3(const float* A, const float* B, float* C, int iterations)
+__global__ void PowerKernal3(const float* A, const float* B, float* C, unsigned long long iterations)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     //Do Some Computation
@@ -171,7 +171,7 @@ __global__ void PowerKernal3(const float* A, const float* B, float* C, int itera
 
 }
 
-__global__ void PowerKernalEmpty(const float* A, const float* B, float* C, int iterations)
+__global__ void PowerKernalEmpty(const float* A, const float* B, float* C, unsigned long long iterations)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     //Do Some Computation
@@ -235,7 +235,7 @@ __global__ void PowerKernalEmpty(const float* A, const float* B, float* C, int i
 
 }
 
-__global__ void PowerKernal4(const float* A, const float* B, float* C, int iterations)
+__global__ void PowerKernal4(const float* A, const float* B, float* C, unsigned long long iterations)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     //Do Some Computation
@@ -272,13 +272,13 @@ __global__ void PowerKernal4(const float* A, const float* B, float* C, int itera
 int main(int argc, char** argv) 
 {
 
-  int iterations;
+  unsigned long long iterations;
   if (argc != 2){
   fprintf(stderr,"usage: %s #iterations\n",argv[0]);
   exit(1);
   }
   else{
-    iterations = atoi(argv[1]);
+    iterations = atoll(argv[1]);
   }
 
  printf("Power Microbenchmark with %d iterations\n",iterations);

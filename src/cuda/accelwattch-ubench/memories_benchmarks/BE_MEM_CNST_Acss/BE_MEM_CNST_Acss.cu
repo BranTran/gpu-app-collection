@@ -122,7 +122,7 @@ int main(int argc, char** argv)
   iterations = strtoull(argv[1], &ptr, 10);
  }
 
- printf("Power Microbenchmark with %llu iterations\n",iterations);
+ printf("Power Microbenchmarks with iterations %lld\n",iterations);
  int N = THREADS_PER_BLOCK*NUM_OF_BLOCKS;
  unsigned array1[N];
  h_Value = (unsigned *) malloc(sizeof(unsigned));

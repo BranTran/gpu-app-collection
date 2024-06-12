@@ -64,7 +64,7 @@ __global__ void l1_pointers_init(uint64_t *posArray){
   }
 }
 
-__global__ void l1_stress(uint64_t *posArray, uint64_t *dsink, unsigned iterations){
+__global__ void l1_stress(uint64_t *posArray, uint64_t *dsink, unsigned long long iterations){
 
   // thread index
   uint32_t tid = blockIdx.x*blockDim.x + threadIdx.x;
@@ -87,7 +87,7 @@ __global__ void l1_stress(uint64_t *posArray, uint64_t *dsink, unsigned iteratio
   	// pointer-chasing iterations times
   	// use ca modifier to cache the load in L1
   	#pragma unroll 100
-  	for(unsigned i=0; i<iterations; ++i) { 
+  	for(unsigned long long i=0; i<iterations; ++i) { 
   	  asm volatile ("{\t\n"
   	    "ld.global.ca.u64 %0, [%1];\n\t"
   	    "}" : "=l"(ptr0) : "l"((uint64_t*)ptr1) : "memory"
@@ -102,13 +102,13 @@ __global__ void l1_stress(uint64_t *posArray, uint64_t *dsink, unsigned iteratio
 }
 
 int main(int argc, char** argv){
-  unsigned iterations;
+  unsigned long long iterations;
   if (argc != 2){
     fprintf(stderr,"usage: %s #iterations #cores #ActiveThreadsperWarp\n",argv[0]);
     exit(1);
   }
   else {
-    iterations = atoi(argv[1]);
+    iterations = atoll(argv[1]);
   }
   int total_threads = THREADS_NUM*NUM_BLOCKS;
  printf("Power Microbenchmarks with iterations %lu\n",iterations);

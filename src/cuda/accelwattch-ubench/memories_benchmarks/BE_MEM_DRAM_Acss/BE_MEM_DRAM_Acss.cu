@@ -96,7 +96,7 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 
 
-__global__ void PowerKernal2( unsigned* A, unsigned* B, int N)
+__global__ void PowerKernal2( unsigned* A, unsigned* B, unsigned long long N)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -107,7 +107,7 @@ __global__ void PowerKernal2( unsigned* A, unsigned* B, int N)
     unsigned size_l2 = (LINE_SIZE*ASSOC*SETS);
     unsigned stride = size_l2/sizeof(unsigned) -1;
     #pragma unroll 100
-    for(unsigned iterations=0; iterations<N;iterations++) {    
+    for(unsigned long long iterations=0; iterations<N;iterations++) {    
         unsigned * loadAddr = &A[i];
         unsigned * storeAddr = &B[i];
         #pragma unroll 10
@@ -133,16 +133,16 @@ __global__ void PowerKernal2( unsigned* A, unsigned* B, int N)
 
 int main(int argc, char** argv)
 {
- int iterations;
+ unsigned long long iterations;
  if(argc!=2) {
    fprintf(stderr,"usage: %s #iterations\n",argv[0]);
    exit(1);
  }
  else {
-   iterations = atoi(argv[1]);
+   iterations = atoll(argv[1]);
  }
  
- printf("Power Microbenchmarks with iterations %d\n",iterations);
+ printf("Power Microbenchmarks with iterations %lld\n",iterations);
 
  unsigned long size_l2 = (LINE_SIZE*ASSOC*SETS);
  unsigned long N = size_l2*ITERATIONS;

@@ -57,7 +57,7 @@ const int WMMA_K = 16;
 
 
 
-__global__ void wmma_example(half *a, half *b, float *c, int M, int N, int K, int iterations) {
+__global__ void wmma_example(half *a, half *b, float *c, int M, int N, int K, unsigned long long iterations) {
    // Leading dimensions. Packed with no transpositions.
    int lda = M;
    int ldb = K;
@@ -73,7 +73,7 @@ __global__ void wmma_example(half *a, half *b, float *c, int M, int N, int K, in
    wmma::load_matrix_sync(c_frag, c , ldc, wmma::mem_col_major);
    
    #pragma unroll 100
-   for(int i=0; i<iterations; i++){
+   for(unsigned long long i=0; i<iterations; i++){
       wmma::mma_sync(c_frag, a_frag, b_frag, c_frag);
    }
 
@@ -95,13 +95,13 @@ void RandomInit_fp(float* data, int n)
 }
 
 int main(int argc, char* argv[]) {
-   int iterations;
+   unsigned long long iterations;
     if(argc!=2) {
       fprintf(stderr,"usage: %s #iterations\n",argv[0]);
       exit(1);
     }
     else {
-      iterations = atoi(argv[1]);
+      iterations = atoll(argv[1]);
     }
    float *a_fp32;
    float *b_fp32;

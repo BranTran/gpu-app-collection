@@ -69,7 +69,7 @@ void curandErrCheck_(curandStatus_t stat, const char *file, int line) {
 
 
 
-__global__ void power_microbench(float *data1, float *data2, uint32_t *data3, uint32_t *data4, float *res, int div, unsigned iterations, half *a, half *b, float *c, int M, int N, int K) {
+__global__ void power_microbench(float *data1, float *data2, uint32_t *data3, uint32_t *data4, float *res, int div, unsigned long long iterations, half *a, half *b, float *c, int M, int N, int K) {
 
   int gid = blockIdx.x*blockDim.x + threadIdx.x;
   register float s1 = data1[gid];
@@ -143,7 +143,7 @@ void RandomInit_fp(float* data, int n)
 }
 
 int main(int argc, char** argv){
-  unsigned iterations;
+  unsigned long long iterations;
   int blocks;
   int div;
   if (argc != 4){
@@ -151,7 +151,7 @@ int main(int argc, char** argv){
     exit(1);
   }
   else {
-    iterations = atoi(argv[1]);
+    iterations = atoll(argv[1]);
     blocks = atoi(argv[2]);
     div = atoi(argv[3]);
   }

@@ -107,7 +107,7 @@ __global__ void PowerKernal2(const unsigned* A, const unsigned* B, unsigned* C, 
 if((i%32)<div){
 #pragma unroll 100
     // Excessive Addition access
-    for(unsigned k=0; k<N;k++) {
+    for(unsigned long long k=0; k<N;k++) {
 
       Value1=I1+I2;
       Value3=I1-I2;
@@ -136,7 +136,7 @@ if((i%32)<div){
 
 int main(int argc, char** argv)
 {
-  unsigned iterations;
+  unsigned long long iterations;
   unsigned blocks;
   int div;
   if (argc != 4){
@@ -144,12 +144,12 @@ int main(int argc, char** argv)
     exit(1);
   }
   else {
-    iterations = atoi(argv[1]);
+    iterations = atoll(argv[1]);
     blocks = atoi(argv[2]);
     div = atoi(argv[3]);
   }
  
- printf("Power Microbenchmarks with iterations %llu\n",iterations);
+ printf("Power Microbenchmarks with iterations %lld\n",iterations);
  int N = THREADS_PER_BLOCK*blocks;
  size_t size = N * sizeof(unsigned);
  // Allocate input vectors h_A and h_B in host memory
