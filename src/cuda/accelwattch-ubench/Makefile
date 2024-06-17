@@ -1,3 +1,7 @@
+inline:
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/SP_FP_ADD_inline/$(OPT)
+
+
 tensor:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C tensor_benchmarks/TENSOR/$(OPT)
 
@@ -179,6 +183,10 @@ mix:
 	#$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C POWER/shrd_tex_fp
 	#$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C POWER/shrd_tex_sfu
 
+cleaninline:
+	$(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/SP_FP_ADD_inline/$(OPT)   
+
+
 cleantensor:
 	$(SETENV) make $(MAKE_ARGS) clean -C tensor_benchmarks/TENSOR/$(OPT)   
 
@@ -356,7 +364,7 @@ cleanmix:
 	#$(SETENV) make $(MAKE_ARGS) clean -C POWER/shrd_tex_fp
 	#$(SETENV) make $(MAKE_ARGS) clean -C POWER/shrd_tex_sfu
 
-power: branching functional memories mix tensor static_power
-cleanpower: cleanbranching cleanfunctional cleanmemories cleanmix cleanstatic
+power: branching functional memories mix tensor static_power inline
+cleanpower: cleanbranching cleanfunctional cleanmemories cleanmix cleanstatic cleaninline
 
 	
