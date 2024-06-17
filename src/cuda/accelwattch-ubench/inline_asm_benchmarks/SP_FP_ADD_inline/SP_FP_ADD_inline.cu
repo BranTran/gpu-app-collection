@@ -118,7 +118,7 @@ __global__ void PowerKernal1(const float* A, const float* B, float* C, unsigned 
         "add.f32 %0, %0, %1;\n\t"
         "sub.f32 %1, %2, %0;\n\t"
         "add.f32 %0, %1, %2;\n\t"            
-      "}" : "+f"(Value1),"+f"(Value2),"+f"(Value3),"+f"(I1),"+f"(I2),      
+      "}" : "+f"(Value1),"+f"(Value2),"+f"(Value3),"+f"(I1),"+f"(I2)      
       );
     }
     // synchronize all threads
@@ -174,8 +174,6 @@ printf("after\n");
  //VecAdd<<<blocksPerGrid, threadsPerBlock>>>(d_A, d_B, d_C, N);
  dim3 dimGrid(NUM_OF_BLOCKS,1);
  dim3 dimBlock(THREADS_PER_BLOCK,1);
- dim3 dimGrid2(1,1);
- dim3 dimBlock2(1,1);
 
  checkCudaErrors(cudaEventRecord(start));              
  PowerKernal1<<<dimGrid,dimBlock>>>(d_A, d_B, d_C, iterations);  
