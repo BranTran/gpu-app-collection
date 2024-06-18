@@ -220,6 +220,24 @@ rodinia-3.1_hw_power:
 	mv cuda/rodinia/3.1/cuda/pathfinder_k1/pathfinder $(BINDIR)/$(BINSUBDIR)/pathfinder_k1
 	mv cuda/rodinia/3.1/cuda/srad/srad_v1_k1/srad $(BINDIR)/$(BINSUBDIR)/srad_v1_k1
 
+rodinia-3.1_one_kernel_hw_power:
+	mkdir -p $(BINDIR)/$(BINSUBDIR)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/backprop_k1 -f Makefile_nvidia
+	mv $(BINDIR)/$(BINSUBDIR)/backprop $(BINDIR)/$(BINSUBDIR)/backprop_k1_one_kernel
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/backprop_k2 -f Makefile_nvidia
+	mv $(BINDIR)/$(BINSUBDIR)/backprop $(BINDIR)/$(BINSUBDIR)/backprop_k2_one_kernel
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/hotspot_k1 -f Makefile_nvidia
+	mv $(BINDIR)/$(BINSUBDIR)/hotspot $(BINDIR)/$(BINSUBDIR)/hotspot_k1_one_kernel
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/kmeans_k1 -f Makefile_nvidia
+	mv $(BINDIR)/$(BINSUBDIR)/kmeans $(BINDIR)/$(BINSUBDIR)/kmeans_k1_one_kernel
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/b+tree_k1/
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/b+tree_k2/
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/pathfinder_k1/
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/srad/srad_v1_k1
+	mv cuda/rodinia/3.1_one_kernel/cuda/b+tree_k1/b+tree.out $(BINDIR)/$(BINSUBDIR)/btree_k1_one_kernel
+	mv cuda/rodinia/3.1_one_kernel/cuda/b+tree_k2/b+tree.out $(BINDIR)/$(BINSUBDIR)/btree_k2_one_kernel
+	mv cuda/rodinia/3.1_one_kernel/cuda/pathfinder_k1/pathfinder $(BINDIR)/$(BINSUBDIR)/pathfinder_k1_one_kernel
+	mv cuda/rodinia/3.1_one_kernel/cuda/srad/srad_v1_k1/srad $(BINDIR)/$(BINSUBDIR)/srad_v1_k1_one_kernel
 	
 cuda_samples-11.0_accelwattch_validation:
 	mkdir -p $(BINDIR)/$(BINSUBDIR)
@@ -518,6 +536,16 @@ clean_rodinia-3.1_hw_power:
 	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1/cuda/b+tree_k2/
 	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1/cuda/pathfinder_k1/
 	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1/cuda/srad/srad_v1_k1
+
+clean_rodinia-1_one_kernel_hw_power:
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/backprop_k1 -f Makefile_nvidia
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/backprop_k2 -f Makefile_nvidia
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/hotspot_k1 -f Makefile_nvidia
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/kmeans_k1 -f Makefile_nvidia
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/b+tree_k1/
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/b+tree_k2/
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/pathfinder_k1/
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/srad/srad_v1_k1
 
 clean_cuda_samples:
 	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/NVIDIA_CUDA-11.0_Samples/binomialOptions
