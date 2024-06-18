@@ -369,7 +369,6 @@ int main(int argc, char *argv []){
 		q0sqr = varROI / meanROI2;											// gets standard deviation of ROI
 
 		// execute srad kernel
-		for(uint64_t i = 0; i<UINT64_MAX; i++)
 		srad<<<blocks, threads>>>(	lambda,									// SRAD coefficient 
 									Nr,										// # of rows in input image
 									Nc,										// # of columns in input image

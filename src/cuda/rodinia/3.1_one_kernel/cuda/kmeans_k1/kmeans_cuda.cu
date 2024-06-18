@@ -190,7 +190,6 @@ kmeansCuda(float  **feature,				/* in: [npoints][nfeatures] */
     dim3  threads( num_threads_perdim*num_threads_perdim );
     
 	/* execute the kernel */
-	for(uint64_t i = 0; i<UINT64_MAX; i++)
     kmeansPoint<<< grid, threads >>>( feature_d,
                                       nfeatures,
                                       npoints,

@@ -86,7 +86,7 @@ __global__ void bpnn_adjust_weights_cuda(float * delta,
 										 float * oldw)  									
 {
   
-  
+for(uint64_t onek = 0; onek < UINT64_MAX; onek++){
    int by = blockIdx.y;
 
    int tx = threadIdx.x;
@@ -109,6 +109,6 @@ __global__ void bpnn_adjust_weights_cuda(float * delta,
    oldw[index_x] = ((ETA * delta[index_x]) + (MOMENTUM * oldw[index_x]));
    }
 
-
+}//for onek
 }
 #endif 

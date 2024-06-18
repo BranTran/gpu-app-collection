@@ -17,7 +17,7 @@ findRangeK(	long height,
 			int *RecstartD, 
 			int *ReclenD)
 {
-
+for(uint64_t onek = 0; onek < UINT64_MAX; onek++){
 	// private thread IDs
 	int thid = threadIdx.x;
 	int bid = blockIdx.x;
@@ -62,7 +62,7 @@ findRangeK(	long height,
 	if(knodesD[lastKnodeD[bid]].keys[thid] == endD[bid]){
 		ReclenD[bid] = knodesD[lastKnodeD[bid]].indices[thid] - RecstartD[bid]+1;
 	}
-
+}//for onek
 }
 
 //========================================================================================================================================================================================================200

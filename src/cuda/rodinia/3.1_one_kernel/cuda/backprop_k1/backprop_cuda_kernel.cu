@@ -17,6 +17,7 @@ bpnn_layerforward_CUDA(float *input_cuda,
 					   int in,
 					   int hid) 
 {
+for(uint64_t onek = 0; onek < UINT64_MAX; onek++){
    int by = blockIdx.y;
    int tx = threadIdx.x;
    int ty = threadIdx.y;
@@ -74,7 +75,7 @@ bpnn_layerforward_CUDA(float *input_cuda,
    if ( tx == 0 ) {
 	   hidden_partial_sum[by * hid + ty] = weight_matrix[tx][ty];
    }
-
+}//for onek
 }
 
 

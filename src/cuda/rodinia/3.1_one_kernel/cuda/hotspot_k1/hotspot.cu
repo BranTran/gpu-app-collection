@@ -120,7 +120,7 @@ __global__ void calculate_temp(int iteration,  //number of iteration
         __shared__ float temp_on_cuda[BLOCK_SIZE][BLOCK_SIZE];
         __shared__ float power_on_cuda[BLOCK_SIZE][BLOCK_SIZE];
         __shared__ float temp_t[BLOCK_SIZE][BLOCK_SIZE]; // saving temparary temperature result
-
+for(uint64_t onek = 0; onek < UINT64_MAX; onek++){
 	float amb_temp = 80.0;
         float step_div_Cap;
         float Rx_1,Ry_1,Rz_1;
@@ -213,6 +213,7 @@ __global__ void calculate_temp(int iteration,  //number of iteration
       if (computed){
           temp_dst[index]= temp_t[ty][tx];		
       }
+}//for onek
 }
 
 /*
@@ -245,7 +246,6 @@ int compute_tran_temp(float *MatrixPower,float *MatrixTemp[2], int col, int row,
             int temp = src;
             src = dst;
             dst = temp;
-            for(unsigned long long i = 0; i<UINT64_MAX; i++)
             calculate_temp<<<dimGrid, dimBlock>>>(MIN(num_iterations, total_iterations-t), MatrixPower,MatrixTemp[src],MatrixTemp[dst],\
 		col,row,borderCols, borderRows, Cap,Rx,Ry,Rz,step,time_elapsed);
 	}

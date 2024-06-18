@@ -16,7 +16,7 @@ __global__ void srad(	fp d_lambda,
 									 fp d_q0sqr, 
 									 fp *d_c, 
 									 fp *d_I){
-
+for(uint64_t onek = 0; onek < UINT64_MAX; onek++){
 	// indexes
     int bx = blockIdx.x;													// get current horizontal block index
 	int tx = threadIdx.x;													// get current horizontal thread index
@@ -80,5 +80,5 @@ __global__ void srad(	fp d_lambda,
 		d_c[ei] = d_c_loc;
 			
 	}
-	
+}//for onek	
 }

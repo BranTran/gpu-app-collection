@@ -114,7 +114,7 @@ __global__ void dynproc_kernel(
 
         __shared__ int prev[BLOCK_SIZE];
         __shared__ int result[BLOCK_SIZE];
-
+for(uint64_t onek = 0; onek < UINT64_MAX; onek++){
 	int bx = blockIdx.x;
 	int tx=threadIdx.x;
 	
@@ -181,6 +181,7 @@ __global__ void dynproc_kernel(
       if (computed){
           gpuResults[xidx]=result[tx];		
       }
+}//for onek
 }
 
 /*
@@ -197,7 +198,6 @@ int calc_path(int *gpuWall, int *gpuResult[2], int rows, int cols, \
             int temp = src;
             src = dst;
             dst = temp;
-            for(unsigned long long i = 0; i<UINT64_MAX; i++)
             dynproc_kernel<<<dimGrid, dimBlock>>>(
                 MIN(pyramid_height, rows-t-1), 
                 gpuWall, gpuResult[src], gpuResult[dst],

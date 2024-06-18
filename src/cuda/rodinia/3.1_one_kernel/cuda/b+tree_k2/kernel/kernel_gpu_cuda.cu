@@ -13,7 +13,7 @@ findK(	long height,
 		int *keysD, 
 		record *ansD)
 {
-
+for(uint64_t onek = 0; onek < UINT64_MAX; onek++){
 	// private thread IDs
 	int thid = threadIdx.x;
 	int bid = blockIdx.x;
@@ -46,7 +46,7 @@ findK(	long height,
 	if(knodesD[currKnodeD[bid]].keys[thid] == keysD[bid]){
 		ansD[bid].value = recordsD[knodesD[currKnodeD[bid]].indices[thid]].value;
 	}
-
+}//for onek
 }
 
 //========================================================================================================================================================================================================200
