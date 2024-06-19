@@ -1,5 +1,6 @@
 inline:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/SP_FP_ADD_inline/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/SP_FP_ADD_inline_one_op/$(OPT)
 
 
 tensor:
@@ -185,6 +186,7 @@ mix:
 
 cleaninline:
 	$(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/SP_FP_ADD_inline/$(OPT)   
+	$(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/SP_FP_ADD_inline_one_op/$(OPT)   
 
 
 cleantensor:
