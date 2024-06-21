@@ -94,7 +94,8 @@ __global__ void PowerKernal1(const float* A, const float* B, float* C, unsigned 
     register float Value1 = 0;    //%0
     register float I1     = A[i]; //%1
     register float I2     = B[i]; //%2
-    float Value  = 0;    //%5 Not necessary
+    float Value  = 0;    //%5
+    float Value2 = 0;
 
     // synchronize all threads
     asm volatile ("bar.sync 0;");
