@@ -114,6 +114,7 @@ __global__ void dynproc_kernel(
 
         __shared__ int prev[BLOCK_SIZE];
         __shared__ int result[BLOCK_SIZE];
+#pragma unroll 100
 for(uint64_t onek = 0; onek < UINT64_MAX; onek++){
 	int bx = blockIdx.x;
 	int tx=threadIdx.x;

@@ -17,6 +17,9 @@ bpnn_layerforward_CUDA(float *input_cuda,
 					   int in,
 					   int hid) 
 {
+   __shared__ float input_node[HEIGHT];
+   __shared__ float weight_matrix[HEIGHT][WIDTH];
+#pragma unroll 100
 for(uint64_t onek = 0; onek < UINT64_MAX; onek++){
    int by = blockIdx.y;
    int tx = threadIdx.x;
@@ -25,10 +28,6 @@ for(uint64_t onek = 0; onek < UINT64_MAX; onek++){
    int index =  ( hid + 1 ) * HEIGHT * by + ( hid + 1 ) * ty + tx + 1 + ( hid + 1 ) ;  
 
    int index_in = HEIGHT * by + ty + 1;
-   
-   __shared__ float input_node[HEIGHT];
-   __shared__ float weight_matrix[HEIGHT][WIDTH];
-
 
    if ( tx == 0 )
    input_node[ty] = input_cuda[index_in] ;

@@ -16,6 +16,7 @@ __global__ void srad(	fp d_lambda,
 									 fp d_q0sqr, 
 									 fp *d_c, 
 									 fp *d_I){
+#pragma unroll 100
 for(uint64_t onek = 0; onek < UINT64_MAX; onek++){
 	// indexes
     int bx = blockIdx.x;													// get current horizontal block index

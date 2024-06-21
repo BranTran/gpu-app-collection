@@ -120,6 +120,7 @@ __global__ void calculate_temp(int iteration,  //number of iteration
         __shared__ float temp_on_cuda[BLOCK_SIZE][BLOCK_SIZE];
         __shared__ float power_on_cuda[BLOCK_SIZE][BLOCK_SIZE];
         __shared__ float temp_t[BLOCK_SIZE][BLOCK_SIZE]; // saving temparary temperature result
+#pragma unroll 100
 for(uint64_t onek = 0; onek < UINT64_MAX; onek++){
 	float amb_temp = 80.0;
         float step_div_Cap;

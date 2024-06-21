@@ -85,7 +85,7 @@ __global__ void bpnn_adjust_weights_cuda(float * delta,
 										 float * w,       
 										 float * oldw)  									
 {
-  
+#pragma unroll 100  
 for(uint64_t onek = 0; onek < UINT64_MAX; onek++){
    int by = blockIdx.y;
 

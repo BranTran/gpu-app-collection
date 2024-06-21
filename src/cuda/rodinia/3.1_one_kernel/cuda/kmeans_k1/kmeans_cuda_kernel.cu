@@ -64,6 +64,7 @@ kmeansPoint(float  *features,			/* in: [npoints*nfeatures] */
 			float  *block_clusters,
 			int    *block_deltas) 
 {
+#pragma unroll 100
 for(uint64_t onek = 0; onek < UINT64_MAX; onek++){
 	// block ID
 	const unsigned int block_id = gridDim.x*blockIdx.y+blockIdx.x;
