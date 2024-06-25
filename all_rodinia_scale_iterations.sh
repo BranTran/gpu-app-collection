@@ -21,6 +21,8 @@ done
 
 # List of iterations
 ITERS=(
+    10
+    100
     250000
     300000
     2000000
