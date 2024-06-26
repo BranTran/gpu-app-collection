@@ -48,10 +48,10 @@
 // Variables
 int* h_A;
 int* h_B;
-int* h_C;
+long long* h_C;
 int* d_A;
 int* d_B;
-int* d_C;
+long long* d_C;
 //bool noprompt = false;
 //unsigned int my_timer;
 
@@ -91,18 +91,18 @@ __global__ void PowerKernal2(const int* A, const int* B, long long* C, unsigned 
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     //Do Some Computation
-    long long Value1;
+    long long Value1 = i;
     long long Value;
     int I1=A[i];
     int I2=B[i];
     // TESTING ONE INSTRUCTION
       asm volatile ("{\t\n"
-        "imad.wide %2, %0, %1, %0;\n\t"
-      "}" : "r"(I1),"r"(I2),"=r"(Value1)
+        "mad.wide.s32 %3, %0, %1, %2;\n\t"
+      "}" : "+r"(I1),"+r"(I2),"+l"(Value1),"=l"(Value)
       );
     __syncthreads();
 
-    C[i]=Value1;
+    C[i]=Value;
     __syncthreads();
 }
 
@@ -125,7 +125,7 @@ int main(int argc, char** argv)
  if (h_A == 0) CleanupResources();
  h_B = (int*)malloc(size);
  if (h_B == 0) CleanupResources();
- h_C = (long long*)malloc(size);
+ h_C = (long long*)malloc(N*sizeof(long long));
  if (h_C == 0) CleanupResources();
 
  // Initialize input vectors
@@ -151,8 +151,6 @@ printf("after\n");
  //VecAdd<<<blocksPerGrid, threadsPerBlock>>>(d_A, d_B, d_C, N);
  dim3 dimGrid(NUM_OF_BLOCKS,1);
  dim3 dimBlock(THREADS_PER_BLOCK,1);
- dim3 dimGrid2(1,1);
- dim3 dimBlock2(1,1);
 
  checkCudaErrors(cudaEventRecord(start));              
  PowerKernal2<<<dimGrid,dimBlock>>>(d_A, d_B, d_C, iterations);  

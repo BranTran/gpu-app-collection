@@ -48,10 +48,10 @@
 // Variables
 int* h_A;
 int* h_B;
-int* h_C;
+long long* h_C;
 int* d_A;
 int* d_B;
-int* d_C;
+long long* d_C;
 //bool noprompt = false;
 //unsigned int my_timer;
 
@@ -91,7 +91,7 @@ __global__ void PowerKernal2(const int* A, const int* B, long long* C, unsigned 
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     //Do Some Computation
-    long long Value1;
+    long long Value1=0;
     long long Value2;
     long long Value3;
     long long Value;
@@ -101,19 +101,20 @@ __global__ void PowerKernal2(const int* A, const int* B, long long* C, unsigned 
     // Excessive IMAD with dependency and resetting inputs
     for(unsigned long long k=0; k<iterations;k++) {
       asm volatile ("{\t\n"
-        "imad.wide %2, %0, %1, %0;\n\t"
-        "imad.wide %3, %1, %1, %0;\n\t"
-        "imad.wide %4, %0, %1, %1;\n\t"
-        "iadd3 %5, %4, -%3, %2;\n\t"
-        "iadd %0, %0, %1;\n\t"
-        "iadd %1, %0, -%1;\n\t"
-      "}" : "r"(I1),"r"(I2),"+r"(Value1),"+r"(Value2),"+r"(Value3),"=r"(Value)      
+        "mad.wide.s32 %2, %0, %1, %2;\n\t"
+        "mad.wide.s32 %3, %1, %1, %2;\n\t"
+        "mad.wide.s32 %4, %0, %1, %2;\n\t"
+        "sub.s64 %4, %3, %2;\n\t"
+        "add.s32 %0, %0, %1;\n\t"
+        "sub.s32 %1, %0, %1;\n\t"
+      "}" 
+      : "+r"(I1),"+r"(I2), "+l"(Value1),"+l"(Value2),"+l"(Value3)
       );
     }
     // synchronize all threads
     asm volatile ("bar.sync 0;");
-
-    C[i]=I1*I2+Value;
+    Value=Value3;
+    C[i]=Value;
     __syncthreads();
 }
 
@@ -162,8 +163,6 @@ printf("after\n");
  //VecAdd<<<blocksPerGrid, threadsPerBlock>>>(d_A, d_B, d_C, N);
  dim3 dimGrid(NUM_OF_BLOCKS,1);
  dim3 dimBlock(THREADS_PER_BLOCK,1);
- dim3 dimGrid2(1,1);
- dim3 dimBlock2(1,1);
 
  checkCudaErrors(cudaEventRecord(start));              
  PowerKernal2<<<dimGrid,dimBlock>>>(d_A, d_B, d_C, iterations);  

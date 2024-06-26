@@ -132,8 +132,8 @@ __global__ void PowerKernalSample(unsigned* C, unsigned long long N)
 
     //This command gets the lane ID within the current warp
     asm("mov.u32 %0, %%laneid;" : "=r"(laneid));
-
-    unsigned[i] = laneid;
+    __syncthreads();
+    C[i] = laneid;
 }
 
 
@@ -179,8 +179,6 @@ int main(int argc, char** argv)
  //VecAdd<<<blocksPerGrid, threadsPerBlock>>>(d_A, d_B, d_C, N);
  dim3 dimGrid(NUM_OF_BLOCKS,1);
  dim3 dimBlock(THREADS_PER_BLOCK,1);
- dim3 dimGrid2(1,1);
- dim3 dimBlock2(1,1);
 
  checkCudaErrors(cudaEventRecord(start));              
 //  PowerKernal2<<<dimGrid,dimBlock>>>(d_A, d_B, d_C, iterations);  
@@ -191,32 +189,7 @@ int main(int argc, char** argv)
  checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));  
  printf("gpu execution time = %.3f ms\n", elapsedTime);  
  getLastCudaError("kernel launch failure");              
- cudaThreadSynchronize(); 
 
-/* CUT_SAFE_CALL(cutCreateTimer(&my_timer)); 
- TaskHandle taskhandle = LaunchDAQ();
- CUT_SAFE_CALL(cutStartTimer(my_timer)); 
- printf("execution time = %f\n", cutGetTimerValue(my_timer));
-
-profileKernel("BE_SP_INT_ADD", "PowerKernal2");
-for (int i = 0; i < 1000; i++)
-{
-	PowerKernal2<<<dimGrid,dimBlock>>>(d_A, d_B, d_C, N);
-	CUDA_SAFE_CALL( cudaThreadSynchronize() );
-}
-haltProfiling();
-printf("execution time = %f\n", cutGetTimerValue(my_timer));
-
-getLastCudaError("kernel launch failure");
-CUDA_SAFE_CALL( cudaThreadSynchronize() );
-CUT_SAFE_CALL(cutStopTimer(my_timer));
-TurnOffDAQ(taskhandle, cutGetTimerValue(my_timer));
-printf("execution time = %f\n", cutGetTimerValue(my_timer));
-CUT_SAFE_CALL(cutDeleteTimer(my_timer)); 
-
-#ifdef _DEBUG
- checkCudaErrors( cudaDeviceSynchronize() );
-#endif*/
 
  // Copy result from device memory to host memory
  // h_C contains the result in host memory
