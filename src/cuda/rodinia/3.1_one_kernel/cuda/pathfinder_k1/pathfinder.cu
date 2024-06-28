@@ -9,7 +9,6 @@
 #define DEVICE 0
 #define HALO 1 // halo width along one direction when advancing to the next iteration
 
-#define BENCH_PRINT
 
 void run(int argc, char** argv);
 
@@ -203,6 +202,7 @@ int calc_path(int *gpuWall, int *gpuResult[2], int rows, int cols, \
                 MIN(pyramid_height, rows-t-1), 
                 gpuWall, gpuResult[src], gpuResult[dst],
                 cols,rows, t, borderCols);
+            break; //BT: Added so we only do one kernel call
 	}
         return dst;
 }

@@ -43,8 +43,9 @@ for(uint64_t onek = 0; onek < UINT64_MAX; onek++){
 
 	//At this point, we have a candidate leaf node which may contain
 	//the target record.  Check each key to hopefully find the record
+	//BT making += to so for loop not optimized away
 	if(knodesD[currKnodeD[bid]].keys[thid] == keysD[bid]){
-		ansD[bid].value = recordsD[knodesD[currKnodeD[bid]].indices[thid]].value;
+		ansD[bid].value += recordsD[knodesD[currKnodeD[bid]].indices[thid]].value;
 	}
 }//for onek
 }

@@ -2283,111 +2283,112 @@ main(	int argc,
 				while(*commandPointer!=32 && commandPointer!='\n')
 				  commandPointer++;
 
-				printf("\n******command: j count=%d, rSize=%d \n",count, rSize);
-				if(rSize > size || rSize < 0) {
-				  printf("Search range size is larger than data set size %d.\n", (int)size);
-				  exit(0);
-				}
+				////BT Comment out findRangeK so actually one kernel call
+				// printf("\n******command: j count=%d, rSize=%d \n",count, rSize);
+				// if(rSize > size || rSize < 0) {
+				//   printf("Search range size is larger than data set size %d.\n", (int)size);
+				//   exit(0);
+				// }
 
-				// INPUT: knodes CPU allocation (setting pointer in mem variable)
-				knode *knodes = (knode *)((long)mem + (long)rootLoc);
-				long knodes_elem = ((long)(mem_used) - (long)rootLoc) / sizeof(knode);
-				long knodes_mem = (long)(mem_used) - (long)rootLoc;
-				printf("knodes_elem=%d, knodes_unit_mem=%d, knodes_mem=%d\n", (int)knodes_elem, (int)sizeof(knode), (int)knodes_mem);
+				// // INPUT: knodes CPU allocation (setting pointer in mem variable)
+				// knode *knodes = (knode *)((long)mem + (long)rootLoc);
+				// long knodes_elem = ((long)(mem_used) - (long)rootLoc) / sizeof(knode);
+				// long knodes_mem = (long)(mem_used) - (long)rootLoc;
+				// printf("knodes_elem=%d, knodes_unit_mem=%d, knodes_mem=%d\n", (int)knodes_elem, (int)sizeof(knode), (int)knodes_mem);
 
-				// INPUT: currKnode CPU allocation
-				long *currKnode;
-				currKnode = (long *)malloc(count*sizeof(long));
-				// INPUT: offset CPU initialization
-				memset (currKnode, 0, count*sizeof(long));
+				// // INPUT: currKnode CPU allocation
+				// long *currKnode;
+				// currKnode = (long *)malloc(count*sizeof(long));
+				// // INPUT: offset CPU initialization
+				// memset (currKnode, 0, count*sizeof(long));
 
-				// INPUT: offset CPU allocation
-				long *offset;
-				offset = (long *)malloc(count*sizeof(long));
-				// INPUT: offset CPU initialization
-				memset (offset, 0, count*sizeof(long));
+				// // INPUT: offset CPU allocation
+				// long *offset;
+				// offset = (long *)malloc(count*sizeof(long));
+				// // INPUT: offset CPU initialization
+				// memset (offset, 0, count*sizeof(long));
 
-				// INPUT: lastKnode CPU allocation
-				long *lastKnode;
-				lastKnode = (long *)malloc(count*sizeof(long));
-				// INPUT: offset CPU initialization
-				memset (lastKnode, 0, count*sizeof(long));
+				// // INPUT: lastKnode CPU allocation
+				// long *lastKnode;
+				// lastKnode = (long *)malloc(count*sizeof(long));
+				// // INPUT: offset CPU initialization
+				// memset (lastKnode, 0, count*sizeof(long));
 
-				// INPUT: offset_2 CPU allocation
-				long *offset_2;
-				offset_2 = (long *)malloc(count*sizeof(long));
-				// INPUT: offset CPU initialization
-				memset (offset_2, 0, count*sizeof(long));
+				// // INPUT: offset_2 CPU allocation
+				// long *offset_2;
+				// offset_2 = (long *)malloc(count*sizeof(long));
+				// // INPUT: offset CPU initialization
+				// memset (offset_2, 0, count*sizeof(long));
 
-				// INPUT: start, end CPU allocation
-				int *start;
-				start = (int *)malloc(count*sizeof(int));
-				int *end;
-				end = (int *)malloc(count*sizeof(int));
-				// INPUT: start, end CPU initialization
-				int i;
-				for(i = 0; i < count; i++){
-					start[i] = (rand()/(float)RAND_MAX)*size;
-					end[i] = start[i]+rSize;
-					if(end[i] >= size){ 
-						start[i] = start[i] - (end[i] - size);
-						end[i]= size-1;
-					}
-				}
+				// // INPUT: start, end CPU allocation
+				// int *start;
+				// start = (int *)malloc(count*sizeof(int));
+				// int *end;
+				// end = (int *)malloc(count*sizeof(int));
+				// // INPUT: start, end CPU initialization
+				// int i;
+				// for(i = 0; i < count; i++){
+				// 	start[i] = (rand()/(float)RAND_MAX)*size;
+				// 	end[i] = start[i]+rSize;
+				// 	if(end[i] >= size){ 
+				// 		start[i] = start[i] - (end[i] - size);
+				// 		end[i]= size-1;
+				// 	}
+				// }
 
-				// INPUT: recstart, reclenght CPU allocation
-				int *recstart;
-				recstart = (int *)malloc(count*sizeof(int));
-				int *reclength;
-				reclength = (int *)malloc(count*sizeof(int));
-				// OUTPUT: ans CPU initialization
-				for(i = 0; i < count; i++){
-					recstart[i] = 0;
-					reclength[i] = 0;
-				}
+				// // INPUT: recstart, reclenght CPU allocation
+				// int *recstart;
+				// recstart = (int *)malloc(count*sizeof(int));
+				// int *reclength;
+				// reclength = (int *)malloc(count*sizeof(int));
+				// // OUTPUT: ans CPU initialization
+				// for(i = 0; i < count; i++){
+				// 	recstart[i] = 0;
+				// 	reclength[i] = 0;
+				// }
 
-				// CUDA kernel
-				kernel_gpu_cuda_wrapper_2(	knodes,
-											knodes_elem,
-											knodes_mem,
+				// // CUDA kernel
+				// kernel_gpu_cuda_wrapper_2(	knodes,
+				// 							knodes_elem,
+				// 							knodes_mem,
 
-											order,
-											maxheight,
-											count,
+				// 							order,
+				// 							maxheight,
+				// 							count,
 
-											currKnode,
-											offset,
-											lastKnode,
-											offset_2,
-											start,
-											end,
-											recstart,
-											reclength);
-
-
-				pFile = fopen (output,"aw+");
-				if (pFile==NULL)
-				  {
-				    fputs ("Fail to open %s !\n",output);
-				  }
-
-				fprintf(pFile,"\n******command: j count=%d, rSize=%d \n",count, rSize);				
-				for(i = 0; i < count; i++){
-				  fprintf(pFile, "%d    %d    %d\n",i, recstart[i],reclength[i]);
-				}
-				fprintf(pFile, " \n");
-                                fclose(pFile);
+				// 							currKnode,
+				// 							offset,
+				// 							lastKnode,
+				// 							offset_2,
+				// 							start,
+				// 							end,
+				// 							recstart,
+				// 							reclength);
 
 
-				// free memory
-				free(currKnode);
-				free(offset);
-				free(lastKnode);
-				free(offset_2);
-				free(start);
-				free(end);
-				free(recstart);
-				free(reclength);
+				// pFile = fopen (output,"aw+");
+				// if (pFile==NULL)
+				//   {
+				//     fputs ("Fail to open %s !\n",output);
+				//   }
+
+				// fprintf(pFile,"\n******command: j count=%d, rSize=%d \n",count, rSize);				
+				// for(i = 0; i < count; i++){
+				//   fprintf(pFile, "%d    %d    %d\n",i, recstart[i],reclength[i]);
+				// }
+				// fprintf(pFile, " \n");
+                //                 fclose(pFile);
+
+
+				// // free memory
+				// free(currKnode);
+				// free(offset);
+				// free(lastKnode);
+				// free(offset_2);
+				// free(start);
+				// free(end);
+				// free(recstart);
+				// free(reclength);
 
 				// break out of case
 				break;

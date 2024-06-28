@@ -333,7 +333,7 @@ void run(int argc, char** argv)
 	printf("Ending simulation\n");
     cudaMemcpy(MatrixOut, MatrixTemp[ret], sizeof(float)*size, cudaMemcpyDeviceToHost);
 
-    writeoutput(MatrixOut,grid_rows, grid_cols, ofile);
+//     writeoutput(MatrixOut,grid_rows, grid_cols, ofile);
 
     cudaFree(MatrixPower);
     cudaFree(MatrixTemp[0]);

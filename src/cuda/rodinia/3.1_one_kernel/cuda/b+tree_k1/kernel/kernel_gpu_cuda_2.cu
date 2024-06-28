@@ -59,8 +59,9 @@ for(uint64_t onek = 0; onek < UINT64_MAX; onek++){
 	__syncthreads();
 
 	// Find the index of the ending record
+	// BT making add equal for accumulation
 	if(knodesD[lastKnodeD[bid]].keys[thid] == endD[bid]){
-		ReclenD[bid] = knodesD[lastKnodeD[bid]].indices[thid] - RecstartD[bid]+1;
+		ReclenD[bid] += knodesD[lastKnodeD[bid]].indices[thid] - RecstartD[bid]+1;
 	}
 }//for onek
 }

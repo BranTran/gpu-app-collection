@@ -2248,20 +2248,21 @@ main(	int argc,
 
 			case 'r':
 			{
-				int start, end;
-				scanf("%d", &start);
-				scanf("%d", &end);
-				if(start > end){
-					input = start;
-					start = end;
-					end = input;
-				}
-				printf("For range %d to %d, ",start,end);
-				list_t * ansList;
-				ansList = findRange(root, start, end);
-				printf("%d records found\n", list_get_length(ansList));
-				//list_iterator_t iter;
-				free(ansList);
+				////BT Comment out findK to ensure one kernel call
+				// int start, end;
+				// scanf("%d", &start);
+				// scanf("%d", &end);
+				// if(start > end){
+				// 	input = start;
+				// 	start = end;
+				// 	end = input;
+				// }
+				// printf("For range %d to %d, ",start,end);
+				// list_t * ansList;
+				// ansList = findRange(root, start, end);
+				// printf("%d records found\n", list_get_length(ansList));
+				// //list_iterator_t iter;
+				// free(ansList);
 				break;
 			}
 

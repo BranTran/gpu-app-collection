@@ -404,7 +404,8 @@ int main(int argc, char *argv []){
 									d_I);									// output image
 
 		checkCUDAError("srad2");
-
+ 	//BT: Added so we only do one kernel call
+		break;
 	}
 
 	// printf("\n");
