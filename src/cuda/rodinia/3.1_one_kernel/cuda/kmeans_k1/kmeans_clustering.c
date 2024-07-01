@@ -142,8 +142,9 @@ float** kmeans_clustering(float **feature,    /* in: [npoints][nfeatures] */
     for (i=1; i<nclusters; i++)
         new_centers[i] = new_centers[i-1] + nfeatures;
 
+		 //BT: Force loop to be done after one kernel call
 	/* iterate until convergence */
-	do {
+//	do {
         delta = 0.0;
 		// CUDA
 		delta = (float) kmeansCuda(feature,			/* in: [npoints][nfeatures] */
@@ -158,17 +159,16 @@ float** kmeans_clustering(float **feature,    /* in: [npoints][nfeatures] */
 
 		/* replace old cluster centers with new_centers */
 		/* CPU side of reduction */
-		for (i=0; i<nclusters; i++) {
-			for (j=0; j<nfeatures; j++) {
-				if (new_centers_len[i] > 0)
-					clusters[i][j] = new_centers[i][j] / new_centers_len[i];	/* take average i.e. sum/n */
-				new_centers[i][j] = 0.0;	/* set back to 0 */
-			}
-			new_centers_len[i] = 0;			/* set back to 0 */
-		}	 
+//		for (i=0; i<nclusters; i++) {
+//			for (j=0; j<nfeatures; j++) {
+//				if (new_centers_len[i] > 0)
+//					clusters[i][j] = new_centers[i][j] / new_centers_len[i];	/* take average i.e. sum/n */
+//				new_centers[i][j] = 0.0;	/* set back to 0 */
+//			}
+//			new_centers_len[i] = 0;			/* set back to 0 */
+//		}	 
 		c++;
-		 //BT: Force loop to be done after one kernel call
-    } while ((delta > threshold) && (loop++ < 1));	/* makes sure loop terminates */
+//    } while ((delta > threshold) && (loop++ < 1));	/* makes sure loop terminates */
 	printf("iterated %d times\n", c);
     free(new_centers[0]);
     free(new_centers);
