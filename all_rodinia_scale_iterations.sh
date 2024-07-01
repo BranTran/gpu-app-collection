@@ -19,6 +19,25 @@ while getopts ":k" opt; do
     esac
 done
 
+# Check if no arguments were provided
+if [ "$OPTIND" -eq 1 ]; then
+    echo "No arguments were provided. Please use -k if you want one kernel rodinia"
+    read -p "Do you want to proceed with compiling many kernel rodinia? (y/n): " confirm
+    case $confirm in
+        [Yy]* ) 
+            echo "Proceeding with compiling many kernel rodinia"
+            ;;
+        [Nn]* ) 
+            echo "Exiting."
+            exit 1
+            ;;
+        * ) 
+            echo "Please answer yes or no."
+            exit 1
+            ;;
+    esac
+fi
+
 # List of iterations
 ITERS=(
     100
