@@ -1,4 +1,4 @@
-################################################################################
+###############################################################################
 #
 ## Copyright 1993-2006 NVIDIA Corporation.  All rights reserved.
 #
@@ -34,9 +34,9 @@
 # ################################################################################
 #
 # # Add source files here
-  EXECUTABLE      := TEST
+  EXECUTABLE      := NOP
 # # Cuda source files (compiled with cudacc)
-  CUFILES         := TEST.cu
+  CUFILES         := NOP.cu
 # # C/C++ source files (compiled with gcc / c++)
   CCFILES         := \
 	#

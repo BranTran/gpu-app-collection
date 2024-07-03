@@ -3,7 +3,7 @@ inline:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/SP_FP_ADD_inline_one_op/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/MOV_inline/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/DP_INT_IMAD_WIDE_inline/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/TEST/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/NOP/$(OPT)
 
 
 tensor:
@@ -79,6 +79,7 @@ branching:
 
 functional:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C functional_benchmarks/REG_FILE/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C functional_benchmarks/MOV/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C functional_benchmarks/BE_SP_INT_ADD/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C functional_benchmarks/BE_SP_INT_DIV/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C functional_benchmarks/BE_SP_INT_MUL/$(OPT)
@@ -192,7 +193,7 @@ cleaninline:
 	$(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/SP_FP_ADD_inline_one_op/$(OPT)   
 	$(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/MOV_inline/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/DP_INT_IMAD_WIDE_inline/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/TEST/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/NOP/$(OPT)
 
 cleantensor:
 	$(SETENV) make $(MAKE_ARGS) clean -C tensor_benchmarks/TENSOR/$(OPT)   
@@ -210,6 +211,7 @@ cleanstatic:
 
 cleanfunctional:
 	$(SETENV) make $(MAKE_ARGS) clean -C functional_benchmarks/REG_FILE/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) clean -C functional_benchmarks/MOV/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C functional_benchmarks/BE_SP_INT_ADD/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C functional_benchmarks/BE_SP_INT_DIV/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C functional_benchmarks/BE_SP_INT_MUL/$(OPT)
@@ -371,7 +373,9 @@ cleanmix:
 	#$(SETENV) make $(MAKE_ARGS) clean -C POWER/shrd_tex_fp
 	#$(SETENV) make $(MAKE_ARGS) clean -C POWER/shrd_tex_sfu
 
-power: branching functional memories mix tensor static_power inline
-cleanpower: cleanbranching cleanfunctional cleanmemories cleanmix cleanstatic cleaninline
+# power: branching functional memories mix tensor static_power inline
+# cleanpower: cleanbranching cleanfunctional cleanmemories cleanmix cleanstatic cleaninline
 
+power: functional memories mix tensor static_power inline
+cleanpower: cleanfunctional cleanmemories cleanmix cleanstatic cleaninline
 	

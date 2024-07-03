@@ -95,15 +95,11 @@ __global__ void PowerKernal2(const int* A, const int* B, long long* C, unsigned 
     long long Value;
     int I1=A[i];
     int I2=B[i];
-    // TESTING ONE INSTRUCTION
-      asm volatile ("{\t\n"
-        "mad.wide.s32 %3, %0, %1, %2;\n\t"
-      "}" : "+r"(I1),"+r"(I2),"+l"(Value1),"=l"(Value)
-      );
-    __syncthreads();
-
-    C[i]=Value;
-    __syncthreads();
+#pragma unroll 100
+    // Excessive Addition access
+    for(unsigned long long k=0; k<iterations;k++) {
+      asm volatile ("bar.warp.sync 0;");
+    }
 }
 
 int main(int argc, char** argv)
