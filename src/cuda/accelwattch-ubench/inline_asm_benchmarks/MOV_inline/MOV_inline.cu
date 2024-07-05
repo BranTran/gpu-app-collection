@@ -119,18 +119,6 @@ __global__ void PowerKernal2(const unsigned* A, const unsigned* B, unsigned* C, 
             "\n\tmov.u32 %9, %8;"    // Value10 = Value9
             "\n\tmov.u32 %10, %9;"   // Value11 = Value10
             "\n\tmov.u32 %11, %10;"  // Value12 = Value11
-            "\n\tmov.u32 %0, %11;"   // Value1 = Value12
-            "\n\tmov.u32 %1, %0;"    // Value2 = Value1
-            "\n\tmov.u32 %2, %1;"    // Value3 = Value2
-            "\n\tmov.u32 %3, %2;"    // Value4 = Value3
-            "\n\tmov.u32 %4, %3;"    // Value5 = Value4
-            "\n\tmov.u32 %5, %4;"    // Value6 = Value5
-            "\n\tmov.u32 %6, %5;"    // Value7 = Value6
-            "\n\tmov.u32 %7, %6;"    // Value8 = Value7
-            "\n\tmov.u32 %8, %7;"    // Value9 = Value8
-            "\n\tmov.u32 %9, %8;"    // Value10 = Value9
-            "\n\tmov.u32 %10, %9;"   // Value11 = Value10
-            "\n\tmov.u32 %11, %10;"  // Value12 = Value11
             : "+r"(Value1), "+r"(Value2), "+r"(Value3), "+r"(Value4), "+r"(Value5), "+r"(Value6), "+r"(Value7), "+r"(Value8), "+r"(Value9), "+r"(Value10), "+r"(Value11), "+r"(Value12)
             : "r"(I1), "r"(I2)
         );
@@ -139,20 +127,6 @@ __global__ void PowerKernal2(const unsigned* A, const unsigned* B, unsigned* C, 
     __syncthreads();
 
 }
-
-__global__ void PowerKernalSample(unsigned* C, unsigned long long N)
-{
-  // FROM https://github.com/zchee/cuda-sample/blob/master/0_Simple/inlinePTX_nvrtc/inlinePTX_kernel.cu
-    int i = blockDim.x * blockIdx.x + threadIdx.x;
-
-    unsigned int laneid;
-
-    //This command gets the lane ID within the current warp
-    asm("mov.u32 %0, %%laneid;" : "=r"(laneid));
-    __syncthreads();
-    C[i] = laneid;
-}
-
 
 int main(int argc, char** argv)
 {
@@ -198,8 +172,7 @@ int main(int argc, char** argv)
  dim3 dimBlock(THREADS_PER_BLOCK,1);
 
  checkCudaErrors(cudaEventRecord(start));              
-//  PowerKernal2<<<dimGrid,dimBlock>>>(d_A, d_B, d_C, iterations);  
- PowerKernalSample<<<dimGrid,dimBlock>>>(d_C, iterations);  
+ PowerKernal2<<<dimGrid,dimBlock>>>(d_A, d_B, d_C, iterations);  
  checkCudaErrors(cudaEventRecord(stop));               
  
  checkCudaErrors(cudaEventSynchronize(stop));           
