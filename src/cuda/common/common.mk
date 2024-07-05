@@ -378,7 +378,7 @@ ifdef maxregisters
 endif
 
 ifeq ($(ptxas), 1)
-        NVCCFLAGS += --ptxas-options=-v
+        NVCCFLAGS += --ptxas-options="-O0,-disable-optimizer-consts,-allow-expensive-optimizations=false"
 endif
 
 # Add cudacc flags
