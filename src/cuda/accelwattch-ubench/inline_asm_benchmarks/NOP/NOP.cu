@@ -89,12 +89,6 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 // end of CUDA Helper Functions
 __global__ void PowerKernal2(const int* A, const int* B, long long* C, unsigned long long iterations)
 {
-    int i = blockDim.x * blockIdx.x + threadIdx.x;
-    //Do Some Computation
-    long long Value1 = i;
-    long long Value;
-    int I1=A[i];
-    int I2=B[i];
 #pragma unroll 100
     // Excessive Addition access
     for(unsigned long long k=0; k<iterations;k++) {
