@@ -96,29 +96,46 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 __global__ void PowerKernal2(const unsigned* A, const unsigned* B, unsigned* C, unsigned long long N)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
-    //Do Some Computation
-    unsigned I1=A[i];
-    unsigned I2=B[i];
-    unsigned Value2;
-    unsigned Value3;
-    unsigned Value1;
+    unsigned I1 = A[i];
+    unsigned I2 = B[i];
+    unsigned Value1, Value2, Value3, Value4, Value5, Value6;
+    unsigned Value7, Value8, Value9, Value10, Value11, Value12;
+
     #pragma unroll 100
-    //Excessive Logical Unit access
-    for(unsigned long long k=0; k<N;k++) {
-    // BLOCK-0 (For instruction size of 16 bytes for Volta
-      __asm volatile (
-          "\n\tmov.u32 %0, %3;"
-          "\n\tmov.u32 %1, %4;"
-          "\n\tmov.u32 %2, %1;"
-          "\n\tmov.u32 %1, %0;"
-          "\n\tmov.u32 %0, %2;"
-          "\n\tmov.u32 %1, %2;"
-          "\n\tmov.u32 %3, %1;"
-          "\n\tmov.u32 %4, %0;"
-          : "+r"(Value1), "+r"(Value2), "+r"(Value3) : "r"(I1), "r"(I2)
-          );
+    for (unsigned long long k = 0; k < N; k++) {
+        // BLOCK-0 (For instruction size of 16 bytes for Volta)
+        __asm volatile (
+            "\n\tmov.u32 %0, %12;"   // Value1 = I1
+            "\n\tmov.u32 %1, %13;"   // Value2 = I2
+            "\n\tmov.u32 %2, %1;"    // Value3 = Value2
+            "\n\tmov.u32 %1, %0;"    // Value2 = Value1
+            "\n\tmov.u32 %0, %2;"    // Value1 = Value3
+            "\n\tmov.u32 %3, %2;"    // Value4 = Value3
+            "\n\tmov.u32 %4, %3;"    // Value5 = Value4
+            "\n\tmov.u32 %5, %4;"    // Value6 = Value5
+            "\n\tmov.u32 %6, %5;"    // Value7 = Value6
+            "\n\tmov.u32 %7, %6;"    // Value8 = Value7
+            "\n\tmov.u32 %8, %7;"    // Value9 = Value8
+            "\n\tmov.u32 %9, %8;"    // Value10 = Value9
+            "\n\tmov.u32 %10, %9;"   // Value11 = Value10
+            "\n\tmov.u32 %11, %10;"  // Value12 = Value11
+            "\n\tmov.u32 %0, %11;"   // Value1 = Value12
+            "\n\tmov.u32 %1, %0;"    // Value2 = Value1
+            "\n\tmov.u32 %2, %1;"    // Value3 = Value2
+            "\n\tmov.u32 %3, %2;"    // Value4 = Value3
+            "\n\tmov.u32 %4, %3;"    // Value5 = Value4
+            "\n\tmov.u32 %5, %4;"    // Value6 = Value5
+            "\n\tmov.u32 %6, %5;"    // Value7 = Value6
+            "\n\tmov.u32 %7, %6;"    // Value8 = Value7
+            "\n\tmov.u32 %8, %7;"    // Value9 = Value8
+            "\n\tmov.u32 %9, %8;"    // Value10 = Value9
+            "\n\tmov.u32 %10, %9;"   // Value11 = Value10
+            "\n\tmov.u32 %11, %10;"  // Value12 = Value11
+            : "+r"(Value1), "+r"(Value2), "+r"(Value3), "+r"(Value4), "+r"(Value5), "+r"(Value6), "+r"(Value7), "+r"(Value8), "+r"(Value9), "+r"(Value10), "+r"(Value11), "+r"(Value12)
+            : "r"(I1), "r"(I2)
+        );
     }
-    C[i]=Value3;
+    C[i] = Value12;
     __syncthreads();
 
 }
