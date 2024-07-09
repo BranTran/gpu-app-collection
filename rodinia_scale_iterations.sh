@@ -28,19 +28,22 @@ fi
 
 if $flag_set; then
     echo "Flag is set. Setting up one large kernel version"
+    path='accelwattch_validation_one_kernel/rodinia-3.1'
+    make_target='_one_kernel'
     onek='_one_kernel'
 else
     echo "Flag is not set. Setting up many kernel call version"
+    path='rodinia/3.1'
+    make_target='hw_power'
     onek=''
 fi
 
 ITERS=${1}
-path="3.1${onek}"
 #change the UINT64 to what you entered
-grep "UINT64_MAX" -rl "src/cuda/rodinia/${path}/cuda/" | xargs sed -i "s/UINT64_MAX/${ITERS}/g"
+grep "UINT64_MAX" -rl "src/cuda/${path}/cuda/" | xargs sed -i "s/UINT64_MAX/${ITERS}/g"
 
 #Recompile
-make rodinia-${path}_hw_power -C src
+make rodinia-3.1${make_target} -C src
 
 #Rename the benchmarks
 mv $BINDIR/release/backprop_k1${onek}   $BINDIR/release/backprop_k1${onek}_${ITERS}iter

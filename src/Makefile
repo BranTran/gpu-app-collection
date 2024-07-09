@@ -17,6 +17,8 @@ accelwattch_validation: rodinia-3.1_accelwattch_validation parboil_accelwattch_v
 accelwattch_hw_power: rodinia-3.1_hw_power parboil_hw_power cuda_samples-11.0_hw_power
 
 #Disable clean for now, It has a bug!
+bt_validation_one_kernel: rodinia-3.1_one_kernel cuda_samples-11.0_one_kernel
+
 # clean_dragon-naive clean_pannotia clean_proxy-apps
 clean: clean_rodinia_2.0-ft clean_dragon-cdp  clean_ispass-2009 clean_lonestargpu-2.0 clean_custom_apps clean_parboil clean_cutlass clean_rodinia-3.1 clean_heterosync clean_cuda_samples
 clean_accelwattch: clean_rodinia-3.1 clean_parboil clean_cutlass clean_cuda_samples clean_cuda_samples_hw_power clean_rodinia-3.1_hw_power clean_parboil_hw_power clean_accelwattch_ubench
@@ -220,24 +222,24 @@ rodinia-3.1_hw_power:
 	mv cuda/rodinia/3.1/cuda/pathfinder_k1/pathfinder $(BINDIR)/$(BINSUBDIR)/pathfinder_k1
 	mv cuda/rodinia/3.1/cuda/srad/srad_v1_k1/srad $(BINDIR)/$(BINSUBDIR)/srad_v1_k1
 
-rodinia-3.1_one_kernel_hw_power:
+rodinia-3.1_one_kernel:
 	mkdir -p $(BINDIR)/$(BINSUBDIR)
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/backprop_k1 -f Makefile_nvidia
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/backprop_k1 -f Makefile_nvidia
 	mv $(BINDIR)/$(BINSUBDIR)/backprop $(BINDIR)/$(BINSUBDIR)/backprop_k1_one_kernel
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/backprop_k2 -f Makefile_nvidia
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/backprop_k2 -f Makefile_nvidia
 	mv $(BINDIR)/$(BINSUBDIR)/backprop $(BINDIR)/$(BINSUBDIR)/backprop_k2_one_kernel
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/hotspot_k1 -f Makefile_nvidia
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/hotspot_k1 -f Makefile_nvidia
 	mv $(BINDIR)/$(BINSUBDIR)/hotspot $(BINDIR)/$(BINSUBDIR)/hotspot_k1_one_kernel
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/kmeans_k1 -f Makefile_nvidia
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/kmeans_k1 -f Makefile_nvidia
 	mv $(BINDIR)/$(BINSUBDIR)/kmeans $(BINDIR)/$(BINSUBDIR)/kmeans_k1_one_kernel
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/b+tree_k1/
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/b+tree_k2/
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/pathfinder_k1/
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/srad/srad_v1_k1
-	mv cuda/rodinia/3.1_one_kernel/cuda/b+tree_k1/b+tree.out $(BINDIR)/$(BINSUBDIR)/btree_k1_one_kernel
-	mv cuda/rodinia/3.1_one_kernel/cuda/b+tree_k2/b+tree.out $(BINDIR)/$(BINSUBDIR)/btree_k2_one_kernel
-	mv cuda/rodinia/3.1_one_kernel/cuda/pathfinder_k1/pathfinder $(BINDIR)/$(BINSUBDIR)/pathfinder_k1_one_kernel
-	mv cuda/rodinia/3.1_one_kernel/cuda/srad/srad_v1_k1/srad $(BINDIR)/$(BINSUBDIR)/srad_v1_k1_one_kernel
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/b+tree_k1/
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/b+tree_k2/
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/pathfinder_k1/
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/srad/srad_v1_k1
+	mv cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/b+tree_k1/b+tree.out $(BINDIR)/$(BINSUBDIR)/btree_k1_one_kernel
+	mv cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/b+tree_k2/b+tree.out $(BINDIR)/$(BINSUBDIR)/btree_k2_one_kernel
+	mv cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/pathfinder_k1/pathfinder $(BINDIR)/$(BINSUBDIR)/pathfinder_k1_one_kernel
+	mv cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/srad/srad_v1_k1/srad $(BINDIR)/$(BINSUBDIR)/srad_v1_k1_one_kernel
 	
 cuda_samples-11.0_accelwattch_validation:
 	mkdir -p $(BINDIR)/$(BINSUBDIR)
@@ -284,6 +286,33 @@ cuda_samples-11.0_hw_power:
 	mv cuda/NVIDIA_CUDA-11.0_Samples/quasirandomGenerator_k2/quasirandomGenerator $(BINDIR)/$(BINSUBDIR)/quasirandomGenerator_k2
 	mv cuda/NVIDIA_CUDA-11.0_Samples/SobolQRNG_k1/SobolQRNG $(BINDIR)/$(BINSUBDIR)/sobolQRNG_k1
 	mv cuda/NVIDIA_CUDA-11.0_Samples/cudaTensorCoreGemm_k1/cudaTensorCoreGemm $(BINDIR)/$(BINSUBDIR)/cudaTensorCoreGemm_k1
+
+cuda_samples-11.0_one_kernel:
+	mkdir -p $(BINDIR)/$(BINSUBDIR)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/binomialOptions_k1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/dct8x8_k1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/dct8x8_k2
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/fastWalshTransform_k1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/fastWalshTransform_k2
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/histogram_k1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/mergeSort_k1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/mergeSort_k2
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/quasirandomGenerator_k1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/quasirandomGenerator_k2
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/SobolQRNG_k1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/cudaTensorCoreGemm_k1
+	mv cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/binomialOptions_k1/binomialOptions $(BINDIR)/$(BINSUBDIR)/binomialOptions_k1_one_kernel
+	mv cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/dct8x8_k1/dct8x8 $(BINDIR)/$(BINSUBDIR)/dct8x8_k1_one_kernel
+	mv cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/dct8x8_k2/dct8x8 $(BINDIR)/$(BINSUBDIR)/dct8x8_k2_one_kernel
+	mv cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/fastWalshTransform_k1/fastWalshTransform $(BINDIR)/$(BINSUBDIR)/fastWalshTransform_k1_one_kernel
+	mv cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/fastWalshTransform_k2/fastWalshTransform $(BINDIR)/$(BINSUBDIR)/fastWalshTransform_k2_one_kernel
+	mv cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/histogram_k1/histogram $(BINDIR)/$(BINSUBDIR)/histogram_k1_one_kernel
+	mv cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/mergeSort_k1/mergeSort $(BINDIR)/$(BINSUBDIR)/mergeSort_k1_one_kernel
+	mv cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/mergeSort_k2/mergeSort $(BINDIR)/$(BINSUBDIR)/mergeSort_k2_one_kernel
+	mv cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/quasirandomGenerator_k1/quasirandomGenerator $(BINDIR)/$(BINSUBDIR)/quasirandomGenerator_k1_one_kernel
+	mv cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/quasirandomGenerator_k2/quasirandomGenerator $(BINDIR)/$(BINSUBDIR)/quasirandomGenerator_k2_one_kernel
+	mv cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/SobolQRNG_k1/SobolQRNG $(BINDIR)/$(BINSUBDIR)/sobolQRNG_k1_one_kernel
+	mv cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/cudaTensorCoreGemm_k1/cudaTensorCoreGemm $(BINDIR)/$(BINSUBDIR)/cudaTensorCoreGemm_k1_one_kernel
 
 
 ispass-2009:
@@ -537,15 +566,15 @@ clean_rodinia-3.1_hw_power:
 	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1/cuda/pathfinder_k1/
 	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1/cuda/srad/srad_v1_k1
 
-clean_rodinia-1_one_kernel_hw_power:
-	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/backprop_k1 -f Makefile_nvidia
-	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/backprop_k2 -f Makefile_nvidia
-	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/hotspot_k1 -f Makefile_nvidia
-	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/kmeans_k1 -f Makefile_nvidia
-	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/b+tree_k1/
-	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/b+tree_k2/
-	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/pathfinder_k1/
-	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/rodinia/3.1_one_kernel/cuda/srad/srad_v1_k1
+clean_rodinia-3.1_one_kernel:
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/backprop_k1 -f Makefile_nvidia
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/backprop_k2 -f Makefile_nvidia
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/hotspot_k1 -f Makefile_nvidia
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/kmeans_k1 -f Makefile_nvidia
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/b+tree_k1/
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/b+tree_k2/
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/pathfinder_k1/
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/srad/srad_v1_k1
 
 clean_cuda_samples:
 	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/NVIDIA_CUDA-11.0_Samples/binomialOptions
@@ -583,7 +612,21 @@ clean_cuda_samples_hw_power:
 	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/NVIDIA_CUDA-11.0_Samples/quasirandomGenerator_k2
 	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/NVIDIA_CUDA-11.0_Samples/SobolQRNG_k1
 	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/NVIDIA_CUDA-11.0_Samples/cudaTensorCoreGemm_k1
-	
+
+clean_cuda_samples_one_kernel:
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/binomialOptions_k1
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/dct8x8_k1
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/dct8x8_k2
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/fastWalshTransform_k1
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/fastWalshTransform_k2
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/histogram_k1
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/mergeSort_k1
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/mergeSort_k2
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/quasirandomGenerator_k1
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/quasirandomGenerator_k2
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/SobolQRNG_k1
+	$(SETENV) make clean $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/cudaSamples_11.0/cudaTensorCoreGemm_k1
+
 clean_dragon-naive: 
 	$(SETENV) rm -f /cuda/dragon_li/bin
 
