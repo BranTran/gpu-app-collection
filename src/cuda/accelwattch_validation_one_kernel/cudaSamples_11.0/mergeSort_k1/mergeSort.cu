@@ -407,6 +407,7 @@ template<uint sortDir> __global__ void mergeElementaryIntervalsKernel(
     __shared__ uint s_val[2 * SAMPLE_STRIDE];
     //Set up threadblock-wide parameters
     __shared__ uint startSrcA, startSrcB, lenSrcA, lenSrcB, startDstA, startDstB;
+#pragma unroll 100
 for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
     const uint   intervalI = blockIdx.x & ((2 * stride) / SAMPLE_STRIDE - 1);
     const uint segmentBase = (blockIdx.x - intervalI) * SAMPLE_STRIDE;

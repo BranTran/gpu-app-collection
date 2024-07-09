@@ -46,6 +46,7 @@ __global__ void sobolGPU_kernel(unsigned n_vectors, unsigned n_dimensions, unsig
     // Handle to thread block group
     cg::thread_block cta = cg::this_thread_block();
     __shared__ unsigned int v[n_directions];
+#pragma unroll 100
 for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
     // Offset into the correct dimension as specified by the
     // block y coordinate

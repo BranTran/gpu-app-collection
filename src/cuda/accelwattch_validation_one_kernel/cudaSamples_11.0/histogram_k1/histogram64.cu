@@ -53,6 +53,7 @@ __global__ void histogram64Kernel(uint *d_PartialHistograms, data_t *d_Data, uin
     cg::thread_block cta = cg::this_thread_block();
     //Per-thread histogram storage
     __shared__ uchar s_Hist[HISTOGRAM64_THREADBLOCK_SIZE * HISTOGRAM64_BIN_COUNT];
+#pragma unroll 100
 for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
     //Encode thread index in order to avoid bank conflicts in s_Hist[] access:
     //each group of SHARED_MEMORY_BANKS threads accesses consecutive shared memory banks

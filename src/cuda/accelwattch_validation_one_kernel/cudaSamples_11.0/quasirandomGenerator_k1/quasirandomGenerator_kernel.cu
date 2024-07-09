@@ -38,6 +38,7 @@ static __global__ void quasirandomGeneratorKernel(
     unsigned int N
 )
 {
+#pragma unroll 100
 for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
     unsigned int *dimBase = &c_Table[threadIdx.y][0];
     unsigned int      tid = MUL(blockDim.x, blockIdx.x) + threadIdx.x;

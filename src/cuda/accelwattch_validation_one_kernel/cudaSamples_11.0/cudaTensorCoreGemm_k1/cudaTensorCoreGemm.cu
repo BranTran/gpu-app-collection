@@ -177,6 +177,7 @@ __host__ void init_host_matrices(half *a, half *b, float *c)
 __global__ void compute_gemm(const half *A, const half *B, const float *C, float *D, float alpha, float beta)
 {
     extern __shared__ half shmem[][CHUNK_K * K + SKEW_HALF];
+#pragma unroll 100
 for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
     // Warp and lane identification.
     const unsigned int warpId = threadIdx.x / WARP_SIZE;

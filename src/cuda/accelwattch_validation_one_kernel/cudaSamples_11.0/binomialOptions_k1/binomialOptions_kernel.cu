@@ -70,6 +70,7 @@ __global__ void binomialOptionsKernel()
     cg::thread_block cta = cg::this_thread_block();
     __shared__ real call_exchange[THREADBLOCK_SIZE + 1];
 
+#pragma unroll 100
 for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
     const int     tid = threadIdx.x;
     const real      S = d_OptionData[blockIdx.x].S;

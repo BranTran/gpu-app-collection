@@ -121,6 +121,7 @@ template<uint sortDir> __global__ void mergeSortSharedKernel(
     cg::thread_block cta = cg::this_thread_block();
     __shared__ uint s_key[SHARED_SIZE_LIMIT];
     __shared__ uint s_val[SHARED_SIZE_LIMIT];
+#pragma unroll 100
 for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
     d_SrcKey += blockIdx.x * SHARED_SIZE_LIMIT + threadIdx.x;
     d_SrcVal += blockIdx.x * SHARED_SIZE_LIMIT + threadIdx.x;

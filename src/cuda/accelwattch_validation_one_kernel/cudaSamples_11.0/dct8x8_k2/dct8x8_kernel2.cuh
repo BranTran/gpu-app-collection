@@ -189,6 +189,7 @@ __global__ void CUDAkernel2DCT(float *dst, float *src, int ImgStride)
     cg::thread_block cta = cg::this_thread_block();
 
     __shared__ float block[KER2_BLOCK_HEIGHT * KER2_SMEMBLOCK_STRIDE];
+#pragma unroll 100
 for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
     int OffsThreadInRow = threadIdx.y * BLOCK_SIZE + threadIdx.x;
     int OffsThreadInCol = threadIdx.z * BLOCK_SIZE;

@@ -65,6 +65,7 @@ __global__ void CUDAkernel1DCT(float *Dst, int ImgWidth, int OffsetXBlocks, int 
 {
     // Handle to thread block group
     cg::thread_block cta = cg::this_thread_block();
+#pragma unroll 100
 for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
     // Block index
     const int bx = blockIdx.x + OffsetXBlocks;

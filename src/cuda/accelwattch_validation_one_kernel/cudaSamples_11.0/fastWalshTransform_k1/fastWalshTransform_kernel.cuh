@@ -111,6 +111,7 @@ __global__ void fwtBatch2Kernel(
     int stride
 )
 {
+#pragma unroll 100
 for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
     const int pos = blockIdx.x * blockDim.x + threadIdx.x;
     const int   N = blockDim.x *  gridDim.x * 4;
