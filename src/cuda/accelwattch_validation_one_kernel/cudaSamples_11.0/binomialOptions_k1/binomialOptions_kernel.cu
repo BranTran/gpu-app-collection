@@ -70,6 +70,7 @@ __global__ void binomialOptionsKernel()
     cg::thread_block cta = cg::this_thread_block();
     __shared__ real call_exchange[THREADBLOCK_SIZE + 1];
 
+for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
     const int     tid = threadIdx.x;
     const real      S = d_OptionData[blockIdx.x].S;
     const real      X = d_OptionData[blockIdx.x].X;
@@ -107,6 +108,7 @@ __global__ void binomialOptionsKernel()
     {
         d_CallValue[blockIdx.x] = call[0];
     }
+}//onek
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -148,7 +150,6 @@ extern "C" void binomialOptionsGPU(
     }
 
     checkCudaErrors(cudaMemcpyToSymbol(d_OptionData, h_OptionData, optN * sizeof(__TOptionData)));
-    for(uint64_t i = 0; i<UINT64_MAX; i++)
     binomialOptionsKernel<<<optN, THREADBLOCK_SIZE>>>();
     getLastCudaError("binomialOptionsKernel() execution failed.\n");
     checkCudaErrors(cudaMemcpyFromSymbol(callValue, d_CallValue, optN *sizeof(real)));

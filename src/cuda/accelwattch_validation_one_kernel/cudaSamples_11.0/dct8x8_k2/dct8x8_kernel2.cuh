@@ -184,11 +184,12 @@ __device__ void CUDAsubroutineInplaceIDCTvector(float *Vect0, int Step)
 
 __global__ void CUDAkernel2DCT(float *dst, float *src, int ImgStride)
 {
+
     // Handle to thread block group
     cg::thread_block cta = cg::this_thread_block();
 
     __shared__ float block[KER2_BLOCK_HEIGHT * KER2_SMEMBLOCK_STRIDE];
-
+for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
     int OffsThreadInRow = threadIdx.y * BLOCK_SIZE + threadIdx.x;
     int OffsThreadInCol = threadIdx.z * BLOCK_SIZE;
     src += FMUL(blockIdx.y * KER2_BLOCK_HEIGHT + OffsThreadInCol, ImgStride) + blockIdx.x * KER2_BLOCK_WIDTH + OffsThreadInRow;
@@ -211,6 +212,7 @@ __global__ void CUDAkernel2DCT(float *dst, float *src, int ImgStride)
     cg::sync(cta);
     for (unsigned int i = 0; i < BLOCK_SIZE; i++)
         dst[i * ImgStride] = bl_ptr[i * KER2_SMEMBLOCK_STRIDE];
+}//onek
 }
 
 

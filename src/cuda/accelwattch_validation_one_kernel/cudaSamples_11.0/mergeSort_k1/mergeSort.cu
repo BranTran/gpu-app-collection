@@ -405,7 +405,9 @@ template<uint sortDir> __global__ void mergeElementaryIntervalsKernel(
     cg::thread_block cta = cg::this_thread_block();
     __shared__ uint s_key[2 * SAMPLE_STRIDE];
     __shared__ uint s_val[2 * SAMPLE_STRIDE];
-
+    //Set up threadblock-wide parameters
+    __shared__ uint startSrcA, startSrcB, lenSrcA, lenSrcB, startDstA, startDstB;
+for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
     const uint   intervalI = blockIdx.x & ((2 * stride) / SAMPLE_STRIDE - 1);
     const uint segmentBase = (blockIdx.x - intervalI) * SAMPLE_STRIDE;
     d_SrcKey += segmentBase;
@@ -413,8 +415,6 @@ template<uint sortDir> __global__ void mergeElementaryIntervalsKernel(
     d_DstKey += segmentBase;
     d_DstVal += segmentBase;
 
-    //Set up threadblock-wide parameters
-    __shared__ uint startSrcA, startSrcB, lenSrcA, lenSrcB, startDstA, startDstB;
 
     if (threadIdx.x == 0)
     {
@@ -477,6 +477,7 @@ template<uint sortDir> __global__ void mergeElementaryIntervalsKernel(
         d_DstKey[startDstB + threadIdx.x] = s_key[lenSrcA + threadIdx.x];
         d_DstVal[startDstB + threadIdx.x] = s_val[lenSrcA + threadIdx.x];
     }
+}//onek
 }
 
 static void mergeElementaryIntervals(
@@ -496,7 +497,6 @@ static void mergeElementaryIntervals(
 
     if (sortDir)
     {   
-        for(uint64_t i = 0; i<UINT64_MAX; i++)
         mergeElementaryIntervalsKernel<1U><<<mergePairs, SAMPLE_STRIDE>>>(
             d_DstKey,
             d_DstVal,
@@ -511,7 +511,6 @@ static void mergeElementaryIntervals(
     }
     else
     {   
-        for(uint64_t i = 0; i<UINT64_MAX; i++)
         mergeElementaryIntervalsKernel<0U><<<mergePairs, SAMPLE_STRIDE>>>(
             d_DstKey,
             d_DstVal,

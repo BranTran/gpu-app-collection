@@ -111,6 +111,7 @@ __global__ void fwtBatch2Kernel(
     int stride
 )
 {
+for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
     const int pos = blockIdx.x * blockDim.x + threadIdx.x;
     const int   N = blockDim.x *  gridDim.x * 4;
 
@@ -141,6 +142,7 @@ __global__ void fwtBatch2Kernel(
     T = D2;
     d_Dst[i2] = D2 + D3;
     d_Dst[i3] = T - D3;
+}//onek
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -155,7 +157,6 @@ void fwtBatchGPU(float *d_Data, int M, int log2N)
 
     for (; log2N > ELEMENTARY_LOG2SIZE; log2N -= 2, N >>= 2, M <<= 2)
     {   
-        for(uint64_t i = 0; i<UINT64_MAX; i++)
         fwtBatch2Kernel<<<grid, THREAD_N>>>(d_Data, d_Data, N / 4);
         getLastCudaError("fwtBatch2Kernel() execution failed\n");
     }

@@ -154,6 +154,7 @@ static __global__ void inverseCNDKernel(
     unsigned int pathN
 )
 {
+for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
     unsigned int distance = ((unsigned int)-1) / (pathN + 1);
     unsigned int     tid = MUL(blockDim.x, blockIdx.x) + threadIdx.x;
     unsigned int threadN = MUL(blockDim.x, gridDim.x);
@@ -177,11 +178,11 @@ static __global__ void inverseCNDKernel(
             d_Output[pos] = (float)MoroInvCNDgpu(d);
         }
     }
+}//onek
 }
 
 extern "C" void inverseCNDgpu(float *d_Output, unsigned int *d_Input, unsigned int N)
 {   
-    for(uint64_t i = 0; i<UINT64_MAX; i++)
     inverseCNDKernel<<<128, 128>>>(d_Output, d_Input, N);
     getLastCudaError("inverseCNDKernel() execution failed.\n");
 }

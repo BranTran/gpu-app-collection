@@ -323,7 +323,6 @@ float WrapperCUDA2(byte *ImgSrc, byte *ImgDst, int Stride, ROI Size)
             sdkResetTimer(&timerCUDA);
             sdkStartTimer(&timerCUDA);
         }
-        for(uint64_t i = 0; i<UINT64_MAX; i++)
         CUDAkernel2DCT<<<GridFullWarps, ThreadsFullWarps>>>(dst, src, (int)DeviceStride);
         getLastCudaError("Kernel execution failed");
     }

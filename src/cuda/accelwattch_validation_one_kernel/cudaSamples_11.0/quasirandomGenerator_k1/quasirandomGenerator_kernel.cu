@@ -38,6 +38,7 @@ static __global__ void quasirandomGeneratorKernel(
     unsigned int N
 )
 {
+for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
     unsigned int *dimBase = &c_Table[threadIdx.y][0];
     unsigned int      tid = MUL(blockDim.x, blockIdx.x) + threadIdx.x;
     unsigned int  threadN = MUL(blockDim.x, gridDim.x);
@@ -55,6 +56,7 @@ static __global__ void quasirandomGeneratorKernel(
 
         d_Output[MUL(threadIdx.y, N) + pos] = (float)(result + 1) * INT_SCALE;
     }
+}//onek
 }
 
 //Table initialization routine
@@ -71,7 +73,6 @@ extern "C" void initTableGPU(unsigned int tableCPU[QRNG_DIMENSIONS][QRNG_RESOLUT
 extern "C" void quasirandomGeneratorGPU(float *d_Output, unsigned int seed, unsigned int N)
 {
     dim3 threads(128, QRNG_DIMENSIONS);
-    for(uint64_t i = 0; i<UINT64_MAX; i++)
     quasirandomGeneratorKernel<<<128, threads>>>(d_Output, seed, N);
     getLastCudaError("quasirandomGeneratorKernel() execution failed.\n");
 }

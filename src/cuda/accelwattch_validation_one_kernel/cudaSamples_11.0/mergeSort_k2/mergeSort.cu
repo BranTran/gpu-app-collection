@@ -121,7 +121,7 @@ template<uint sortDir> __global__ void mergeSortSharedKernel(
     cg::thread_block cta = cg::this_thread_block();
     __shared__ uint s_key[SHARED_SIZE_LIMIT];
     __shared__ uint s_val[SHARED_SIZE_LIMIT];
-
+for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
     d_SrcKey += blockIdx.x * SHARED_SIZE_LIMIT + threadIdx.x;
     d_SrcVal += blockIdx.x * SHARED_SIZE_LIMIT + threadIdx.x;
     d_DstKey += blockIdx.x * SHARED_SIZE_LIMIT + threadIdx.x;
@@ -157,6 +157,7 @@ template<uint sortDir> __global__ void mergeSortSharedKernel(
     d_DstVal[                      0] = s_val[threadIdx.x +                       0];
     d_DstKey[(SHARED_SIZE_LIMIT / 2)] = s_key[threadIdx.x + (SHARED_SIZE_LIMIT / 2)];
     d_DstVal[(SHARED_SIZE_LIMIT / 2)] = s_val[threadIdx.x + (SHARED_SIZE_LIMIT / 2)];
+}//onek
 }
 
 static void mergeSortShared(
@@ -181,13 +182,11 @@ static void mergeSortShared(
 
     if (sortDir)
     {   
-        for(uint64_t i = 0; i<UINT64_MAX; i++)
         mergeSortSharedKernel<1U><<<blockCount, threadCount>>>(d_DstKey, d_DstVal, d_SrcKey, d_SrcVal, arrayLength);
         getLastCudaError("mergeSortShared<1><<<>>> failed\n");
     }
     else
     {   
-        for(uint64_t i = 0; i<UINT64_MAX; i++)
         mergeSortSharedKernel<0U><<<blockCount, threadCount>>>(d_DstKey, d_DstVal, d_SrcKey, d_SrcVal, arrayLength);
         getLastCudaError("mergeSortShared<0><<<>>> failed\n");
     }

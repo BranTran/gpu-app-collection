@@ -51,6 +51,9 @@ __global__ void histogram64Kernel(uint *d_PartialHistograms, data_t *d_Data, uin
 {
     // Handle to thread block group
     cg::thread_block cta = cg::this_thread_block();
+    //Per-thread histogram storage
+    __shared__ uchar s_Hist[HISTOGRAM64_THREADBLOCK_SIZE * HISTOGRAM64_BIN_COUNT];
+for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
     //Encode thread index in order to avoid bank conflicts in s_Hist[] access:
     //each group of SHARED_MEMORY_BANKS threads accesses consecutive shared memory banks
     //and the same bytes [0..3] within the banks
@@ -60,8 +63,6 @@ __global__ void histogram64Kernel(uint *d_PartialHistograms, data_t *d_Data, uin
         ((threadIdx.x & (SHARED_MEMORY_BANKS     - 1)) << 2) |
         ((threadIdx.x & (SHARED_MEMORY_BANKS * 3)) >> 4);
 
-    //Per-thread histogram storage
-    __shared__ uchar s_Hist[HISTOGRAM64_THREADBLOCK_SIZE * HISTOGRAM64_BIN_COUNT];
     uchar *s_ThreadBase = s_Hist + threadPos;
 
     //Initialize shared memory (writing 32-bit words)
@@ -109,6 +110,7 @@ __global__ void histogram64Kernel(uint *d_PartialHistograms, data_t *d_Data, uin
 
         d_PartialHistograms[blockIdx.x * HISTOGRAM64_BIN_COUNT + threadIdx.x] = sum;
     }
+}//onek
 }
 
 
@@ -202,7 +204,6 @@ extern "C" void histogram64(
 
     assert(byteCount % sizeof(data_t) == 0);
     assert(histogramCount <= MAX_PARTIAL_HISTOGRAM64_COUNT);
-    for(uint64_t i = 0; i<UINT64_MAX; i++)
     histogram64Kernel<<<histogramCount, HISTOGRAM64_THREADBLOCK_SIZE>>>(
         d_PartialHistograms,
         (data_t *)d_Data,

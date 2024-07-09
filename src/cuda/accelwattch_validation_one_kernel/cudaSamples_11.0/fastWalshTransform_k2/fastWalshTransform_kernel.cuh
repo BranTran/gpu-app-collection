@@ -31,11 +31,13 @@ __global__ void fwtBatch1Kernel(float *d_Output, float *d_Input, int log2N)
 {
     // Handle to thread block group
     cg::thread_block cta = cg::this_thread_block();
+    extern __shared__ float s_data[];
+
+for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
     const int    N = 1 << log2N;
     const int base = blockIdx.x << log2N;
 
     //(2 ** 11) * 4 bytes == 8KB -- maximum s_data[] size for G80
-    extern __shared__ float s_data[];
     float *d_Src = d_Input  + base;
     float *d_Dst = d_Output + base;
 
@@ -99,6 +101,7 @@ __global__ void fwtBatch1Kernel(float *d_Output, float *d_Input, int log2N)
     {
         d_Dst[pos] = s_data[pos];
     }
+}//onek
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -158,7 +161,6 @@ void fwtBatchGPU(float *d_Data, int M, int log2N)
         fwtBatch2Kernel<<<grid, THREAD_N>>>(d_Data, d_Data, N / 4);
         getLastCudaError("fwtBatch2Kernel() execution failed\n");
     }
-    for(uint64_t i = 0; i<UINT64_MAX; i++)
     fwtBatch1Kernel<<<M, N / 4, N *sizeof(float)>>>(
         d_Data,
         d_Data,

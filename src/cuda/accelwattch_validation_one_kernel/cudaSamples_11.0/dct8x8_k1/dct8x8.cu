@@ -219,7 +219,6 @@ float WrapperCUDA1(byte *ImgSrc, byte *ImgDst, int Stride, ROI Size)
     for (int i=0; i<BENCHMARK_SIZE; i++)
     {
         sdkStartTimer(&timerCUDA);
-        for(uint64_t i = 0; i<UINT64_MAX; i++)
         CUDAkernel1DCT<<< grid, threads >>>(Dst, (int) DstStride, 0, 0);
         checkCudaErrors(cudaDeviceSynchronize());
         sdkStopTimer(&timerCUDA);

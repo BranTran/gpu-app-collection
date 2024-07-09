@@ -46,7 +46,7 @@ __global__ void sobolGPU_kernel(unsigned n_vectors, unsigned n_dimensions, unsig
     // Handle to thread block group
     cg::thread_block cta = cg::this_thread_block();
     __shared__ unsigned int v[n_directions];
-
+for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
     // Offset into the correct dimension as specified by the
     // block y coordinate
     d_directions = d_directions + n_directions * blockIdx.y;
@@ -134,6 +134,7 @@ __global__ void sobolGPU_kernel(unsigned n_vectors, unsigned n_dimensions, unsig
         X ^= v_log2stridem1 ^ v[__ffs(~((i - stride) | v_stridemask)) - 1];
         d_output[i] = (float)X * k_2powneg32;
     }
+}//onek
 }
 
 extern "C"
@@ -188,7 +189,6 @@ void sobolGPU(int n_vectors, int n_dimensions, unsigned int *d_directions, float
     dimBlock.x = threadsperblock;
 
     // Execute GPU kernel
-    for(uint64_t i = 0; i<UINT64_MAX; i++)
     sobolGPU_kernel<<<dimGrid, dimBlock>>>(n_vectors, n_dimensions, d_directions, d_output);
 }
 

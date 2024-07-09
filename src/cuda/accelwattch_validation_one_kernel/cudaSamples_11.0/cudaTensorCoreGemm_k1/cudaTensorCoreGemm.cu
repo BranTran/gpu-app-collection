@@ -177,7 +177,7 @@ __host__ void init_host_matrices(half *a, half *b, float *c)
 __global__ void compute_gemm(const half *A, const half *B, const float *C, float *D, float alpha, float beta)
 {
     extern __shared__ half shmem[][CHUNK_K * K + SKEW_HALF];
-
+for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
     // Warp and lane identification.
     const unsigned int warpId = threadIdx.x / WARP_SIZE;
     const unsigned int laneId = threadIdx.x % WARP_SIZE;
@@ -346,6 +346,7 @@ __global__ void compute_gemm(const half *A, const half *B, const float *C, float
 
         __syncthreads();
     }
+}//onek
 }
 
 
@@ -515,7 +516,6 @@ int main(int argc, char **argv)
         printf("Computing... using high performance kernel compute_gemm \n");
 
         checkCudaErrors(cudaFuncSetAttribute(compute_gemm, cudaFuncAttributeMaxDynamicSharedMemorySize, SHMEM_SZ));
-        for(uint64_t i = 0; i<UINT64_MAX; i++)
             compute_gemm<<<deviceProp.multiProcessorCount, THREADS_PER_BLOCK, SHMEM_SZ>>>(A, B, C, D, alpha, beta);
 #if CPU_DEBUG
         checkCudaErrors(cudaMemcpy(result_hD, D, sizeof(float)*M_GLOBAL*N_GLOBAL, cudaMemcpyDeviceToHost));

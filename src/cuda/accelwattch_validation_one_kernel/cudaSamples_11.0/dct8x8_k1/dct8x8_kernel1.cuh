@@ -65,6 +65,7 @@ __global__ void CUDAkernel1DCT(float *Dst, int ImgWidth, int OffsetXBlocks, int 
 {
     // Handle to thread block group
     cg::thread_block cta = cg::this_thread_block();
+for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
     // Block index
     const int bx = blockIdx.x + OffsetXBlocks;
     const int by = blockIdx.y + OffsetYBlocks;
@@ -121,6 +122,7 @@ __global__ void CUDAkernel1DCT(float *Dst, int ImgWidth, int OffsetXBlocks, int 
 
     //copy current coefficient to its place in the result array
     Dst[ FMUL(((by << BLOCK_SIZE_LOG2) + ty), ImgWidth) + ((bx << BLOCK_SIZE_LOG2) + tx) ] = CurBlockLocal1[(ty << BLOCK_SIZE_LOG2) + tx ];
+}//onek
 }
 
 
