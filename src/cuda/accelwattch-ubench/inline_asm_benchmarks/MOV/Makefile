@@ -34,9 +34,9 @@
 # ################################################################################
 #
 # # Add source files here
-  EXECUTABLE      := DP_INT_IMAD_WIDE_inline
+  EXECUTABLE      := MOV
 # # Cuda source files (compiled with cudacc)
-  CUFILES         := DP_INT_IMAD_WIDE_inline.cu
+  CUFILES         := MOV.cu
 # # C/C++ source files (compiled with gcc / c++)
   CCFILES         := \
 	#

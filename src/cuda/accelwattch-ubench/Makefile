@@ -1,8 +1,5 @@
 inline:
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/SP_FP_ADD_inline/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/SP_FP_ADD_inline_one_op/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/MOV_inline/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/DP_INT_IMAD_WIDE_inline/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/MOV/$(OPT) ptxas=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/NOP/$(OPT)
 
 
@@ -79,7 +76,6 @@ branching:
 
 functional:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C functional_benchmarks/REG_FILE/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C functional_benchmarks/MOV/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C functional_benchmarks/BE_SP_INT_ADD/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C functional_benchmarks/BE_SP_INT_DIV/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C functional_benchmarks/BE_SP_INT_MUL/$(OPT)
@@ -189,10 +185,7 @@ mix:
 	#$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C POWER/shrd_tex_sfu
 
 cleaninline:
-	$(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/SP_FP_ADD_inline/$(OPT)   
-	$(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/SP_FP_ADD_inline_one_op/$(OPT)   
-	$(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/MOV_inline/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/DP_INT_IMAD_WIDE_inline/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/MOV/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/NOP/$(OPT)
 
 cleantensor:

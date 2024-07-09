@@ -28,25 +28,38 @@
 // POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <stdlib.h>
+//#include <cutil.h>
+//#include <mgp.h>
+// Includes
+//#include <stdio.h>
+//#include "../include/ContAcq-IntClk.h"
 
+// includes, project
+//#include "../include/sdkHelper.h"  // helper for shared functions common to CUDA SDK samples
+//#include <shrQATest.h>
+//#include <shrUtils.h>
 
 // includes CUDA
 #include <cuda_runtime.h>
 
 #define THREADS_PER_BLOCK 256
 #define NUM_OF_BLOCKS 640
+//#define ITERATIONS 40
 
 // Variables
-float* h_A;
-float* h_B;
-float* h_C;
-float* d_A;
-float* d_B;
-float* d_C;
+unsigned* h_A;
+unsigned* h_B;
+unsigned* h_C;
+unsigned* d_A;
+unsigned* d_B;
+unsigned* d_C;
+//bool noprompt = false;
+//unsigned int my_timer;
 
 // Functions
 void CleanupResources(void);
-void RandomInit(float*, int);
+void RandomInit(unsigned*, int);
+//void ParseArguments(int, char**);
 
 ////////////////////////////////////////////////////////////////////////////////
 // These are CUDA Helper functions
@@ -79,53 +92,55 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 
 
-// Device code
-__global__ void PowerKernal1(const float* A, const float* B, float* C, unsigned long long iterations)
+
+__global__ void PowerKernal2(const unsigned* A, const unsigned* B, unsigned* C, unsigned long long N)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
-    //Do Some Computation
-    // float Value1=0;
-    // float Value2=0;
-    // float Value3=0;
-    // float Value=0;
-    // float I1=A[i];
-    // float I2=B[i];
-    //Setup Registers for the above
-    register float Value1 = 0;    //%0
-    register float Value2 = 0;    //%1
-    register float Value3 = 0;    //%2
-    register float I1     = A[i]; //%3
-    register float I2     = B[i]; //%4
-    float Value  = 0;    //%5 Not necessary
+    unsigned I1 = A[i];
+    unsigned I2 = B[i];
+    unsigned Value1, Value2, Value3, Value4, Value5, Value6;
+    unsigned Value7, Value8, Value9, Value10, Value11, Value12;
+    //Initalize
+    __asm volatile (
+        "\n\tmov.u32 %0, %3;"   // Value1 = I1
+        "\n\tmov.u32 %1, %4;"   // Value2 = I2
+        : "+r"(Value1), "+r"(Value2)
+        : "r"(I1), "r"(I2)
+    );
 
-    // synchronize all threads
-    asm volatile ("bar.sync 0;");
-
-#pragma unroll 100
-    // Excessive Addition access
-    for(unsigned long long k=0; k<iterations;k++) {
-    	// Value1=I1+I2;
-    	// Value3=I1-I2;
-    	// Value1+=Value2;
-    	// Value1+=Value2;
-    	// Value2=Value3-Value1;
-    	// Value1=Value2+Value3;
-      // Inline Assembly Version
-      asm volatile ("{\t\n"
-        "add.f32 %0, %3, %4;\n\t"
-        "sub.f32 %2, %3, %4;\n\t"
-        "add.f32 %0, %0, %1;\n\t"
-        "add.f32 %0, %0, %1;\n\t"
-        "sub.f32 %1, %2, %0;\n\t"
-        "add.f32 %0, %1, %2;\n\t"            
-      "}" : "+f"(Value1),"+f"(Value2),"+f"(Value3),"+f"(I1),"+f"(I2)      
-      );
+    #pragma unroll 100
+    for (unsigned long long k = 0; k < N; k++) {
+        // Doing several moves
+        __asm volatile (
+            "\n\tmov.u32 %2, %0;"
+            "\n\tmov.u32 %3, %1;"
+            "\n\tmov.u32 %4, %3;"
+            "\n\tmov.u32 %5, %2;"
+            "\n\tmov.u32 %6, %4;"
+            "\n\tmov.u32 %7, %5;"
+            "\n\tmov.u32 %8, %7;"
+            "\n\tmov.u32 %9, %6;"
+            "\n\tmov.u32 %10, %8;"
+            "\n\tmov.u32 %11, %9;"
+            "\n\tmov.u32 %0, %11;"
+            "\n\tmov.u32 %1, %10;"
+            "\n\tmov.u32 %2, %1;"
+            "\n\tmov.u32 %3, %0;"
+            "\n\tmov.u32 %4, %2;"
+            "\n\tmov.u32 %5, %3;"
+            "\n\tmov.u32 %6, %5;"
+            "\n\tmov.u32 %7, %4;"
+            "\n\tmov.u32 %8, %6;"
+            "\n\tmov.u32 %9, %7;"
+            "\n\tmov.u32 %10, %9;"
+            "\n\tmov.u32 %11, %8;"
+            "\n\tmov.u32 %0, %10;"
+            "\n\tmov.u32 %1, %11;"
+            : "+r"(Value1), "+r"(Value2), "+r"(Value3), "+r"(Value4), "+r"(Value5), "+r"(Value6), "+r"(Value7), "+r"(Value8), "+r"(Value9), "+r"(Value10), "+r"(Value11), "+r"(Value12)
+        );
     }
-    // synchronize all threads
-    asm volatile ("bar.sync 0;");
-
-    Value=Value1;
-    C[i]=Value+Value2;
+    C[i] = Value12;
+    __syncthreads();
 
 }
 
@@ -134,7 +149,6 @@ int main(int argc, char** argv)
  unsigned long long iterations;
  if(argc!=2) {
    fprintf(stderr,"usage: %s #iterations\n",argv[0]);
-   exit(1);
  }
  else {
    iterations = atoll(argv[1]);
@@ -142,13 +156,13 @@ int main(int argc, char** argv)
  
  printf("Power Microbenchmarks with iterations %lld\n",iterations);
  int N = THREADS_PER_BLOCK*NUM_OF_BLOCKS;
- size_t size = N * sizeof(float);
+ size_t size = N * sizeof(unsigned);
  // Allocate input vectors h_A and h_B in host memory
- h_A = (float*)malloc(size);
+ h_A = (unsigned*)malloc(size);
  if (h_A == 0) CleanupResources();
- h_B = (float*)malloc(size);
+ h_B = (unsigned*)malloc(size);
  if (h_B == 0) CleanupResources();
- h_C = (float*)malloc(size);
+ h_C = (unsigned*)malloc(size);
  if (h_C == 0) CleanupResources();
 
  // Initialize input vectors
@@ -156,27 +170,25 @@ int main(int argc, char** argv)
  RandomInit(h_B, N);
 
  // Allocate vectors in device memory
-printf("before\n");
  checkCudaErrors( cudaMalloc((void**)&d_A, size) );
  checkCudaErrors( cudaMalloc((void**)&d_B, size) );
  checkCudaErrors( cudaMalloc((void**)&d_C, size) );
-printf("after\n");
+
+ // Copy vectors from host memory to device memory
+ checkCudaErrors( cudaMemcpy(d_A, h_A, size, cudaMemcpyHostToDevice) );
+ checkCudaErrors( cudaMemcpy(d_B, h_B, size, cudaMemcpyHostToDevice) );
 
  cudaEvent_t start, stop;                   
  float elapsedTime = 0;                     
  checkCudaErrors(cudaEventCreate(&start));  
  checkCudaErrors(cudaEventCreate(&stop));
- 
- // Copy vectors from host memory to device memory
- checkCudaErrors( cudaMemcpy(d_A, h_A, size, cudaMemcpyHostToDevice) );
- checkCudaErrors( cudaMemcpy(d_B, h_B, size, cudaMemcpyHostToDevice) );
 
  //VecAdd<<<blocksPerGrid, threadsPerBlock>>>(d_A, d_B, d_C, N);
  dim3 dimGrid(NUM_OF_BLOCKS,1);
  dim3 dimBlock(THREADS_PER_BLOCK,1);
 
  checkCudaErrors(cudaEventRecord(start));              
- PowerKernal1<<<dimGrid,dimBlock>>>(d_A, d_B, d_C, iterations);  
+ PowerKernal2<<<dimGrid,dimBlock>>>(d_A, d_B, d_C, iterations);  
  checkCudaErrors(cudaEventRecord(stop));               
  
  checkCudaErrors(cudaEventSynchronize(stop));           
@@ -184,9 +196,11 @@ printf("after\n");
  printf("gpu execution time = %.3f ms\n", elapsedTime);  
  getLastCudaError("kernel launch failure");              
 
+
+ // Copy result from device memory to host memory
+ // h_C contains the result in host memory
  checkCudaErrors( cudaMemcpy(h_C, d_C, size, cudaMemcpyDeviceToHost) );
- 
- checkCudaErrors(cudaEventDestroy(start));
+  checkCudaErrors(cudaEventDestroy(start));
  checkCudaErrors(cudaEventDestroy(stop));
  CleanupResources();
 
@@ -214,9 +228,10 @@ void CleanupResources(void)
 }
 
 // Allocates an array with random float entries.
-void RandomInit(float* data, int n)
+void RandomInit(unsigned* data, int n)
 {
-  for (int i = 0; i < n; ++i){ 
+  for (int i = 0; i < n; ++i){
+	srand((unsigned)time(0));  
 	data[i] = rand() / RAND_MAX;
   }
 }
