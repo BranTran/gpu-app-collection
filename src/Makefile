@@ -17,7 +17,7 @@ accelwattch_validation: rodinia-3.1_accelwattch_validation parboil_accelwattch_v
 accelwattch_hw_power: rodinia-3.1_hw_power parboil_hw_power cuda_samples-11.0_hw_power
 
 #Disable clean for now, It has a bug!
-bt_validation_one_kernel: rodinia-3.1_one_kernel cuda_samples-11.0_one_kernel
+bt_val: rodinia-3.1_one_kernel cuda_samples-11.0_one_kernel
 
 # clean_dragon-naive clean_pannotia clean_proxy-apps
 clean: clean_rodinia_2.0-ft clean_dragon-cdp  clean_ispass-2009 clean_lonestargpu-2.0 clean_custom_apps clean_parboil clean_cutlass clean_rodinia-3.1 clean_heterosync clean_cuda_samples
