@@ -102,9 +102,9 @@ __global__ void PowerKernal2(const unsigned* A, const unsigned* B, unsigned* C, 
     unsigned Value7, Value8, Value9, Value10, Value11, Value12;
     //Initalize
     __asm volatile (
-        "\n\tmov.u32 %0, %3;"   // Value1 = I1
-        "\n\tmov.u32 %1, %4;"   // Value2 = I2
-        : "+r"(Value1), "+r"(Value2)
+        "\n\tmov.u32 %0, %2;"   // Value1 = I1
+        "\n\tmov.u32 %1, %3;"   // Value2 = I2
+        : "=r"(Value1), "=r"(Value2)
         : "r"(I1), "r"(I2)
     );
 
