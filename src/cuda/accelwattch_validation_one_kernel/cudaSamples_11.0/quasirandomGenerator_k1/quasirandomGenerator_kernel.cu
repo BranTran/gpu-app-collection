@@ -39,7 +39,7 @@ static __global__ void quasirandomGeneratorKernel(
 )
 {
 #pragma unroll 100
-for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
+for(volatile uint64_t onek = 0; onek < UINT64_MAX; onek++){
     unsigned int *dimBase = &c_Table[threadIdx.y][0];
     unsigned int      tid = MUL(blockDim.x, blockIdx.x) + threadIdx.x;
     unsigned int  threadN = MUL(blockDim.x, gridDim.x);

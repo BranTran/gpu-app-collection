@@ -34,7 +34,7 @@ __global__ void fwtBatch1Kernel(float *d_Output, float *d_Input, int log2N)
     extern __shared__ float s_data[];
 
 #pragma unroll 100
-for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
+for(volatile uint64_t onek = 0; onek < UINT64_MAX; onek++){
     const int    N = 1 << log2N;
     const int base = blockIdx.x << log2N;
 

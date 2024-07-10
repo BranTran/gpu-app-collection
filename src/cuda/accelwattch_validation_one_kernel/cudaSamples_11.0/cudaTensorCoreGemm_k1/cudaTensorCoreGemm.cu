@@ -178,7 +178,7 @@ __global__ void compute_gemm(const half *A, const half *B, const float *C, float
 {
     extern __shared__ half shmem[][CHUNK_K * K + SKEW_HALF];
 #pragma unroll 100
-for(uint64_t onek = 0; onek<UINT64_MAX; onek++){
+for(volatile uint64_t onek = 0; onek < UINT64_MAX; onek++){
     // Warp and lane identification.
     const unsigned int warpId = threadIdx.x / WARP_SIZE;
     const unsigned int laneId = threadIdx.x % WARP_SIZE;

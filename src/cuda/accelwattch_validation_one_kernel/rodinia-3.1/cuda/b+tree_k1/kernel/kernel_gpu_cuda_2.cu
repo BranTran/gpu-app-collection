@@ -17,6 +17,7 @@ findRangeK(	long height,
 			int *RecstartD, 
 			int *ReclenD)
 {
+#pragma unroll 100
 for(uint64_t onek = 0; onek < UINT64_MAX; onek++){
 	// private thread IDs
 	int thid = threadIdx.x;
@@ -59,9 +60,9 @@ for(uint64_t onek = 0; onek < UINT64_MAX; onek++){
 	__syncthreads();
 
 	// Find the index of the ending record
-	// BT making add equal for accumulation
+	// BT add += did not do anything
 	if(knodesD[lastKnodeD[bid]].keys[thid] == endD[bid]){
-		ReclenD[bid] += knodesD[lastKnodeD[bid]].indices[thid] - RecstartD[bid]+1;
+		ReclenD[bid] = knodesD[lastKnodeD[bid]].indices[thid] - RecstartD[bid]+1;
 	}
 }//for onek
 }
