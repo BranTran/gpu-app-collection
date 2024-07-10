@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ "$#" -ne 2 ]; then
+  echo "Usage: $0 <dir_0> <dir_1>"
+  exit 1
+fi
+
 # Define the directories
 DIR_O0=${1}
 DIR_O2=${2}
