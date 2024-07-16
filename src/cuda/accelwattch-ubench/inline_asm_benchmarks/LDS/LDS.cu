@@ -41,19 +41,15 @@
 
 // includes CUDA
 #include <cuda_runtime.h>
-
+#include <cuda.h> //BT: Needed for uint32_t
 #define THREADS_PER_BLOCK 1024
-#define NUM_OF_BLOCKS 160
-#define SHARED_MEM_SIZE_BYTE (48*1024) //size in bytes, max 96KB for v100
-#define SHARED_MEM_SIZE (SHARED_MEM_SIZE_BYTE/8)
-
+#define NUM_OF_BLOCKS 80
+#define SHARED_MEM_SIZE THREADS_PER_BLOCK*4
 // Variables
 unsigned* h_A;
 unsigned* h_B;
-unsigned* h_C;
 unsigned* d_A;
 unsigned* d_B;
-unsigned* d_C;
 //bool noprompt = false;
 //unsigned int my_timer;
 
@@ -94,31 +90,64 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 __global__ void PowerKernal2( unsigned* A, unsigned* B, unsigned long long N)
 {
-    uint32_t int tid = threadIdx.x;
+    uint32_t tid = threadIdx.x;
     uint32_t uid = blockDim.x * blockIdx.x + tid;
-    uint32_t n_threads = blockDim.x * gridDim.x;    
-
-    __device__  __shared__  volatile unsigned sharedInp[SHARED_MEM_SIZE];
+//Defining shared memory space for each block
+    __shared__  volatile uint64_t s[SHARED_MEM_SIZE];
 
   //Threads initialize pointer chasing
   //I want each thread to pointer chase without contention
   //So next address should be the next thread
-  uint32_t stride = n_threads;
-	for (uint32_t i=uid; i<(SHARED_MEM_SIZE-stride); i+=n_threads)
-    s[i] = (i+stride)%SHARED_MEM_SIZE;
+  unsigned stride = THREADS_PER_BLOCK;
+  uint64_t s_address = (uint64_t) s;
+  if(tid == 0){
+	for (unsigned i=tid; i<(SHARED_MEM_SIZE); i++){
+        s[i] = (uint64_t)(s_address + (((i+stride)%SHARED_MEM_SIZE)*sizeof(uint64_t)));
+    }
+}
+  __syncthreads();// Probably unneeded
 
-//  __syncthreads(); Probably unneeded
 
-
-  unsigned p_chaser = uid;
+/*//Trying pointer chasing like shared_lat, requires shf.l for byte addressing
+  uint64_t p_chaser = uid;
 
   #pragma unroll 100
   for(unsigned long long k=0; k<N;k++) {
-    p_chaser = s[p_chaser]
+    p_chaser = s[p_chaser];
   }
 
   //sink back to global
-  B[uid] = p_chaser;
+  B[uid] = (unsigned)p_chaser;*/
+
+// a register to avoid compiler optimization
+	volatile uint64_t *ptr = s + tid;
+	volatile uint64_t ptr1, ptr0;
+
+	// initialize the thread pointer with the start address of the array
+	// use ca modifier to cache the in L1
+	asm volatile ("{\t\n"
+		"ld.volatile.shared.u64 %0, [%1];\n\t"
+		"}" : "=l"(ptr1) : "l"(ptr) : "memory"
+	);
+
+	// synchronize all threads
+	asm volatile ("bar.sync 0;");
+
+
+	// pointer-chasing ITERS times
+	// use ca modifier to cache the load in L1
+#pragma unroll 100
+	for(uint64_t i=0; i<N; ++i) {	
+		asm volatile ("{\t\n"
+			"ld.volatile.shared.u64 %0, [%1];\n\t"
+			"}" : "=l"(ptr0) : "l"((uint64_t*)ptr1) : "memory"
+		);
+		ptr1 = ptr0;    //swap the register for the next load
+
+	}
+
+	// write time and data back to memory
+	B[uid] = ptr1;
 }
 
 
@@ -176,7 +205,6 @@ int main(int argc, char** argv)
  checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));  
  printf("gpu execution time = %.3f ms\n", elapsedTime);  
  getLastCudaError("kernel launch failure");              
- cudaThreadSynchronize(); 
 
  // Copy result from device memory to host memory
  // h_B contains the result in host memory
