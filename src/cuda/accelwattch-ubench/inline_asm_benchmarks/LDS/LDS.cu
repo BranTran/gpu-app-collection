@@ -44,6 +44,8 @@
 
 #define THREADS_PER_BLOCK 1024
 #define NUM_OF_BLOCKS 160
+#define SHARED_MEM_SIZE_BYTE (48*1024) //size in bytes, max 96KB for v100
+#define SHARED_MEM_SIZE (SHARED_MEM_SIZE_BYTE/8)
 
 // Variables
 unsigned* h_A;
@@ -92,33 +94,31 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 __global__ void PowerKernal2( unsigned* A, unsigned* B, unsigned long long N)
 {
-    int tid = threadIdx.x;
-    int i = blockDim.x * blockIdx.x + tid;
-    
+    uint32_t int tid = threadIdx.x;
+    uint32_t uid = blockDim.x * blockIdx.x + tid;
+    uint32_t n_threads = blockDim.x * gridDim.x;    
 
-    __device__  __shared__  volatile unsigned sharedInp[THREADS_PER_BLOCK];
-//    __device__  __shared__  volatile unsigned sharedOut[THREADS_PER_BLOCK];
+    __device__  __shared__  volatile unsigned sharedInp[SHARED_MEM_SIZE];
 
-   sharedInp[tid] = A[i];
-    __syncthreads();
+  //Threads initialize pointer chasing
+  //I want each thread to pointer chase without contention
+  //So next address should be the next thread
+  uint32_t stride = n_threads;
+	for (uint32_t i=uid; i<(SHARED_MEM_SIZE-stride); i+=n_threads)
+    s[i] = (i+stride)%SHARED_MEM_SIZE;
 
-    unsigned load_value;
-    volatile unsigned* loadAddr = sharedInp+ tid;
-//    volatile unsigned* storeAddr = sharedOut+ tid;
-    //unsigned sum_value = 0;
-    #pragma unroll 100
+//  __syncthreads(); Probably unneeded
 
-    for(unsigned long long k=0; k<N;k++) {
-      __asm volatile(
-        "ld.shared.u32 %0, [%1]; \n" 
-        : "+r"(load_value) : "l"((loadAddr ))
 
-      );
-    }
+  unsigned p_chaser = uid;
 
-    B[i] = load_value; //sharedOut[tid];
-    __syncthreads();
+  #pragma unroll 100
+  for(unsigned long long k=0; k<N;k++) {
+    p_chaser = s[p_chaser]
+  }
 
+  //sink back to global
+  B[uid] = p_chaser;
 }
 
 
