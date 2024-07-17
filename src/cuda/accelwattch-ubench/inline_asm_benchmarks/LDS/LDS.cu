@@ -43,7 +43,7 @@
 #include <cuda_runtime.h>
 #include <cuda.h> //BT: Needed for uint32_t
 #define THREADS_PER_BLOCK 1024
-#define NUM_OF_BLOCKS 80
+#define NUM_OF_BLOCKS 1
 #define SHARED_MEM_SIZE THREADS_PER_BLOCK*4
 // Variables
 unsigned* h_A;
@@ -93,40 +93,47 @@ __global__ void PowerKernal2( unsigned* A, unsigned* B, unsigned long long N)
     uint32_t tid = threadIdx.x;
     uint32_t uid = blockDim.x * blockIdx.x + tid;
 //Defining shared memory space for each block
-    __shared__  volatile uint64_t s[SHARED_MEM_SIZE];
+    __shared__  volatile uint64_t s[SHARED_MEM_SIZE];//Set to 4*THREADS_PER_BLOCK
 
   //Threads initialize pointer chasing
   //I want each thread to pointer chase without contention
-  //So next address should be the next thread
-  unsigned stride = THREADS_PER_BLOCK;
-  uint64_t s_address = (uint64_t) s;
+  //So we want to do a strided access
+  //unsigned stride = THREADS_PER_BLOCK;
+  //uint64_t s_address = (uint64_t) s; //Uncertain
+  //Have thread 0 fill in all of the values of the shared memory array
   if(tid == 0){
-	for (unsigned i=tid; i<(SHARED_MEM_SIZE); i++){
-        s[i] = (uint64_t)(s_address + (((i+stride)%SHARED_MEM_SIZE)*sizeof(uint64_t)));
+	for (unsigned i=tid; i<(SHARED_MEM_SIZE-1); i++){
+        //s[i] = (uint64_t)(s + i + 1);
+        s[i] = (uint64_t) &s[i+1];
     }
-}
-  __syncthreads();// Probably unneeded
-
-
-/*//Trying pointer chasing like shared_lat, requires shf.l for byte addressing
-  uint64_t p_chaser = uid;
-
-  #pragma unroll 100
-  for(unsigned long long k=0; k<N;k++) {
-    p_chaser = s[p_chaser];
+    s[SHARED_MEM_SIZE-1] = (uint64_t) &s;
   }
+  __syncthreads();
+/* //Trying pointer chasing in CUDA
+   //RESULT: the memory accesses are LD.E.64.STRONG.SYS
+  volatile uint64_t* ptr = s+tid;
+  uint64_t temp_value, temp_mem;
 
-  //sink back to global
-  B[uid] = (unsigned)p_chaser;*/
-
+  temp_value = *ptr; //Get the value at the address of ptr, which is the next memory address
+  __syncthreads();
+#pragma unroll 100
+	for(uint64_t i=0; i<N; ++i) {	
+      temp_mem = *(volatile uint64_t*)temp_value; //treat temp as a pointer and get the next value
+      temp_value = temp_mem; //swap the pointer
+    }
+    B[uid] = temp_value;
+*/
+// TRYING ASM VOLATILE IMPLEMENTATION
 // a register to avoid compiler optimization
 	volatile uint64_t *ptr = s + tid;
 	volatile uint64_t ptr1, ptr0;
 
 	// initialize the thread pointer with the start address of the array
 	// use ca modifier to cache the in L1
+
+//    ptr1 = s[tid];//attempting inline doesn't seem to work
 	asm volatile ("{\t\n"
-		"ld.volatile.shared.u64 %0, [%1];\n\t"
+		"ld.shared.u64 %0, [%1];\n\t"
 		"}" : "=l"(ptr1) : "l"(ptr) : "memory"
 	);
 
@@ -136,15 +143,16 @@ __global__ void PowerKernal2( unsigned* A, unsigned* B, unsigned long long N)
 
 	// pointer-chasing ITERS times
 	// use ca modifier to cache the load in L1
-#pragma unroll 100
-	for(uint64_t i=0; i<N; ++i) {	
-		asm volatile ("{\t\n"
-			"ld.volatile.shared.u64 %0, [%1];\n\t"
-			"}" : "=l"(ptr0) : "l"((uint64_t*)ptr1) : "memory"
-		);
-		ptr1 = ptr0;    //swap the register for the next load
+//#pragma unroll 100
+//	for(uint64_t i=0; i<N; ++i) {	
+//		asm volatile ("{\t\n"
+//			"ld.volatile.shared.u64 %0, [%1];\n\t"
+//			"}" : "=l"(ptr0) : "l"((uint64_t*)ptr1) : "memory"
+//		);
+//        ptr0 = *((uint64_t*)ptr1);//This "works" as LDG.E.U64, not a shared memory load
+//		ptr1 = ptr0;    //swap the register for the next load
 
-	}
+//	}
 
 	// write time and data back to memory
 	B[uid] = ptr1;
