@@ -125,7 +125,7 @@ __global__ void PowerKernal2( unsigned* A, unsigned* B, unsigned long long N)
 */
 // TRYING ASM VOLATILE IMPLEMENTATION
 // a register to avoid compiler optimization
-	volatile uint64_t *ptr = s + tid;
+	//volatile uint64_t *ptr = s + tid;
 	volatile uint64_t ptr1, ptr0;
 
 	// initialize the thread pointer with the start address of the array
@@ -134,7 +134,8 @@ __global__ void PowerKernal2( unsigned* A, unsigned* B, unsigned long long N)
 //    ptr1 = s[tid];//attempting inline doesn't seem to work
 	asm volatile ("{\t\n"
 		"ld.shared.u64 %0, [%1];\n\t"
-		"}" : "=l"(ptr1) : "l"(ptr) : "memory"
+		"}" : "=l"(ptr1) : "l"(s)
+
 	);
 
 	// synchronize all threads

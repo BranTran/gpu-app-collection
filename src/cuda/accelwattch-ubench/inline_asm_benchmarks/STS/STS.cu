@@ -99,8 +99,8 @@ __global__ void PowerKernal2( unsigned* A, unsigned* B, unsigned long long N)
 
     __syncthreads();
 
-    unsigned load_value;
-    volatile unsigned* storeAddr = sharedOut+ tid;
+//    unsigned load_value;
+//    volatile unsigned* storeAddr = sharedOut+ tid;
     //unsigned sum_value = 0;
     #pragma unroll 100
     for(unsigned long long k=0; k<N;k++) {
@@ -167,7 +167,6 @@ int main(int argc, char** argv)
  checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));  
  printf("gpu execution time = %.3f ms\n", elapsedTime);  
  getLastCudaError("kernel launch failure");              
- cudaThreadSynchronize(); 
 
  // Copy result from device memory to host memory
  // h_B contains the result in host memory
