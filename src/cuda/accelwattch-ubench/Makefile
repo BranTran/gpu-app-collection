@@ -1,6 +1,7 @@
 inline:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/MOV/$(OPT) ptxas=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/NOP/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/BAR/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDS/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/STS/$(OPT)
 
@@ -189,7 +190,9 @@ mix:
 cleaninline:
 	$(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/MOV/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/NOP/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/BAR/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/LDS/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/STS/$(OPT)
 
 cleantensor:
 	$(SETENV) make $(MAKE_ARGS) clean -C tensor_benchmarks/TENSOR/$(OPT)   
