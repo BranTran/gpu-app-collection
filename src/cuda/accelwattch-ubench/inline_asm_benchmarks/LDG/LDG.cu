@@ -44,7 +44,7 @@
 #include <cuda.h> //BT: Needed for uint32_t
 #define THREADS_PER_BLOCK 1024
 #define NUM_OF_BLOCKS 1
-#define SCALING_ARRAY_SIZE 8
+#define SCALING_ARRAY_SIZE 16
 // Variables
 unsigned* h_A;
 unsigned* h_B;
@@ -88,23 +88,49 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 
 
-__global__ void PowerKernal2(const unsigned* A, unsigned* B, unsigned long long N)
+__global__ void PowerKernal2(unsigned* A, unsigned* B, unsigned long long N)
 {
     uint32_t uid = blockDim.x * blockIdx.x + threadIdx.x;
     unsigned id = uid*SCALING_ARRAY_SIZE;
     unsigned sink = 0;
 #pragma unroll 100
 	for(uint64_t i=0; i<N; ++i) {
-      sink = sink + A[id];	
-      sink = sink + A[id+1];	
-      sink = sink + A[id+2];	
-      sink = sink + A[id+3];	
-      sink = sink + A[id+4];	
-      sink = sink + A[id+5];	
-      sink = sink + A[id+6];	
-      sink = sink + A[id+7];	
+      sink += uid + A[id];	
+      sink += uid + A[id+1];	
+      sink += uid + A[id+2];	
+      sink += uid + A[id+3];	
+      sink += uid + A[id+4];	
+      sink += uid + A[id+5];	
+      sink += uid + A[id+6];	
+      sink += uid + A[id+7];	
+      sink += uid + A[id+8];	
+      sink += uid + A[id+9];	
+      sink += uid + A[id+10];	
+      sink += uid + A[id+11];	
+      sink += uid + A[id+12];	
+      sink += uid + A[id+13];	
+      sink += uid + A[id+14];	
+      sink += uid + A[id+15];
+      A[id] = sink;
+      //sink += A[id] + B[id]+sink    
+      sink += uid + B[id];	
+      sink += uid + B[id+1];	
+      sink += uid + B[id+2];	
+      sink += uid + B[id+3];	
+      sink += uid + B[id+4];	
+      sink += uid + B[id+5];	
+      sink += uid + B[id+6];	
+      sink += uid + B[id+7];	
+      sink += uid + B[id+8];	
+      sink += uid + B[id+9];	
+      sink += uid + B[id+10];	
+      sink += uid + B[id+11];	
+      sink += uid + B[id+12];	
+      sink += uid + B[id+13];	
+      sink += uid + B[id+14];	
+      sink += uid + B[id+15];
+      B[id] = sink;   
     }
-    B[uid] = sink;
 }
 
 
