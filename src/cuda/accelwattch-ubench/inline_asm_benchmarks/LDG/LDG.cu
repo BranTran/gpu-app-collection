@@ -44,7 +44,7 @@
 #include <cuda.h> //BT: Needed for uint32_t
 #define THREADS_PER_BLOCK 1024
 #define NUM_OF_BLOCKS 1
-#define SHARED_MEM_SIZE THREADS_PER_BLOCK*4
+#define SCALING_ARRAY_SIZE 8
 // Variables
 unsigned* h_A;
 unsigned* h_B;
@@ -91,10 +91,18 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 __global__ void PowerKernal2(const unsigned* A, unsigned* B, unsigned long long N)
 {
     uint32_t uid = blockDim.x * blockIdx.x + threadIdx.x;
+    unsigned id = uid*SCALING_ARRAY_SIZE;
     unsigned sink = 0;
 #pragma unroll 100
 	for(uint64_t i=0; i<N; ++i) {
-      sink = sink + A[uid];	
+      sink = sink + A[id];	
+      sink = sink + A[id+1];	
+      sink = sink + A[id+2];	
+      sink = sink + A[id+3];	
+      sink = sink + A[id+4];	
+      sink = sink + A[id+5];	
+      sink = sink + A[id+6];	
+      sink = sink + A[id+7];	
     }
     B[uid] = sink;
 }
@@ -114,21 +122,20 @@ int main(int argc, char** argv)
  printf("Power Microbenchmarks with iterations %lld\n",iterations);
  
  int N = THREADS_PER_BLOCK*NUM_OF_BLOCKS;
-
  size_t size = N * sizeof(unsigned);
  // Allocate input vectors h_A and h_B in host memory
- h_A = (unsigned*)malloc(size);
+ h_A = (unsigned*)malloc(size*SCALING_ARRAY_SIZE);
  if (h_A == 0) CleanupResources();
  h_B = (unsigned*)malloc(size);
  if (h_B == 0) CleanupResources();
 
 
  // Initialize input vectors
- RandomInit(h_A, N);
+ RandomInit(h_A, N*SCALING_ARRAY_SIZE);
 
 
  // Allocate vectors in device memory
- checkCudaErrors( cudaMalloc((void**)&d_A, size) );
+ checkCudaErrors( cudaMalloc((void**)&d_A, size*SCALING_ARRAY_SIZE) );
  checkCudaErrors( cudaMalloc((void**)&d_B, size) );
 
 
