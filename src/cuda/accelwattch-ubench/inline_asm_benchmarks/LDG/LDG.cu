@@ -90,7 +90,7 @@ __global__ void l2_stress(uint64_t *posArray, uint64_t *dsink, unsigned long lon
   #pragma unroll 100
   for(unsigned long long i=0; i<iterations; ++i) { 
     asm volatile ("{\t\n"
-      "ld.global.u64 %0, [%1];\n\t"
+      "ld.global %0, [%1];\n\t"
       "}" : "=l"(ptr0) : "l"((uint64_t*)ptr1) : "memory"
     );
     ptr1 = ptr0;    //swap the register for the next load
