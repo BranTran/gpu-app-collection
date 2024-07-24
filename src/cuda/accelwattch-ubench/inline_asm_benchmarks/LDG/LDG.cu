@@ -42,8 +42,8 @@
 // includes CUDA
 #include <cuda_runtime.h>
 #include <cuda.h> //BT: Needed for uint32_t
-#define THREADS_PER_BLOCK 1024
-#define NUM_OF_BLOCKS 1
+#define THREADS_PER_BLOCK 256
+#define NUM_OF_BLOCKS 640
 #define SCALING_ARRAY_SIZE 16
 // Variables
 unsigned* h_A;

@@ -42,8 +42,8 @@
 // includes CUDA
 #include <cuda_runtime.h>
 
-#define THREADS_PER_BLOCK 1024
-#define NUM_OF_BLOCKS 160
+#define THREADS_PER_BLOCK 256
+#define NUM_OF_BLOCKS 640
 
 // Variables
 unsigned* h_A;
