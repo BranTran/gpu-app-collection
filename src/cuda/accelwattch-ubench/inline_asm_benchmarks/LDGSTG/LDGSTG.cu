@@ -94,7 +94,7 @@ __global__ void PowerKernal2(unsigned* A, unsigned* B, unsigned long long N)
 #pragma unroll 100
 	for(uint64_t i=0; i<N; ++i) {
       sink = A[uid];
-      B[id] = sink;   
+      B[uid] = sink;   
     }
 }
 
