@@ -93,8 +93,25 @@ __global__ void PowerKernal2(unsigned* A, unsigned* B, unsigned long long N)
     volatile unsigned sink = A[uid];
 #pragma unroll 100
 	for(uint64_t i=0; i<N; ++i) {
-      B[uid] = sink;   
+      B[uid] = sink;
+      A[uid] = sink;
+      B[uid] = sink;
+      A[uid] = sink;
+      B[uid] = sink;
+      A[uid] = sink;
+      B[uid] = sink;
+      A[uid] = sink;
+      B[uid] = sink;
+      A[uid] = sink;
+      B[uid] = sink;
+      A[uid] = sink;
+      B[uid] = sink;
+      A[uid] = sink;
+      B[uid] = sink;
+      A[uid] = sink;
+      sink = B[uid];   
     }
+    B[uid] = sink;
 }
 
 

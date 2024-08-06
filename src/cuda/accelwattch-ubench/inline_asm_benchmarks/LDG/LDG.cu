@@ -147,21 +147,21 @@ int main(int argc, char** argv)
  
  printf("Power Microbenchmarks with iterations %lld\n",iterations);
  
- int N = THREADS_PER_BLOCK*NUM_OF_BLOCKS;
+ int N = THREADS_PER_BLOCK*NUM_OF_BLOCKS * SCALING_ARRAY_SIZE;
  size_t size = N * sizeof(unsigned);
  // Allocate input vectors h_A and h_B in host memory
- h_A = (unsigned*)malloc(size*SCALING_ARRAY_SIZE);
+ h_A = (unsigned*)malloc(size);
  if (h_A == 0) CleanupResources();
  h_B = (unsigned*)malloc(size);
  if (h_B == 0) CleanupResources();
 
 
  // Initialize input vectors
- RandomInit(h_A, N*SCALING_ARRAY_SIZE);
+ RandomInit(h_A, N);
 
 
  // Allocate vectors in device memory
- checkCudaErrors( cudaMalloc((void**)&d_A, size*SCALING_ARRAY_SIZE) );
+ checkCudaErrors( cudaMalloc((void**)&d_A, size) );
  checkCudaErrors( cudaMalloc((void**)&d_B, size) );
 
 
