@@ -85,16 +85,17 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 __global__ void PowerKernal(unsigned* Value, unsigned long long iterations)
 {
-	int i = blockIdx.x*THREADS_PER_BLOCK + threadIdx.x;
+	int tid - threadIdx.x;
+	int i = blockIdx.x*THREADS_PER_BLOCK + tid;
 
 	volatile unsigned Value1=0;
 	volatile unsigned Value2=0;
 	volatile unsigned Value3=0;
 	#pragma unroll 100
     for(unsigned long long k=0; k<iterations;k++) {
-		Value1=ConstArray1[(threadIdx.x + k) % THREADS_PER_BLOCK];
-		Value2=ConstArray1[(threadIdx.x + k) % THREADS_PER_BLOCK];
-		Value3=ConstArray1[(threadIdx.x + k) % THREADS_PER_BLOCK];
+		Value1=ConstArray1[(tid + k) % THREADS_PER_BLOCK];
+		Value2=ConstArray1[(tid + k + 1) % THREADS_PER_BLOCK];
+		Value3=ConstArray1[(tid + k + 2) % THREADS_PER_BLOCK];
 		Value[i] = Value1 + Value2 + Value3;
 	}
 }
@@ -121,12 +122,11 @@ int main(int argc, char** argv)
 	 h_Value = (unsigned *) malloc(sizeof(size));
 
 	// Initialize input vectors
-	RandomInit(h_Value, N);
 	RandomInit(array1, THREADS_PER_BLOCK);
 
 	 cudaMemcpyToSymbol(ConstArray1, array1, sizeof(unsigned) * THREADS_PER_BLOCK );
 	 
-	 checkCudaErrors( cudaMalloc((void**)&d_Value, sizeof(size)) );
+	 checkCudaErrors( cudaMalloc((void**)&d_Value, size ));
 	 //VecAdd<<<blocksPerGrid, threadsPerBlock>>>(d_A, d_B, d_C, N);
 	 dim3 dimGrid(NUM_OF_BLOCKS,1);
 	 dim3 dimBlock(THREADS_PER_BLOCK,1);
@@ -144,7 +144,8 @@ int main(int argc, char** argv)
 	  checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));
 	  printf("gpu execution time = %.3f ms\n", elapsedTime);
 	  getLastCudaError("kernel launch failure");
-	  checkCudaErrors(cudaEventDestroy(start));
+	  checkCudaErrors( cudaMemcpy(h_Value, d_Value, size, cudaMemcpyDeviceToHost) );
+ 	  checkCudaErrors(cudaEventDestroy(start));
 	  checkCudaErrors(cudaEventDestroy(stop));
 	  return 0;
 }
