@@ -34,9 +34,6 @@
 // includes CUDA
 #include <cuda_runtime.h>
 
-// includes project
-#include <../include/repeat.h>
-
 
 #define THREADS_PER_BLOCK 256
 #define NUM_OF_BLOCKS 640
@@ -91,16 +88,10 @@ __global__ void PowerKernal(unsigned* Value, unsigned long long iterations)
 	int i = blockIdx.x*THREADS_PER_BLOCK + threadIdx.x;
 
 	unsigned Value1=0;
-	unsigned Value2=0;
-	unsigned Value3=0;
-	unsigned Value4=0;
 	#pragma unroll 100
     for(unsigned long long k=0; k<iterations;k++) {
-		Value1=ConstArray1[(i+k)%THREADS_PER_BLOCK];
-		Value2=ConstArray2[(i+k)%THREADS_PER_BLOCK];
-		Value3=ConstArray3[(i+k)%THREADS_PER_BLOCK];
-		Value4=ConstArray4[(i+k)%THREADS_PER_BLOCK];
-		*Value+=Value1+Value2+Value3+Value4;
+		Value1=ConstArray1[threadIdx.x];
+		Value[i] = Value1;
 	}
 }
 
@@ -121,33 +112,17 @@ int main(int argc, char** argv)
 
     printf("Power Microbenchmark with %d iterations\n",iterations);
 	 unsigned array1[THREADS_PER_BLOCK];
-	 h_Value = (unsigned *) malloc(sizeof(unsigned));
-	 for(int i=0; i<THREADS_PER_BLOCK;i++){
-		srand((unsigned)time(0));
-		array1[i] = rand() / RAND_MAX;
-	 }
-	 unsigned array2[THREADS_PER_BLOCK];
-	 for(int i=0; i<THREADS_PER_BLOCK;i++){
-		srand((unsigned)time(0));
-		array2[i] = rand() / RAND_MAX;
-	 }
-	 unsigned array3[THREADS_PER_BLOCK];
-	 for(int i=0; i<THREADS_PER_BLOCK;i++){
-		srand((unsigned)time(0));
-		array3[i] = rand() / RAND_MAX;
-	 }
-	 unsigned array4[THREADS_PER_BLOCK];
-	 for(int i=0; i<THREADS_PER_BLOCK;i++){
-		srand((unsigned)time(0));
-		array4[i] = rand() / RAND_MAX;
-	 }
+	int N = THREADS_PER_BLOCK*NUM_OF_BLOCKS;
+	size_t size = N * sizeof(unsigned);
+	 h_Value = (unsigned *) malloc(sizeof(size));
+
+	// Initialize input vectors
+	RandomInit(h_Value, N);
+	RandomInit(array1, THREADS_PER_BLOCK);
 
 	 cudaMemcpyToSymbol(ConstArray1, array1, sizeof(unsigned) * THREADS_PER_BLOCK );
-	 cudaMemcpyToSymbol(ConstArray2, array2, sizeof(unsigned) * THREADS_PER_BLOCK );
-	 cudaMemcpyToSymbol(ConstArray3, array3, sizeof(unsigned) * THREADS_PER_BLOCK );
-	 cudaMemcpyToSymbol(ConstArray4, array4, sizeof(unsigned) * THREADS_PER_BLOCK );
 	 
-	 checkCudaErrors( cudaMalloc((void**)&d_Value, sizeof(unsigned)) );
+	 checkCudaErrors( cudaMalloc((void**)&d_Value, sizeof(size)) );
 	 //VecAdd<<<blocksPerGrid, threadsPerBlock>>>(d_A, d_B, d_C, N);
 	 dim3 dimGrid(NUM_OF_BLOCKS,1);
 	 dim3 dimBlock(THREADS_PER_BLOCK,1);
@@ -170,6 +145,14 @@ int main(int argc, char** argv)
 	  return 0;
 }
 
+// Allocates an array with random float entries.
+void RandomInit(unsigned* data, int n)
+{
+  for (int i = 0; i < n; ++i){
+  srand((unsigned)time(0));  
+  data[i] = rand() / RAND_MAX;
+  }
+}
 
 
 
