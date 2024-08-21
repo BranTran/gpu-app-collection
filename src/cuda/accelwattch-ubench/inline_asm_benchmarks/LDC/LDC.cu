@@ -87,11 +87,15 @@ __global__ void PowerKernal(unsigned* Value, unsigned long long iterations)
 {
 	int i = blockIdx.x*THREADS_PER_BLOCK + threadIdx.x;
 
-	unsigned Value1=0;
+	volatile unsigned Value1=0;
+	volatile unsigned Value2=0;
+	volatile unsigned Value3=0;
 	#pragma unroll 100
     for(unsigned long long k=0; k<iterations;k++) {
-		Value1=ConstArray1[threadIdx.x];
-		Value[i] = Value1;
+		Value1=ConstArray1[(threadIdx.x + k) % THREADS_PER_BLOCK];
+		Value2=ConstArray1[(threadIdx.x + k) % THREADS_PER_BLOCK];
+		Value3=ConstArray1[(threadIdx.x + k) % THREADS_PER_BLOCK];
+		Value[i] = Value1 + Value2 + Value3;
 	}
 }
 
