@@ -85,19 +85,19 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 __global__ void PowerKernal(unsigned* Value, unsigned long long iterations)
 {
-	int tid - threadIdx.x;
+	int tid = threadIdx.x;
 	int i = blockIdx.x*THREADS_PER_BLOCK + tid;
 
 	volatile unsigned Value1=0;
 	volatile unsigned Value2=0;
 	volatile unsigned Value3=0;
+	volatile unsigned sink=0;
 	#pragma unroll 100
     for(unsigned long long k=0; k<iterations;k++) {
 		Value1=ConstArray1[(tid + k) % THREADS_PER_BLOCK];
-		Value2=ConstArray1[(tid + k + 1) % THREADS_PER_BLOCK];
-		Value3=ConstArray1[(tid + k + 2) % THREADS_PER_BLOCK];
-		Value[i] = Value1 + Value2 + Value3;
+        sink += Value1;
 	}
+		Value[i] = sink;
 }
 
 
@@ -119,7 +119,7 @@ int main(int argc, char** argv)
 	 unsigned array1[THREADS_PER_BLOCK];
 	int N = THREADS_PER_BLOCK*NUM_OF_BLOCKS;
 	size_t size = N * sizeof(unsigned);
-	 h_Value = (unsigned *) malloc(sizeof(size));
+	 h_Value = (unsigned *) malloc(size);
 
 	// Initialize input vectors
 	RandomInit(array1, THREADS_PER_BLOCK);
