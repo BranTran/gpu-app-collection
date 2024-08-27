@@ -109,18 +109,19 @@ __global__ void tex_bm_kernel( float* out, unsigned size, unsigned long long ite
 {
 	int tid = blockIdx.x*MAX_THREADS_PER_BLOCK + threadIdx.x;
 	volatile float Value=0;volatile float Value1=0;volatile float Value2=0;volatile float Value3=0;volatile float Value4=0;volatile float Value5=0;
-	volatile float Value=6;volatile float Value7=0;volatile float Value8=0;volatile float Value9=0;
-	if(tid < size){
+	volatile float Value6=0;volatile float Value7=0;volatile float Value8=0;volatile float Value9=0;
+	float index = tid + 0.5f;
+    if(tid < size){
 		for(unsigned long long i=0; i<iterations; ++i){
-			Value1 = tex1Dfetch(texmem1,tid);
-			Value2 = tex1Dfetch(texmem2,tid);
-			Value3 = tex1Dfetch(texmem3,tid);
-			Value4 = tex1Dfetch(texmem4,tid);
-			Value5 = tex1Dfetch(texmem5,tid);
-			Value6 = tex1Dfetch(texmem6,tid);
-			Value7 = tex1Dfetch(texmem7,tid);
-			Value8 = tex1Dfetch(texmem8,tid);
-			Value9 = tex1Dfetch(texmem9,tid);
+			Value1 = tex1Dfetch(texmem1,index);
+			Value2 = tex1Dfetch(texmem2,index);
+			Value3 = tex1Dfetch(texmem3,index);
+			Value4 = tex1Dfetch(texmem4,index);
+			Value5 = tex1Dfetch(texmem5,index);
+			Value6 = tex1Dfetch(texmem6,index);
+			Value7 = tex1Dfetch(texmem7,index);
+			Value8 = tex1Dfetch(texmem8,index);
+			Value9 = tex1Dfetch(texmem9,index);
 			Value+=Value1+Value2+Value3+Value4+Value5+Value6+Value7+Value8+Value9;
 		}
 	}
