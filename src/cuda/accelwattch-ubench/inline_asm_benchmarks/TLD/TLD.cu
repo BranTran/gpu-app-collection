@@ -106,7 +106,7 @@ __global__ void tex_bm_kernel( float* out, unsigned size, unsigned long long ite
 		asm volatile (
 			"tex.1D.f32.s32 {%0, %1, %2, %3} [%4, %5];"
 			: "=f"(Value1), "=f"(Value2), "=f"(Value3), "=f"(Value4)
-			: "r"(texmem1), "r"(index)                              
+			: "l"(texmem1), "f"(index)                              
 		);
 	}
 	out[tid]=Value1+Value2+Value3+Value4;

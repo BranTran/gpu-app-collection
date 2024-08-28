@@ -97,13 +97,13 @@ texture<float,1,cudaReadModeElementType> texmem1;
 __global__ void tex_bm_kernel( float* out, unsigned size, unsigned long long iterations)
 {
 	int tid = blockIdx.x*MAX_THREADS_PER_BLOCK + threadIdx.x;
-	volatile float Value=0;volatile float Value1=0;
-	float index = (tid + 0.5f) % iterations;
+	float Value=0;
+	float index = (tid + 0.5f) / size;
     if(tid < size){
 		#pragma unroll 100
 		for(unsigned long long i=0; i<iterations; ++i){
-			Value1 = tex1Dfetch(texmem1,index);
-			Value+=Value1;
+			float Value1 = tex1Dfetch(texmem1,index);
+            Value += Value1;
 		}
 	}
 	out[tid]=Value;
@@ -141,11 +141,7 @@ int main(int argc, char** argv)
 	cudaMalloc((void**) &device_out, texmem_size*sizeof(float)*10);
 	cudaMemcpy(device_texture1, host_texture1, texmem_size*sizeof(float), cudaMemcpyHostToDevice);
 
-	cudaChannelFormatDesc chDesc0 = cudaCreateChannelDesc<float>();
-    texmem1.filterMode = cudaFilterModePoint;   
-    texmem1.normalized = false;
-    texmem1.channelDesc = chDesc0;
-	cudaBindTexture(0, texmem1, device_texture1, &chDesc0, texmem_size*sizeof(float));
+	cudaBindTexture(0, texmem1, device_texture1, texmem_size*sizeof(float));
 
 
 	unsigned num_blocks = (texmem_size / MAX_THREADS_PER_BLOCK) + 1;

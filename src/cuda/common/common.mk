@@ -380,6 +380,9 @@ endif
 ifeq ($(ptxas), 1)
         NVCCFLAGS += --ptxas-options="-O0,-disable-optimizer-consts,-allow-expensive-optimizations=false"
 endif
+ifeq ($(ptxas), 2)
+        NVCCFLAGS += --ptxas-options="-O0"
+endif
 
 # Add cudacc flags
 NVCCFLAGS += $(CUDACCFLAGS)
