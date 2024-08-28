@@ -39,9 +39,7 @@
 #define NUM_OF_BLOCKS 640
 
 __constant__ unsigned ConstArray1[THREADS_PER_BLOCK];
-__constant__ unsigned ConstArray2[THREADS_PER_BLOCK];
-__constant__ unsigned ConstArray3[THREADS_PER_BLOCK];
-__constant__ unsigned ConstArray4[THREADS_PER_BLOCK];
+
 
 
 unsigned* h_Value;
@@ -89,15 +87,15 @@ __global__ void PowerKernal(unsigned* Value, unsigned long long iterations)
 	int i = blockIdx.x*THREADS_PER_BLOCK + tid;
 
 	volatile unsigned Value1=0;
-	volatile unsigned Value2=0;
-	volatile unsigned Value3=0;
-	volatile unsigned sink=0;
 	#pragma unroll 100
     for(unsigned long long k=0; k<iterations;k++) {
-		Value1=ConstArray1[(tid + k) % THREADS_PER_BLOCK];
-        sink += Value1;
+		asm volatile(
+			"ld.const.u32 %0, [%1];\n\t"
+			: "=r"(Value1)
+			: "l"(ConstArray1 + tid)
+		);
 	}
-		Value[i] = sink;
+		Value[i] = Value1;
 }
 
 
