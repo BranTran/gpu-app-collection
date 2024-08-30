@@ -98,15 +98,17 @@ texture<float,1,cudaReadModeElementType> texmem1;
 __global__ void tex_bm_kernel( float* out, unsigned size, unsigned long long iterations)
 {
 	int tid = blockIdx.x*MAX_THREADS_PER_BLOCK + threadIdx.x;
-	volatile float Value=0;
-	volatile float Value1=0;volatile float Value2=0;volatile float Value3=0;volatile float Value4=0;
-	float index = tid + 0.5f;
+	float Value1,Value2,Value3,Value4;
+	int index = tid;
 	#pragma unroll 100
 	for(unsigned long long i=0; i<iterations; ++i){
 		asm volatile (
-			"tex.1D.f32.s32 {%0, %1, %2, %3} [%4, %5];"
-			: "=f"(Value1), "=f"(Value2), "=f"(Value3), "=f"(Value4)
-			: "l"(texmem1), "f"(index)                              
+			"tex.1d.v4.f32.s32 {%0, %1, %2, %3}, [texmem1, %4 ];"
+			: "=f"(Value1),
+            "=f"(Value2),
+            "=f"(Value3),
+            "=f"(Value4)
+			:"r"(index)                              
 		);
 	}
 	out[tid]=Value1+Value2+Value3+Value4;
