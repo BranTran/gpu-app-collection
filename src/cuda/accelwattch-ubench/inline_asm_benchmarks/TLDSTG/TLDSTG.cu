@@ -108,7 +108,8 @@ __global__ void tex_bm_kernel( float* out, unsigned size, unsigned long long ite
             "=f"(Value2),
             "=f"(Value3),
             "=f"(Value4)
-			:"r"(index)                              
+			:"r"(index) 
+            : "memory"                
 		);
 		out[tid]=Value1;
 	}
