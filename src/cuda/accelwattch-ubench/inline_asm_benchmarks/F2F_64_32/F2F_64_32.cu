@@ -28,6 +28,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <stdlib.h>
+#include <cuda.h> //for uint64_t
 //#include <cutil.h>
 // Includes
 //#include <stdio.h>
@@ -95,8 +96,8 @@ __global__ void PowerKernal2(const float* A, double* B, unsigned long long itera
     for(unsigned long long k=0; k<iterations;k++) {
       asm volatile (
           "cvt.f64.f32 %0, %1;\n\t"
-          : "=d"(output)         // Output: float result
-          : "f"(input)           // Input: double input
+          : "=d"(output)         // Output: double output
+          : "f"(input)           // Input: float input
       );
     }
     B[tid] = output;
@@ -128,7 +129,6 @@ int main(int argc, char** argv)
 printf("before\n");
  checkCudaErrors( cudaMalloc((void**)&d_A, sizeof(float)*N) );
  checkCudaErrors( cudaMalloc((void**)&d_B, sizeof(double)*N) );
- checkCudaErrors( cudaMalloc((void**)&d_B, N * sizeof(long long)) );
 printf("after\n");
 
  cudaEvent_t start, stop;                   

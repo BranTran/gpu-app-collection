@@ -28,6 +28,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <stdlib.h>
+#include <cuda.h> //for uint64_t
 //#include <cutil.h>
 // Includes
 //#include <stdio.h>
@@ -94,9 +95,9 @@ __global__ void PowerKernal2(const double* A, float* B, unsigned long long itera
     // Excessive Addition access
     for(unsigned long long k=0; k<iterations;k++) {
       asm volatile (
-          "cvt.f32.f64 %0, %1;\n\t"
-          : "=d"(output)         // Output: double result
-          : "f"(input)           // Input: float input
+          "cvt.rn.f32.f64 %0, %1;\n\t"
+          : "=f"(output)         // Output: double result
+          : "d"(input)           // Input: float input
       );
     }
     B[tid] = output;
@@ -128,11 +129,10 @@ int main(int argc, char** argv)
 printf("before\n");
  checkCudaErrors( cudaMalloc((void**)&d_A, sizeof(double)*N) );
  checkCudaErrors( cudaMalloc((void**)&d_B, sizeof(float)*N) );
- checkCudaErrors( cudaMalloc((void**)&d_B, N * sizeof(long long)) );
 printf("after\n");
 
  cudaEvent_t start, stop;                   
- double elapsedTime = 0;                     
+ float elapsedTime = 0;                     
  checkCudaErrors(cudaEventCreate(&start));  
  checkCudaErrors(cudaEventCreate(&stop));
 
