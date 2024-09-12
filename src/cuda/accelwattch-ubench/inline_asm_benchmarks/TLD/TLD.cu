@@ -98,20 +98,48 @@ texture<float,1,cudaReadModeElementType> texmem1;
 __global__ void tex_bm_kernel( float* out, unsigned size, unsigned long long iterations)
 {
 	int tid = blockIdx.x*MAX_THREADS_PER_BLOCK + threadIdx.x;
-	float Value1,Value2,Value3,Value4;
-	int index = tid;
+	float Value1,Value2;//,Value3,Value4;
+	//int index = tid;
 	#pragma unroll 100
+    for(unsigned long long i=0; i<iterations; ++i){
+        #pragma unroll 49152
+        for(int i=0; i < LINE_SIZE*SETS*ASSOC; i++){
+            Value1 = tex1Dfetch(texmem1,i);
+            Value2 += Value1;
+        }
+    }
+    out[tid] = Value2;
+    /*#pragma unroll 100
 	for(unsigned long long i=0; i<iterations; ++i){
 		asm volatile (
-			"tex.1d.v4.f32.s32 {%0, %1, %2, %3}, [texmem1, %4 ];"
-			: "=f"(Value1),
-            "=f"(Value2),
-            "=f"(Value3),
-            "=f"(Value4)
-			:"r"(index)                              
-		);
+            "tex.1d.v4.f32.s32 {%0, %1, %2, %3}, [texmem1, %4 ];\n"
+        : "=f"(Value1), "=f"(Value2), "=f"(Value3), "=f"(Value4)
+        : "r"(index)
+        : "memory"
+        );
 	}
-	out[tid]=Value1+Value2+Value3+Value4;
+    out[tid]=Value1+Value2+Value3+Value4;
+    //*/
+    
+    /*
+	asm volatile (
+        ".reg .b64 r1, r5;\n"                                 // Define 64-bit registers
+        ".reg .pred p1;\n"                                    // Define predicate register
+
+        "mov.u64 r1, 0;\n"                                    // Initialize r1 (loop counter)
+        "mov.u64 r5, %4;\n"                                   // Load iterations into r5
+        
+        "loop_start:\n"
+        "tex.1d.v4.f32.s32 {%0, %1, %2, %3}, [texmem1, %5];\n"  // Texture fetch
+        "add.u64 r1, r1, 1;\n"                                // Increment r1 (loop counter)
+        "setp.ne.u64 p1, r1, r5;\n"                           // Set predicate if r1 != r5
+        "@p1 bra loop_start;\n"                               // Branch to loop_start if p1 is true
+
+        : "=f"(Value1), "=f"(Value2), "=f"(Value3), "=f"(Value4)  // Read-only outputs
+        : "l"(iterations), "r"(index)                          // Inputs: index and iterations
+    );
+    out[tid]=Value1+Value2+Value3+Value4;
+    //*/
 }
 
 
