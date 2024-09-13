@@ -99,8 +99,23 @@ __global__ void PowerKernal2(const float* A, double* B, unsigned long long itera
           : "=d"(output)         // Output: double output
           : "f"(input)           // Input: float input
       );
-    }
     B[tid] = output;
+    }
+/*
+
+  double acc = 0;
+#pragma unroll 100
+    // Excessive Addition access
+    for(unsigned long long k=0; k<iterations;k++) {
+      asm volatile (
+          "cvt.f64.f32 %0, %1;\n\t"
+          : "=d"(output)         // Output: double output
+          : "f"(input)           // Input: float input
+      );
+      acc += output;
+    }
+    B[tid] = acc;
+//*/
 }
 
 int main(int argc, char** argv)
