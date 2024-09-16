@@ -47,16 +47,16 @@
 //#include "../include/ContAcq-IntClk.h"
 
 // Variables
-double* h_A;
-float* h_B;
-double* d_A;
-float* d_B;
+float* h_A;
+double* h_B;
+float* d_A;
+double* d_B;
 //bool noprompt = false;
 //unsigned int my_timer;
 
 // Functions
 void CleanupResources(void);
-void RandomInit(double*, int);
+void RandomInit(float*, int);
 //void ParseArguments(int, char**);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -86,21 +86,21 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 }
 
 // end of CUDA Helper Functions
-__global__ void PowerKernal2(const double* A, float* B, unsigned long long iterations)
+__global__ void PowerKernal2(const float* A, double* B, unsigned long long iterations)
 {
   uint64_t tid = blockDim.x * blockIdx.x + threadIdx.x;
-  double input = A[tid];
-  float output;
+  float input = A[tid];
+  double output;
 #pragma unroll 100
     // Excessive Addition access
     for(unsigned long long k=0; k<iterations;k++) {
       asm volatile (
-          "cvt.rn.f32.f64 %0, %1;\n\t"
-          : "=f"(output)         // Output: double result
-          : "d"(input)           // Input: float input
+          "cvt.f64.f32 %0, %1;\n\t"
+          : "=d"(output)         // Output: double output
+          : "f"(input)           // Input: float input
       );
-    }
     B[tid] = output;
+    }
 }
 
 int main(int argc, char** argv)
@@ -117,9 +117,9 @@ int main(int argc, char** argv)
  printf("Power Microbenchmarks with iterations %lld\n",iterations);
  int N = THREADS_PER_BLOCK*NUM_OF_BLOCKS;
  // Allocate input vectors h_A and h_B in host memory
- h_A = (double*)malloc(sizeof(double)*N);
+ h_A = (float*)malloc(sizeof(float)*N);
  if (h_A == 0) CleanupResources();
- h_B = (float*)malloc(sizeof(float)*N);
+ h_B = (double*)malloc(sizeof(double)*N);
  if (h_B == 0) CleanupResources();
 
  // Initialize input vectors
@@ -127,8 +127,8 @@ int main(int argc, char** argv)
 
  // Allocate vectors in device memory
 printf("before\n");
- checkCudaErrors( cudaMalloc((void**)&d_A, sizeof(double)*N) );
- checkCudaErrors( cudaMalloc((void**)&d_B, sizeof(float)*N) );
+ checkCudaErrors( cudaMalloc((void**)&d_A, sizeof(float)*N) );
+ checkCudaErrors( cudaMalloc((void**)&d_B, sizeof(double)*N) );
 printf("after\n");
 
  cudaEvent_t start, stop;                   
@@ -137,8 +137,8 @@ printf("after\n");
  checkCudaErrors(cudaEventCreate(&stop));
 
  // Copy vectors from host memory to device memory
- checkCudaErrors( cudaMemcpy(d_A, h_A, sizeof(double)*N, cudaMemcpyHostToDevice) );
- checkCudaErrors( cudaMemcpy(d_B, h_B, sizeof(float)*N, cudaMemcpyHostToDevice) );
+ checkCudaErrors( cudaMemcpy(d_A, h_A, sizeof(float)*N, cudaMemcpyHostToDevice) );
+ checkCudaErrors( cudaMemcpy(d_B, h_B, sizeof(double)*N, cudaMemcpyHostToDevice) );
 
  //VecAdd<<<blocksPerGrid, threadsPerBlock>>>(d_A, d_B, d_B, N);
  dim3 dimGrid(NUM_OF_BLOCKS,1);
@@ -155,7 +155,7 @@ printf("after\n");
 
  // Copy result from device memory to host memory
  // h_B contains the result in host memory
- checkCudaErrors( cudaMemcpy(h_B, d_B, sizeof(float)*N, cudaMemcpyDeviceToHost) );
+ checkCudaErrors( cudaMemcpy(h_B, d_B, sizeof(double)*N, cudaMemcpyDeviceToHost) );
  checkCudaErrors(cudaEventDestroy(start));
  checkCudaErrors(cudaEventDestroy(stop));
  CleanupResources();
@@ -179,8 +179,8 @@ void CleanupResources(void)
 
 }
 
-// Allocates an array with random double entries.
-void RandomInit(double* data, int n)
+// Allocates an array with random float entries.
+void RandomInit(float* data, int n)
 {
   for (int i = 0; i < n; ++i){ 
   data[i] = rand() / RAND_MAX;

@@ -34,9 +34,9 @@
 # ################################################################################
 #
 # # Add source files here
-  EXECUTABLE      := F2F_32_64
+  EXECUTABLE      := F2F_64_32_STG
 # # Cuda source files (compiled with cudacc)
-  CUFILES         := F2F_32_64.cu
+  CUFILES         := F2F_64_32_STG.cu
 # # C/C++ source files (compiled with gcc / c++)
   CCFILES         := \
 	#
