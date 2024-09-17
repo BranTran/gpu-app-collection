@@ -50,7 +50,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
         }
 }
 
-__global__ void l1_pointers_init(uint64_t *posArray){
+__global__ void pointers_init(uint64_t *posArray){
 
   uint32_t tid = blockIdx.x*blockDim.x + threadIdx.x;
   if(tid == 0){
@@ -64,7 +64,7 @@ __global__ void l1_pointers_init(uint64_t *posArray){
   }
 }
 
-__global__ void l1_stress(uint64_t *posArray, uint64_t *dsink, unsigned long long iterations){
+__global__ void dram_stress(uint64_t *posArray, uint64_t *dsink, unsigned long long iterations){
 
   // thread index
   uint32_t tid = blockIdx.x*blockDim.x + threadIdx.x;
@@ -127,9 +127,9 @@ int main(int argc, char** argv){
  checkCudaErrors(cudaEventCreate(&start));  
  checkCudaErrors(cudaEventCreate(&stop));
 
-    l1_pointers_init<<<1,1>>>(posArray_g);
+    pointers_init<<<1,1>>>(posArray_g);
  checkCudaErrors(cudaEventRecord(start));    
-  l1_stress<<<NUM_BLOCKS,THREADS_NUM>>>(posArray_g, dsink_g, iterations);
+  dram_stress<<<NUM_BLOCKS,THREADS_NUM>>>(posArray_g, dsink_g, iterations);
  checkCudaErrors(cudaEventRecord(stop));               
  
  checkCudaErrors(cudaEventSynchronize(stop));           
