@@ -39,6 +39,7 @@
 
 // includes CUDA
 #include <cuda_runtime.h>
+#include <cuda.h> //for uint64_t
 
 #define THREADS_PER_BLOCK 256
 #define NUM_OF_BLOCKS 640
@@ -94,9 +95,9 @@ __global__ void PowerKernal2(const double* A, float* B, unsigned long long itera
     // Excessive Addition access
     for(unsigned long long k=0; k<iterations;k++) {
       asm volatile (
-          "cvt.f32.f64 %0, %1;\n\t"
-          : "=d"(output)         // Output: double result
-          : "f"(input)           // Input: float input
+          "cvt.rn.f32.f64 %0, %1;\n\t"
+          : "=f"(output)         // Output: double result
+          : "d"(input)           // Input: float input
       );
     B[tid] = output;
     }
@@ -132,7 +133,7 @@ printf("before\n");
 printf("after\n");
 
  cudaEvent_t start, stop;                   
- double elapsedTime = 0;                     
+ float elapsedTime = 0;                     
  checkCudaErrors(cudaEventCreate(&start));  
  checkCudaErrors(cudaEventCreate(&stop));
 

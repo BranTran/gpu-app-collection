@@ -87,31 +87,14 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 
 
-__global__ void PowerKernal2(uint64_t* A, uint64_t* B, uint64_t long long N)
+__global__ void PowerKernal2(uint64_t* A, uint64_t* B, unsigned long long N)
 {
     uint32_t uid = blockDim.x * blockIdx.x + threadIdx.x;
     volatile uint64_t sink = A[uid];
 #pragma unroll 100
 	for(uint64_t i=0; i<N; ++i) {
       B[uid] = sink;
-/*
       A[uid] = sink;
-      B[uid] = sink;
-      A[uid] = sink;
-      B[uid] = sink;
-      A[uid] = sink;
-      B[uid] = sink;
-      A[uid] = sink;
-      B[uid] = sink;
-      A[uid] = sink;
-      B[uid] = sink;
-      A[uid] = sink;
-      B[uid] = sink;
-      A[uid] = sink;
-      B[uid] = sink;
-      A[uid] = sink;
-      sink = B[uid];
-      //*/   
     }
     B[uid] = sink;
 }
@@ -119,7 +102,7 @@ __global__ void PowerKernal2(uint64_t* A, uint64_t* B, uint64_t long long N)
 
 int main(int argc, char** argv)
 {
- uint64_t long long iterations;
+ unsigned long long iterations;
  if(argc!=2) {
    fprintf(stderr,"usage: %s #iterations\n",argv[0]);
    exit(1);
