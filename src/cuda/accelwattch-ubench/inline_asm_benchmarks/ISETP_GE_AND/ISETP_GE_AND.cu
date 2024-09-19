@@ -92,24 +92,125 @@ __global__ void PowerKernal2(unsigned* A, unsigned* B, unsigned long long N)
     uint32_t uid = blockDim.x * blockIdx.x + threadIdx.x;
     volatile unsigned sink = A[uid];
     unsigned iter = N;
+/* This did not even produce any ISETP.NE
+   asm volatile( ".reg .pred p0;");
 #pragma unroll 100
-	asm volatile (
-        ".reg .b64 r1, r5;\n"                                 // Define 64-bit registers
-        ".reg .pred p1, p2, p3, p4, p5;\n"                                    // Define predicate register
+    for(unsigned long long i=0; i<N; i++){
+        asm volatile(
+        "setp.ge.s32 p0, %0, 0;\n"
+        :: "r"(sink)
+        );
+    }//*/
 
-        "mov.u32 %r1, %0;\n"
+    /* The additional set predicates are optimized away even with O0
+        asm volatile (
+        ".reg .b32 r1;\n"
+        ".reg .pred p<8>;\n"
+
+        "mov.u32 r1, %0;\n"
 
         "loop_start:\n"
-        "sub.u32 r1, r1, 1;\n"                                // Increment r1 (loop counter)
-        "setp.ne.s32 p1, r1, 0;\n"                           // Set predicate if r1 != r5
-        "@p1 setp.ne.s32 p2, r1, 0;\n"                           // Set predicate if r1 != r5
-        "@p2 setp.ne.s32 p3, r1, 0;\n"                           // Set predicate if r1 != r5
-        "@p3 setp.ne.s32 p4, r1, 0;\n"                           // Set predicate if r1 != r5
-        "@p4 setp.eq.s32 p5, r1, 0;\n"                           // Set predicate if r1 != r5
-        "@p5 bra loop_start;\n"                               // Branch to loop_start if p1 is true
+        "sub.u32 r1, r1, 1;\n"
+        "setp.ge.s32 p0, r1, 0;\n"
+        "setp.ge.s32 p1, r1, 0;\n"
+        "setp.ge.s32 p2, r1, 0;\n"
+        "setp.ge.s32 p3, r1, 0;\n"
+        "setp.ge.s32 p4, r1, 0;\n"
+        "setp.ge.s32 p5, r1, 0;\n"
+        "setp.ge.s32 p6, r1, 0;\n"
+        "setp.ge.s32 p7, r1, 0;\n"
+        "@p7 bra loop_start;\n"
+        :: "r"(iter)
+    );//*/
+    /* Using this for ISETP.NE.AND getting 40|40|20 for ISETP.NE.AND|PLOP3.LUT
+    asm volatile (
+        ".reg .b32 r1;\n"
+        ".reg .pred p<16>;\n"
 
-        :: "r"(iter),
+        "mov.u32 r1, %0;\n"
+
+        "loop_start:\n"
+        "sub.u32 r1, r1, 1;\n"
+        "setp.ne.s32 p0, r1, 0;\n"
+        "@p0 setp.ne.s32 p1, r1, 0;\n"
+        "@p1 setp.ne.s32 p2, r1, 0;\n"
+        "@p2 setp.ne.s32 p3, r1, 0;\n"
+        "@p3 setp.ne.s32 p4, r1, 0;\n"
+        "@p4 setp.ne.s32 p5, r1, 0;\n"
+        "@p5 setp.ne.s32 p6, r1, 0;\n"
+        "@p6 setp.ne.s32 p7, r1, 0;\n"
+        "@p7 setp.ne.s32 p8, r1, 0;\n"
+        "@p8 setp.ne.s32 p9, r1, 0;\n"
+        "@p9 setp.ne.s32 p10, r1, 0;\n"
+        "@p10 setp.ne.s32 p11, r1, 0;\n"
+        "@p11 setp.ne.s32 p12, r1, 0;\n"
+        "@p12 setp.ne.s32 p13, r1, 0;\n"
+        "@p13 setp.ne.s32 p14, r1, 0;\n"
+        "@p14 setp.ne.s32 p15, r1, 0;\n"
+        "@p15 bra loop_start;\n"
+        :: "r"(iter)
+    );//*/
+
+    //* This generates a ballpark 40|20|20|20 of PLOP3.LUT|ISETP.GE.AND|ISETP.NE.AND|P2R
+	asm volatile (
+        ".reg .b32 r1;\n"
+        ".reg .pred p<16>;\n"
+
+        "mov.u32 r1, %0;\n"
+
+        "loop_start:\n"
+        "sub.u32 r1, r1, 1;\n"
+        "setp.ge.s32 p0, r1, 0;\n"
+        "@p0 setp.ge.s32 p1, r1, 0;\n"
+        "@p1 setp.ge.s32 p2, r1, 0;\n"
+        "@p2 setp.ge.s32 p3, r1, 0;\n"
+        "@p3 setp.ge.s32 p4, r1, 0;\n"
+        "@p4 setp.ge.s32 p5, r1, 0;\n"
+        "@p5 setp.ge.s32 p6, r1, 0;\n"
+        "@p6 setp.ge.s32 p7, r1, 0;\n"
+        "@p7 setp.ge.s32 p8, r1, 0;\n"
+        "@p8 setp.ge.s32 p9, r1, 0;\n"
+        "@p9 setp.ge.s32 p10, r1, 0;\n"
+        "@p10 setp.ge.s32 p11, r1, 0;\n"
+        "@p11 setp.ge.s32 p12, r1, 0;\n"
+        "@p12 setp.ge.s32 p13, r1, 0;\n"
+        "@p13 setp.ge.s32 p14, r1, 0;\n"
+        "@p14 setp.ge.s32 p15, r1, 0;\n"
+        "@p15 bra loop_start;\n"
+        :: "r"(iter)
     );
+    //*/
+    /* This attempted to break the pathing, but it doesn't seem to change much
+    asm volatile (
+        ".reg .b32 r1;\n"
+        ".reg .pred p<16>;\n"
+
+        "mov.u32 r1, %0;\n"
+
+        "loop_start:\n"
+        "sub.u32 r1, r1, 1;\n"
+        "setp.ge.s32 p0, r1, 0;\n"
+        "setp.ge.s32 p1, r1, 0;\n"
+        "@p1 setp.ge.s32 p2, r1, 0;\n"
+        "@p0 setp.ge.s32 p3, r1, 0;\n"
+        "@p2 setp.ge.s32 p4, r1, 0;\n"
+        "@p3 setp.ge.s32 p5, r1, 0;\n"
+        "@p5 setp.ge.s32 p6, r1, 0;\n"
+        "@p4 setp.ge.s32 p7, r1, 0;\n"
+        "@p6 setp.ge.s32 p8, r1, 0;\n"
+        "@p7 setp.ge.s32 p9, r1, 0;\n"
+        "@p9 setp.ge.s32 p10, r1, 0;\n"
+        "@p8 setp.ge.s32 p11, r1, 0;\n"
+        "@p10 setp.ge.s32 p12, r1, 0;\n"
+        "@p11 setp.ge.s32 p13, r1, 0;\n"
+        "@p13 setp.ge.s32 p14, r1, 0;\n"
+        "@p12 setp.ge.s32 p15, r1, 0;\n"
+        "@p15 bra loop_start;\n"
+        "@p14 bra loop_start;\n"
+        :: "r"(iter)
+    );
+    //*/
+
     B[uid] = sink;
 }
 
