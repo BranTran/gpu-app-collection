@@ -122,34 +122,6 @@ __global__ void PowerKernal2(unsigned* A, unsigned* B, unsigned long long N)
         "@p7 bra loop_start;\n"
         :: "r"(iter)
     );//*/
-    /* Using this for ISETP.NE.AND getting 40|40|20 for ISETP.NE.AND|PLOP3.LUT
-    asm volatile (
-        ".reg .b32 r1;\n"
-        ".reg .pred p<16>;\n"
-
-        "mov.u32 r1, %0;\n"
-
-        "loop_start:\n"
-        "sub.u32 r1, r1, 1;\n"
-        "setp.ne.s32 p0, r1, 0;\n"
-        "@p0 setp.ne.s32 p1, r1, 0;\n"
-        "@p1 setp.ne.s32 p2, r1, 0;\n"
-        "@p2 setp.ne.s32 p3, r1, 0;\n"
-        "@p3 setp.ne.s32 p4, r1, 0;\n"
-        "@p4 setp.ne.s32 p5, r1, 0;\n"
-        "@p5 setp.ne.s32 p6, r1, 0;\n"
-        "@p6 setp.ne.s32 p7, r1, 0;\n"
-        "@p7 setp.ne.s32 p8, r1, 0;\n"
-        "@p8 setp.ne.s32 p9, r1, 0;\n"
-        "@p9 setp.ne.s32 p10, r1, 0;\n"
-        "@p10 setp.ne.s32 p11, r1, 0;\n"
-        "@p11 setp.ne.s32 p12, r1, 0;\n"
-        "@p12 setp.ne.s32 p13, r1, 0;\n"
-        "@p13 setp.ne.s32 p14, r1, 0;\n"
-        "@p14 setp.ne.s32 p15, r1, 0;\n"
-        "@p15 bra loop_start;\n"
-        :: "r"(iter)
-    );//*/
 
     //* This generates a ballpark 40|20|20|20 of PLOP3.LUT|ISETP.GE.AND|ISETP.NE.AND|P2R
 	asm volatile (
