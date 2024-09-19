@@ -24,12 +24,13 @@ investigate:
 	# $(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/TLDSTG/$(OPT) ptxas=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDG/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDG_DRAM_STRONG/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/P2R/$(OPT) ptxas=1
 
 new:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/ISETP_GE_AND/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/ISETP_NE_AND/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/P2R/$(OPT) ptxas=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/PLOP3_LUT/$(OPT) ptxas=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/SHFL_IDX/$(OPT) ptxas=1
 
 
 tensor:
