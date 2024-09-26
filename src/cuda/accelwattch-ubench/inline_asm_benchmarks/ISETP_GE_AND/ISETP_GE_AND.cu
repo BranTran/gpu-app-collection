@@ -102,28 +102,27 @@ __global__ void PowerKernal2(unsigned* A, unsigned* B, unsigned long long N)
         );
     }//*/
 
-    /* The additional set predicates are optimized away even with O0
+    //* The additional set predicates are optimized away even with O0 unless we set guard predicates
         asm volatile (
         ".reg .b32 r1;\n"
-        ".reg .pred p<8>;\n"
+        ".reg .pred p<7>;\n"
 
         "mov.u32 r1, %0;\n"
 
         "loop_start:\n"
         "sub.u32 r1, r1, 1;\n"
         "setp.ge.s32 p0, r1, 0;\n"
-        "setp.ge.s32 p1, r1, 0;\n"
-        "setp.ge.s32 p2, r1, 0;\n"
-        "setp.ge.s32 p3, r1, 0;\n"
-        "setp.ge.s32 p4, r1, 0;\n"
-        "setp.ge.s32 p5, r1, 0;\n"
-        "setp.ge.s32 p6, r1, 0;\n"
-        "setp.ge.s32 p7, r1, 0;\n"
-        "@p7 bra loop_start;\n"
+        "@p0 setp.ge.s32 p1, r1, 0;\n"
+        "@p1 setp.ge.s32 p2, r1, 0;\n"
+        "@p2 setp.ge.s32 p3, r1, 0;\n"
+        "@p3 setp.ge.s32 p4, r1, 0;\n"
+        "@p4 setp.ge.s32 p5, r1, 0;\n"
+        "@p5 setp.ge.s32 p6, r1, 0;\n"
+        "@p6 bra loop_start;\n"
         :: "r"(iter)
     );//*/
 
-    //* This generates a ballpark 40|20|20|20 of PLOP3.LUT|ISETP.GE.AND|ISETP.NE.AND|P2R
+    /* At 8 predicates we see the pattern needing P2R generates a ballpark 40|20|20|20 of PLOP3.LUT|ISETP.GE.AND|ISETP.NE.AND|P2R
 	asm volatile (
         ".reg .b32 r1;\n"
         ".reg .pred p<16>;\n"
