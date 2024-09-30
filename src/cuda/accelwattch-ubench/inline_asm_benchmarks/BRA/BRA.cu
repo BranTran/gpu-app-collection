@@ -92,97 +92,171 @@ __global__ void PowerKernal2(unsigned* A, unsigned* B, unsigned long long N)
     uint32_t uid = blockDim.x * blockIdx.x + threadIdx.x;
     volatile unsigned sink = A[uid];
     unsigned iter = N;
-/* This did not even produce any ISETP.NE
-   asm volatile( ".reg .pred p0;");
-#pragma unroll 100
-    for(unsigned long long i=0; i<N; i++){
-        asm volatile(
-        "setp.ge.s32 p0, %0, 0;\n"
-        :: "r"(sink)
-        );
-    }//*/
+asm volatile (
+    ".reg .b32 r1;\n"        // Declare a 32-bit register
+    ".reg .pred p;\n"        // Declare a predicate register
 
-    //* The additional set predicates are optimized away even with O0 unless we set guard predicates
-        asm volatile (
-        ".reg .b32 r1;\n"        // Declare a 32-bit register
-        "mov.u32 r1, %0;\n"      // Move the value of 'iterations' into r1
+    "mov.u32 r1, %0;\n"      // Move the value of 'iterations' into r1
 
-        "loop_alpha:\n"
-        "sub.u32 r1, r1, 1;\n"   // Decrement r1 (loop counter)
-        "bra loop_beta;\n"
+    "loop_alpha:\n"
+    "sub.u32 r1, r1, 1;\n"   // Decrement r1 (loop counter)
+    "bra loop_1;\n"
 
-        "loop_beta:\n"
-        "setp.ne.u32 p, r1, 0;\n" // Set predicate if r1 != 0
-        "bra loop_chi;\n"
+    // Begin numbered loop chain (loop_1 to loop_50)
+    "loop_1:\n"
+    "bra loop_2;\n"
+    
+    "loop_2:\n"
+    "bra loop_3;\n"
+    
+    "loop_3:\n"
+    "bra loop_4;\n"
+    
+    "loop_4:\n"
+    "bra loop_5;\n"
+    
+    "loop_5:\n"
+    "bra loop_6;\n"
+    
+    "loop_6:\n"
+    "bra loop_7;\n"
+    
+    "loop_7:\n"
+    "bra loop_8;\n"
+    
+    "loop_8:\n"
+    "bra loop_9;\n"
+    
+    "loop_9:\n"
+    "bra loop_10;\n"
+    
+    "loop_10:\n"
+    "bra loop_11;\n"
+    
+    "loop_11:\n"
+    "bra loop_12;\n"
+    
+    "loop_12:\n"
+    "bra loop_13;\n"
+    
+    "loop_13:\n"
+    "bra loop_14;\n"
+    
+    "loop_14:\n"
+    "bra loop_15;\n"
+    
+    "loop_15:\n"
+    "bra loop_16;\n"
+    
+    "loop_16:\n"
+    "bra loop_17;\n"
+    
+    "loop_17:\n"
+    "bra loop_18;\n"
+    
+    "loop_18:\n"
+    "bra loop_19;\n"
+    
+    "loop_19:\n"
+    "bra loop_20;\n"
+    
+    "loop_20:\n"
+    "bra loop_21;\n"
+    
+    "loop_21:\n"
+    "bra loop_22;\n"
+    
+    "loop_22:\n"
+    "bra loop_23;\n"
+    
+    "loop_23:\n"
+    "bra loop_24;\n"
+    
+    "loop_24:\n"
+    "bra loop_25;\n"
+    
+    "loop_25:\n"
+    "bra loop_26;\n"
+    
+    "loop_26:\n"
+    "bra loop_27;\n"
+    
+    "loop_27:\n"
+    "bra loop_28;\n"
+    
+    "loop_28:\n"
+    "bra loop_29;\n"
+    
+    "loop_29:\n"
+    "bra loop_30;\n"
+    
+    "loop_30:\n"
+    "bra loop_31;\n"
+    
+    "loop_31:\n"
+    "bra loop_32;\n"
+    
+    "loop_32:\n"
+    "bra loop_33;\n"
+    
+    "loop_33:\n"
+    "bra loop_34;\n"
+    
+    "loop_34:\n"
+    "bra loop_35;\n"
+    
+    "loop_35:\n"
+    "bra loop_36;\n"
+    
+    "loop_36:\n"
+    "bra loop_37;\n"
+    
+    "loop_37:\n"
+    "bra loop_38;\n"
+    
+    "loop_38:\n"
+    "bra loop_39;\n"
+    
+    "loop_39:\n"
+    "bra loop_40;\n"
+    
+    "loop_40:\n"
+    "bra loop_41;\n"
+    
+    "loop_41:\n"
+    "bra loop_42;\n"
+    
+    "loop_42:\n"
+    "bra loop_43;\n"
+    
+    "loop_43:\n"
+    "bra loop_44;\n"
+    
+    "loop_44:\n"
+    "bra loop_45;\n"
+    
+    "loop_45:\n"
+    "bra loop_46;\n"
+    
+    "loop_46:\n"
+    "bra loop_47;\n"
+    
+    "loop_47:\n"
+    "bra loop_48;\n"
+    
+    "loop_48:\n"
+    "bra loop_49;\n"
+    
+    "loop_49:\n"
+    "bra loop_50;\n"
 
-        "loop_chi:\n"
-        "bra loop_delta;\n"
-
-        "loop_delta:\n"
-        "@p bra loop_alpha;\n"
-        :: "r"(iter)
-    );//*/
-
-    /* At 8 predicates we see the pattern needing P2R generates a ballpark 40|20|20|20 of PLOP3.LUT|ISETP.GE.AND|ISETP.NE.AND|P2R
-	asm volatile (
-        ".reg .b32 r1;\n"
-        ".reg .pred p<16>;\n"
-
-        "mov.u32 r1, %0;\n"
-
-        "loop_start:\n"
-        "sub.u32 r1, r1, 1;\n"
-        "setp.ge.s32 p0, r1, 0;\n"
-        "@p0 setp.ge.s32 p1, r1, 0;\n"
-        "@p1 setp.ge.s32 p2, r1, 0;\n"
-        "@p2 setp.ge.s32 p3, r1, 0;\n"
-        "@p3 setp.ge.s32 p4, r1, 0;\n"
-        "@p4 setp.ge.s32 p5, r1, 0;\n"
-        "@p5 setp.ge.s32 p6, r1, 0;\n"
-        "@p6 setp.ge.s32 p7, r1, 0;\n"
-        "@p7 setp.ge.s32 p8, r1, 0;\n"
-        "@p8 setp.ge.s32 p9, r1, 0;\n"
-        "@p9 setp.ge.s32 p10, r1, 0;\n"
-        "@p10 setp.ge.s32 p11, r1, 0;\n"
-        "@p11 setp.ge.s32 p12, r1, 0;\n"
-        "@p12 setp.ge.s32 p13, r1, 0;\n"
-        "@p13 setp.ge.s32 p14, r1, 0;\n"
-        "@p14 setp.ge.s32 p15, r1, 0;\n"
-        "@p15 bra loop_start;\n"
-        :: "r"(iter)
-    );
-    //*/
-    /* This attempted to break the pathing, but it doesn't seem to change much
-    asm volatile (
-        ".reg .b32 r1;\n"
-        ".reg .pred p<16>;\n"
-
-        "mov.u32 r1, %0;\n"
-
-        "loop_start:\n"
-        "sub.u32 r1, r1, 1;\n"
-        "setp.ge.s32 p0, r1, 0;\n"
-        "setp.ge.s32 p1, r1, 0;\n"
-        "@p1 setp.ge.s32 p2, r1, 0;\n"
-        "@p0 setp.ge.s32 p3, r1, 0;\n"
-        "@p2 setp.ge.s32 p4, r1, 0;\n"
-        "@p3 setp.ge.s32 p5, r1, 0;\n"
-        "@p5 setp.ge.s32 p6, r1, 0;\n"
-        "@p4 setp.ge.s32 p7, r1, 0;\n"
-        "@p6 setp.ge.s32 p8, r1, 0;\n"
-        "@p7 setp.ge.s32 p9, r1, 0;\n"
-        "@p9 setp.ge.s32 p10, r1, 0;\n"
-        "@p8 setp.ge.s32 p11, r1, 0;\n"
-        "@p10 setp.ge.s32 p12, r1, 0;\n"
-        "@p11 setp.ge.s32 p13, r1, 0;\n"
-        "@p13 setp.ge.s32 p14, r1, 0;\n"
-        "@p12 setp.ge.s32 p15, r1, 0;\n"
-        "@p15 bra loop_start;\n"
-        "@p14 bra loop_start;\n"
-        :: "r"(iter)
-    );
-    //*/
-
+    // End numbered loop chain
+    "loop_50:\n"
+    "setp.ne.u32 p, r1, 0;\n" // Set predicate if r1 != 0
+    "@p bra loop_alpha;\n"     // Branch back to loop_alpha if r1 != 0
+    ::
+    "r"(iter)                  // Input: iterations
+);
     B[uid] = sink;
 }
 
