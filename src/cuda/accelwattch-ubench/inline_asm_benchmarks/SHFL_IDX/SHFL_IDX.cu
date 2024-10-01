@@ -90,16 +90,25 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 __global__ void PowerKernal2(unsigned* A, unsigned* B, unsigned long long N)
 {
     uint32_t uid = blockDim.x * blockIdx.x + threadIdx.x;
-    volatile unsigned sink = A[uid];
-//Converting predicate to register
+    unsigned sink = A[uid];
+    //unsigned other = B[uid];
+    //unsigned iterations = N;
+//Doing shuffling
 #pragma unroll 100
     for(unsigned long long i=0; i<N; i++){
+        sink += __shfl_sync(0xffffffff, sink,0); 
+        //sink = __shfl_sync(0xffffffff, sink,1); //Adding Offsets did not do anything
+        //sink = __shfl_sync(0xffffffff, other,0);//Adding additional sinks didn't really work
+        /* This does not provide multiple shfl (in unoptimized, it calls different ops)
         asm volatile(
-          "shfl.sync.idx %1, %0, 0x1,  0x0, 0xffffffff;\n"
+          "shfl.sync.idx.b32 %0, 0, 0,  0x0, 0xffffffff;\n"
+          "shfl.sync.idx.b32 %0, 0, 0,  0x0, 0xffffffff;\n"
+          "shfl.sync.idx.b32 %0, 0, 0,  0x0, 0xffffffff;\n"
+          "shfl.sync.idx.b32 %0, 0, 0,  0x0, 0xffffffff;\n"
+          "shfl.sync.idx.b32 %0, 0, 0,  0x0, 0xffffffff;\n"
           :"=r"(sink)
-          : "r"(sink)
-        );
-    }//*/
+        );//*/
+    }
     B[uid] = sink;
 }
 
