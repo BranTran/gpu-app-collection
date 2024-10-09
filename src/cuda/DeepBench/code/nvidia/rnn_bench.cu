@@ -330,6 +330,8 @@ int main(int argc, char **argv) {
 
     if (argc > 3) {
         assert (argc == 7);
+        // [training|inference] [int8|half|float] <hidden_size> <batch> <timestep> [type vanilla|lstm|gru]
+        //ex rnn_bench-tencore training half 512 32 1 igru
         dataset.push_back(
             std::make_tuple(atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), argv[6])
         );
