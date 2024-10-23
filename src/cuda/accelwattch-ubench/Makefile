@@ -11,6 +11,8 @@ inline:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/ISETP_GE_AND/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/ISETP_NE_AND/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/IMAD_IADD/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LOP3_LUT/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/SHFL_IDX/$(OPT)
 
 no_opt:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/MOV/$(OPT) ptxas=1
@@ -31,7 +33,6 @@ investigate:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDG/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDG_DRAM_STRONG/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/P2R/$(OPT) ptxas=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/SHFL_IDX/$(OPT)
 	# $(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C testing_benchmarks/F2F_32_64_empty/$(OPT) ptxas=1
 	# $(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C testing_benchmarks/F2F_64_32_empty/$(OPT) ptxas=1
 	# $(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C testing_benchmarks/IMAD_IADD_no_mul/$(OPT)
@@ -39,15 +40,15 @@ investigate:
 testing:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C testing_benchmarks/F2F_32_F2F/$(OPT) ptxas=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C testing_benchmarks/F2F_64_F2F/$(OPT) ptxas=1
-
-new:
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LOP3_LUT/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C testing_benchmarks/F2F_32_64_empty_v2/$(OPT) ptxas=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C testing_benchmarks/F2F_64_32_empty_v2/$(OPT) ptxas=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C tensor_benchmarks/TENSOR16/$(OPT)
+
+new:
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/IDP_4A/$(OPT)
 
 tensor:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C tensor_benchmarks/TENSOR/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C tensor_benchmarks/TENSOR16/$(OPT)
 
 static_power:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C static_power_modeling/ACT_CORE1/$(OPT)
