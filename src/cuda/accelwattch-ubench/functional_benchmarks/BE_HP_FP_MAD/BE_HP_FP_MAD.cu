@@ -227,7 +227,7 @@ CUT_SAFE_CALL(cutDeleteTimer(my_timer));
 
  // Copy result from device memory to host memory
  // h_C contains the result in host memory
- checkCudaErrors( cudaMemcpy(h_C, d_C, N*sizeof(half), cudaMemcpyDeviceToHost) );
+ // checkCudaErrors( cudaMemcpy(h_C, d_C, N*sizeof(half), cudaMemcpyDeviceToHost) );
  
  checkCudaErrors(cudaEventDestroy(start));
  checkCudaErrors(cudaEventDestroy(stop));
