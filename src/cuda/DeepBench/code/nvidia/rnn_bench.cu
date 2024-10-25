@@ -116,6 +116,8 @@ class cudnnRNN {
     size_t train_size_;
 
     Tensor<T> weights_;
+    Tensor<T> dW_;
+
     Tensor<float> workspace_;
     Tensor<float> trainspace_;
 
@@ -169,7 +171,6 @@ class cudnnRNN {
 
             weights_ = rand<T>(std::vector<int>{static_cast<int>(weight_size_ / sizeof(T)), 1}, curand_gen);
 
-
             std::vector<int> dim = {weights_.size(), 1, 1};
             wDesc_ = FilterDescriptorNd<T>(CUDNN_TENSOR_NCHW, dim);
 
@@ -178,6 +179,8 @@ class cudnnRNN {
                                                         time_steps,
                                                         xDescArray_.ptr(),
                                                         &workspace_size_) );
+
+            dW_ = zeros<T>(std::vector<int>{static_cast<int>(weight_size_ / sizeof(T)), 1});
 
             workspace_ = zeros<float>(std::vector<int>{static_cast<int>(workspace_size_ / sizeof(float)), 1});
 
@@ -243,14 +246,33 @@ class cudnnRNN {
                                                     (void *)trainspace_.begin(),
                                                     train_size_) );
         }
+
+        void backward_params(Tensor<T> x, Tensor<T> hx, Tensor<T> y) {
+            CHECK_CUDNN_ERROR(cudnnRNNBackwardWeights(cudnn_handle,
+                                                      rnn_desc_.desc(),
+                                                      time_steps_,
+                                                      xDescArray_.ptr(),
+                                                      (void *)x.begin(),
+                                                      hx_desc_.desc(),
+                                                      (void *)hx.begin(),
+                                                      yDescArray_.ptr(),
+                                                      (void *)y.begin(),
+                                                      (void *)workspace_.begin(),
+                                                      workspace_size_,
+                                                      wDesc_.desc(),
+                                                      (void *)dW_.begin(),
+                                                      (void *)trainspace_.begin(),
+                                                      train_size_) );
+        }
+
 };
 
 template <typename T>
-std::tuple<int, int> time_rnn(int hidden_size,
-                              int batch_size,
-                              int time_steps,
-                              const std::string& type,
-                              int inference) {
+std::tuple<int, int, int> time_rnn(int hidden_size,
+                                   int batch_size,
+                                   int time_steps,
+                                   const std::string& type,
+                                   int inference) {
 
     cudnnRNN<T> rnn(hidden_size, batch_size, time_steps, type);
 
@@ -268,7 +290,7 @@ std::tuple<int, int> time_rnn(int hidden_size,
     auto dcx = rand<T>({hidden_size, batch_size}, curand_gen);
     auto dcy = rand<T>({hidden_size, batch_size}, curand_gen);
 
-    int numRepeats = 1;
+    int numRepeats = 100;
 
     //Warm up
     rnn.forward(x, hx, cx, y, hy, cy);
@@ -285,7 +307,8 @@ std::tuple<int, int> time_rnn(int hidden_size,
     auto end = std::chrono::steady_clock::now();
 
     auto forward_time = std::chrono::duration<double, std::micro>(end - start).count() / numRepeats;
-    int backward_time = 0;
+    int bwd_data_time = 0;
+    int bwd_params_time = 0;
 
     if (!inference) {
         //Warm up
@@ -303,12 +326,31 @@ std::tuple<int, int> time_rnn(int hidden_size,
         cudaDeviceSynchronize();
 
         end = std::chrono::steady_clock::now();
-        backward_time = std::chrono::duration<double, std::micro>(end - start).count() / numRepeats;
+        bwd_data_time = std::chrono::duration<double, std::micro>(end - start).count() / numRepeats;
+
+        /* Backward wrt params */
+        //Warm up
+        rnn.backward_params(x, hx, y);
+
+        cudaDeviceSynchronize();
+
+        start = std::chrono::steady_clock::now();
+
+        for (int i = 0; i < numRepeats; ++i) {
+            rnn.backward_params(x, hx, y);
+        }
+
+        cudaDeviceSynchronize();
+
+        end = std::chrono::steady_clock::now();
+        bwd_params_time = std::chrono::duration<double, std::micro>(end - start).count() / numRepeats;
+
 
     }
 
     return std::make_tuple(static_cast<int>(forward_time),
-                           static_cast<int>(backward_time));
+                           static_cast<int>(bwd_data_time),
+                           static_cast<int>(bwd_params_time));
 
 }
 
@@ -358,58 +400,65 @@ int main(int argc, char **argv) {
     }
 
     std::cout << std::setw(30) << "Times" << std::endl;
-    std::cout << std::setfill('-') << std::setw(88) << "-" << std::endl;
+    std::cout << std::setfill('-') << std::setw(115) << "-" << std::endl;
     std::cout << std::setfill(' ');
-    std::cout << "    type    hidden   N     timesteps   precision     fwd_time (usec)   ";
-    if (!inference)
-        std::cout << "bwd_time (usec)";
+    std::cout << "    type    hidden   N     timesteps   precision   fwd_time (usec)   ";
+    if (!inference) {
+        std::cout << "bwd_inputs_time (usec)";
+        std::cout << "  bwd_params_time (usec)";
+    }
+
     std::cout << std::endl;
     for (const auto &problem : (dataset.empty() ? (inference ? inference_server_set : training_set) : dataset)) {
         int hidden_state, batch_size, time_steps;
         std::string type;
         std::tie(hidden_state, batch_size, time_steps, type) = problem;
 
-        std::cout << std::setw(8) << type;
-        std::cout << std::setw(8) << hidden_state;
-        std::cout << std::setw(8) << batch_size;
-        std::cout << std::setw(8) << time_steps;
-        std::cout << std::setw(14) << precision;
-        int fwd_time, bwd_time;
+    std::cout << std::setw(8) << type;
+    std::cout << std::setw(8) << hidden_state;
+    std::cout << std::setw(8) << batch_size;
+    std::cout << std::setw(8) << time_steps;
+    std::cout << std::setw(14) << precision;
+    int fwd_time, bwd_data_time, bwd_params_time;
 
-        std::stringstream ss;
-        ss << "Unsupported precision requested. Precision: " << precision << " Inference: " << inference;
+    std::stringstream ss;
+    ss << "Unsupported precision requested. Precision: " << precision << " Inference: " << inference;
 
 #if CUDNN_MAJOR >= 6
-        if (inference) {
-            if (precision == "float") {
-                std::tie(fwd_time, bwd_time) = time_rnn<float>(hidden_state,
-                                                               batch_size,
-                                                               time_steps,
-                                                               type,
-                                                               inference);
+    if (inference) {
+        if (precision == "float") {
+            std::tie(fwd_time, bwd_data_time, bwd_params_time) =
+                time_rnn<float>(hidden_state,
+                                batch_size,
+                                time_steps,
+                                type,
+                                inference);
 
-            } else if (precision == "half") {
-                std::tie(fwd_time, bwd_time) = time_rnn<uint16_t>(hidden_state,
-                                                                  batch_size,
-                                                                  time_steps,
-                                                                  type,
-                                                                  inference);
-            } else if (precision == "int8") {
-                std::tie(fwd_time, bwd_time) = time_rnn<uint8_t>(hidden_state,
-                                                                 batch_size,
-                                                                 time_steps,
-                                                                 type,
-                                                                 inference);
-            } else {
-                throw std::runtime_error(ss.str());
-            }
+        } else if (precision == "half") {
+            std::tie(fwd_time, bwd_data_time, bwd_params_time) =
+                time_rnn<uint16_t>(hidden_state,
+                                   batch_size,
+                                   time_steps,
+                                   type,
+                                   inference);
+        } else if (precision == "int8") {
+            std::tie(fwd_time, bwd_data_time, bwd_params_time) =
+                time_rnn<uint8_t>(hidden_state,
+                                  batch_size,
+                                  time_steps,
+                                  type,
+                                  inference);
         } else {
-            if (precision == "float") {
-                std::tie(fwd_time, bwd_time) = time_rnn<float>(hidden_state,
-                                                               batch_size,
-                                                               time_steps,
-                                                               type,
-                                                               inference);
+            throw std::runtime_error(ss.str());
+        }
+    } else {
+        if (precision == "float") {
+            std::tie(fwd_time, bwd_data_time, bwd_params_time) =
+                 time_rnn<float>(hidden_state,
+                                 batch_size,
+                                 time_steps,
+                                 type,
+                                 inference);
 
             } else if (precision == "half") {
                 std::tie(fwd_time, bwd_time) = time_rnn<uint16_t>(hidden_state,

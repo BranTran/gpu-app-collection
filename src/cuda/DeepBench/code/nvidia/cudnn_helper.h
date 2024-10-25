@@ -7,6 +7,12 @@
 
 #include <cudnn.h>
 
+int get_compute_capability() {
+    cudaDeviceProp prop;
+    cudaGetDeviceProperties(&prop, 0);
+    return prop.major * 10 + prop.minor;
+}
+
 void throw_cudnn_err(cudnnStatus_t status, int line, const char* filename) {
     if (status != CUDNN_STATUS_SUCCESS) {
         std::stringstream ss;
@@ -184,7 +190,11 @@ public:
             type = CUDNN_DATA_FLOAT;
 #if CUDNN_MAJOR >= 6
         } else if (std::is_same<T, uint8_t>::value) {
+#if (CUDNN_MAJOR >= 7) && (USE_TENSOR_CORES)
+            type = (get_compute_capability() >= 75) ? CUDNN_DATA_INT8x32 : CUDNN_DATA_INT8;
+#else
             type = CUDNN_DATA_INT8;
+#endif
 #endif
         } else if (std::is_same<T, uint16_t>::value) {
             type = CUDNN_DATA_HALF;
@@ -230,7 +240,11 @@ public:
             type = CUDNN_DATA_FLOAT;
 #if CUDNN_MAJOR >= 6
         } else if (std::is_same<T, uint8_t>::value) {
+#if (CUDNN_MAJOR >= 7) && (USE_TENSOR_CORES)
+            type = (get_compute_capability() >= 75) ? CUDNN_DATA_INT8x32 : CUDNN_DATA_INT8;
+#else
             type = CUDNN_DATA_INT8;
+#endif
 #endif
         } else if (std::is_same<T, uint16_t>::value) {
             type = CUDNN_DATA_HALF;
@@ -274,12 +288,16 @@ public:
             type = CUDNN_DATA_INT8;
         } else if (std::is_same<T, uint16_t>::value) {
             type = CUDNN_DATA_HALF;
+        } else if (std::is_same<T, uint32_t>::value) {
+            type = CUDNN_DATA_FLOAT;
         } else if (std::is_same<T, int>::value) {
             type = CUDNN_DATA_INT32;
         } else {
             throw std::runtime_error("Unknown type in ConvolutionDescriptor");
         }
 
+        cudnnConvolutionMode_t mode = (std::is_same<T, uint32_t>::value) ?
+            CUDNN_CROSS_CORRELATION : CUDNN_CONVOLUTION;
 
         CHECK_CUDNN_ERROR(cudnnSetConvolution2dDescriptor(*desc_,
                                                           pad_h,
@@ -288,7 +306,7 @@ public:
                                                           wstride,
                                                           1,
                                                           1,
-                                                          CUDNN_CONVOLUTION,
+                                                          mode,
                                                           type));
 #else
         CHECK_CUDNN_ERROR(cudnnSetConvolution2dDescriptor(*desc_,
@@ -298,7 +316,7 @@ public:
                                                           wstride,
                                                           1,
                                                           1,
-                                                          CUDNN_CONVOLUTION));
+                                                          mode));
 
 #endif
 
@@ -325,14 +343,36 @@ public:
     RNNDescriptor(int hidden_size, int num_layers, cudnnDropoutDescriptor_t dropout_desc,
                   cudnnRNNInputMode_t input_mode, cudnnDirectionMode_t direction,
                   std::string rnn_type, cudnnHandle_t cudnn_handle) {
+
+        cudnnMathType_t mathType;
         cudnnDataType_t type;
-        if (std::is_same<T, float>::value)
-            type = CUDNN_DATA_FLOAT;
-        else if (std::is_same<T, uint16_t>::value)
-            type = CUDNN_DATA_HALF;
+        cudnnDataType_t mathPrec;
+        if (std::is_same<T, float>::value) {
+            mathPrec = type = CUDNN_DATA_FLOAT;
+#if ((CUDNN_MAJOR >= 8) || (CUDNN_MAJOR >= 7 && CUDNN_MINOR >= 2)) && USE_TENSOR_CORES == 1
+            mathType = (get_compute_capability() >= 70) ? CUDNN_TENSOR_OP_MATH_ALLOW_CONVERSION : CUDNN_DEFAULT_MATH;
+#else
+            mathType = CUDNN_DEFAULT_MATH;
+#endif
+        } else if (std::is_same<T, uint16_t>::value) {
+            mathPrec = type = CUDNN_DATA_HALF;
+#if ((CUDNN_MAJOR >= 8) || (CUDNN_MAJOR >= 7 && CUDNN_MINOR >= 2)) && USE_TENSOR_CORES == 1
+            mathType = (get_compute_capability() >= 70) ? CUDNN_TENSOR_OP_MATH : CUDNN_DEFAULT_MATH;
+#else
+            mathType = CUDNN_DEFAULT_MATH;
+#endif
+        }
 #if CUDNN_MAJOR >= 6
-        else if (std::is_same<T, uint8_t>::value)
+        else if (std::is_same<T, uint8_t>::value) {
             type = CUDNN_DATA_INT8;
+            mathPrec = CUDNN_DATA_HALF;
+#if ((CUDNN_MAJOR >= 8) || (CUDNN_MAJOR >= 7 && CUDNN_MINOR >= 2)) && USE_TENSOR_CORES == 1
+            mathType = (get_compute_capability() >= 70) ? CUDNN_TENSOR_OP_MATH : CUDNN_DEFAULT_MATH;
+#else
+            mathType = CUDNN_DEFAULT_MATH;
+#endif
+        }
+
 #endif
         else
             throw std::runtime_error("Unknown type in RNNDescriptor");
@@ -355,26 +395,42 @@ public:
 
         CHECK_CUDNN_ERROR(cudnnCreateRNNDescriptor(desc));
 
-#if CUDNN_MAJOR >= 8
-        CHECK_CUDNN_ERROR(cudnnSetRNNDescriptor_v6(cudnn_handle,
-                                                *desc,
-#elif CUDNN_MAJOR >= 7
+
+
+#if (CUDNN_MAJOR >= 8)
+        CHECK_CUDNN_ERROR(cudnnSetRNNDescriptor_v8(*desc,
+                                                  rnn_algo,
+                                                  rnn_mode,
+                                                  CUDNN_RNN_NO_BIAS,
+                                                  direction,
+                                                  input_mode,
+                                                  type,
+                                                  mathPrec,
+                                                  mathType,
+                                                  hidden_size,
+                                                  hidden_size,
+                                                  hidden_size,
+                                                  num_layers,
+                                                  dropout_desc,
+                                                  CUDNN_RNN_PADDED_IO_ENABLED));
+#else
+#if (CUDNN_MAJOR >= 7 && CUDNN_MAJOR < 8)
         CHECK_CUDNN_ERROR(cudnnSetRNNDescriptor(cudnn_handle,
                                                 *desc,
 #else
-        CHECK_CUDNN_ERROR(cudnnSetRNNDescriptor(*desc,
+        CHECK_CUDNN_ERROR(cudnnSetRNNDescriptor_v6(*desc,
 #endif
-                                                hidden_size,
-                                                num_layers,
-                                                dropout_desc,
-                                                input_mode,
-                                                direction,
-                                                rnn_mode,
+                                                  hidden_size,
+                                                  num_layers,
+                                                  dropout_desc,
+                                                  input_mode,
+                                                  direction,
+                                                  rnn_mode,
 #if CUDNN_MAJOR >= 7
-                                                rnn_algo,
+                                                  rnn_algo,
 #endif
-                                                type));
-
+                                                  type));
+#endif
         desc_.reset(desc, RNNDescriptorDeleter());
     }
 
