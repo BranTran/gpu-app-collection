@@ -62,7 +62,7 @@ float, half, int8 for inference
 */
 
 template <typename T1, typename T2>
-int time_gemm(Tensor<T1> A, Tensor<T1> B, Tensor<T2> C, bool a_t, bool b_t, cublasHandle_t cublas_handle) {
+int time_gemm(Tensor<T1> A, Tensor<T1> B, Tensor<T2> C, bool a_t, bool b_t, cublasHandle_t cublas_handle, int numRepeats) {
 
 #if (__CUDACC_VER_MAJOR__ >= 8)
     const int alpha = 1.f;
@@ -76,7 +76,6 @@ int time_gemm(Tensor<T1> A, Tensor<T1> B, Tensor<T2> C, bool a_t, bool b_t, cubl
     int k = a_t ? A.dims()[0] : A.dims()[1];
     int n = C.dims()[1];
 
-    int numRepeats = 400;
     cublasStatus_t stat;
 
 #if (__CUDACC_VER_MAJOR__ >= 8)
@@ -208,11 +207,16 @@ int main(int argc, char **argv) {
         precision = argv[2];
     }
     std::vector<std::tuple<int, int, int, bool, bool>> dataset;
-    if (argc > 3) {
-        assert (argc == 8);
+    if (argc == 8 || argc == 9) {
         dataset.push_back(
             std::make_tuple(atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6])==0 ? false : true, atoi(argv[7])==0 ? false : true)
         );
+        // Check for optional numRepeats argument or set default
+        int numRepeats = (argc == 9) ? atoi(argv[8]) : 1;
+    } else {
+        // Display usage message
+        std::cout << "Usage: " << argv[0] << " [training|inference] [precision] <m> <n> <k> <a_t> <b_t> [numRepeats]" << std::endl;
+        return 1;
     }
 
 
@@ -343,19 +347,19 @@ int main(int argc, char **argv) {
             auto c = zeros<int>({pad_m, n});
             std::cout << std::setw(14) << precision;
             if (!skip_kernel)
-                time_ms = time_gemm<uint8_t, int>(a, b, c, a_t, b_t, cublas_handle);
+                time_ms = time_gemm<uint8_t, int>(a, b, c, a_t, b_t, cublas_handle, numRepeats);
         } else if (precision == "half") {
             auto a = rand<uint16_t>({a_t ? pad_k : pad_m, a_t ? pad_m : pad_k}, curand_gen);
             auto b = rand<uint16_t>({b_t ? pad_n : pad_k, b_t ? pad_k : pad_n}, curand_gen);
             auto c = zeros<uint16_t>({pad_m, pad_n});
             std::cout << std::setw(13) << precision;
-            time_ms = time_gemm<uint16_t, uint16_t>(a, b, c, a_t, b_t, cublas_handle);
+            time_ms = time_gemm<uint16_t, uint16_t>(a, b, c, a_t, b_t, cublas_handle, numRepeats);
         } else if (precision == "float") {
             auto a = rand<float>({a_t ? k : m, a_t ? m : k}, curand_gen);
             auto b = rand<float>({b_t ? n : k, b_t ? k : n}, curand_gen);
             auto c = zeros<float>({m, n});
             std::cout << std::setw(13) << precision;
-            time_ms = time_gemm<float, float>(a, b, c, a_t, b_t, cublas_handle);
+            time_ms = time_gemm<float, float>(a, b, c, a_t, b_t, cublas_handle, numRepeats);
         } else {
             throw std::runtime_error(ss.str());
         }
@@ -369,7 +373,7 @@ int main(int argc, char **argv) {
         auto b = rand<float>({b_t ? n : k, b_t ? k : n}, curand_gen);
         auto c = zeros<float>({m, n});
         std::cout << std::setw(13) << precision;
-        time_ms = time_gemm<float, float>(a, b, c, a_t, b_t, cublas_handle);
+        time_ms = time_gemm<float, float>(a, b, c, a_t, b_t, cublas_handle, numRepeats);
 #endif
         std::cout << std::setw(20) << std::setprecision(6);
 

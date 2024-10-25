@@ -272,7 +272,8 @@ std::tuple<int, int, int> time_rnn(int hidden_size,
                                    int batch_size,
                                    int time_steps,
                                    const std::string& type,
-                                   int inference) {
+                                   int inference,
+                                   int numRepeats) {
 
     cudnnRNN<T> rnn(hidden_size, batch_size, time_steps, type);
 
@@ -289,8 +290,6 @@ std::tuple<int, int, int> time_rnn(int hidden_size,
     auto dhy = rand<T>({hidden_size, batch_size}, curand_gen);
     auto dcx = rand<T>({hidden_size, batch_size}, curand_gen);
     auto dcy = rand<T>({hidden_size, batch_size}, curand_gen);
-
-    int numRepeats = 100;
 
     //Warm up
     rnn.forward(x, hx, cx, y, hy, cy);
@@ -370,13 +369,17 @@ int main(int argc, char **argv) {
 
     std::vector<std::tuple<int, int, int, std::string>> dataset;
 
-    if (argc > 3) {
-        assert (argc == 7);
-        // [training|inference] [int8|half|float] <hidden_size> <batch> <timestep> [type vanilla|lstm|gru]
-        //ex rnn_bench-tencore training half 512 32 1 igru
+    if (argc == 7 || argc == 8) {
         dataset.push_back(
             std::make_tuple(atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), argv[6])
         );
+        // Check for optional numRepeats argument or set default
+        int numRepeats = (argc == 8) ? atoi(argv[7]) : 1;
+    } else {
+        // Display usage message
+        std::cout << "Usage: " << argv[0] << " [training|inference] [int8|half|float] <hidden_size> <batch> <timestep> "
+                  << "type(vanilla|lstm|gru) [numRepeats]" << std::endl;
+        return 1;
     }
 
 
@@ -432,7 +435,8 @@ int main(int argc, char **argv) {
                                 batch_size,
                                 time_steps,
                                 type,
-                                inference);
+                                inference,
+                                numRepeats);
 
         } else if (precision == "half") {
             std::tie(fwd_time, bwd_data_time, bwd_params_time) =
@@ -440,14 +444,16 @@ int main(int argc, char **argv) {
                                    batch_size,
                                    time_steps,
                                    type,
-                                   inference);
+                                   inference,
+                                   numRepeats);
         } else if (precision == "int8") {
             std::tie(fwd_time, bwd_data_time, bwd_params_time) =
                 time_rnn<uint8_t>(hidden_state,
                                   batch_size,
                                   time_steps,
                                   type,
-                                  inference);
+                                  inference,
+                                  numRepeats);
         } else {
             throw std::runtime_error(ss.str());
         }
@@ -458,14 +464,16 @@ int main(int argc, char **argv) {
                                  batch_size,
                                  time_steps,
                                  type,
-                                 inference);
+                                 inference,
+                                 numRepeats);
 
             } else if (precision == "half") {
                 std::tie(fwd_time, bwd_time) = time_rnn<uint16_t>(hidden_state,
                                                                   batch_size,
                                                                   time_steps,
                                                                   type,
-                                                                  inference);
+                                                                  inference,
+                                                                  numRepeats);
             } else {
                 throw std::runtime_error(ss.str());
             }
@@ -477,7 +485,8 @@ int main(int argc, char **argv) {
                                                        batch_size,
                                                        time_steps,
                                                        type,
-                                                       inference);
+                                                       inference,
+                                                       numRepeats);
 #endif
 
         std::cout << std::setw(18) << fwd_time;

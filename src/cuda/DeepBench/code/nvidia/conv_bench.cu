@@ -459,8 +459,6 @@ std::tuple<int, int, int, std::string> time_cnn(
 
 int main(int argc, char **argv) {
 
-    int num_repeats = 300;
-
     int inference = 0;
 
     if (argc > 1) {
@@ -486,13 +484,20 @@ int main(int argc, char **argv) {
                            unsigned int, unsigned int, unsigned int,
                            unsigned int, unsigned int, unsigned int, unsigned int>> dataset;
 
-    if (argc > 3) {
-        assert (argc == 14);
-        dataset.push_back(
-            std::make_tuple(atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
-                            atoi(argv[8]), atoi(argv[9]), atoi(argv[10]), atoi(argv[11]), atoi(argv[12]),
-                            atoi(argv[13]))
-        );
+
+    if (argc == 14 || argc == 15) {
+        // Push tuple to dataset, with optional numRepeats as last element
+        dataset.push_back(std::make_tuple(
+            atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
+            atoi(argv[8]), atoi(argv[9]), atoi(argv[10]), atoi(argv[11]), atoi(argv[12]),
+            atoi(argv[13])
+        ));
+        int num_repeats = (argc == 15) ? atoi(argv[14]) : 1  // Default numRepeats to 1 if not provided
+    } else {
+        // Display usage message
+        std::cout << "Usage: " << argv[0] << " [training|inference] [precision] "
+                  << "<w> <h> <c> <n> <k> <s> <r> <pad_w> <pad_h> <wstride> <hstride> [numRepeats]" << std::endl;
+        return 1;
     }
 
 
