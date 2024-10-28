@@ -360,7 +360,7 @@ public:
         cudnnDataType_t type;
         cudnnDataType_t mathPrec;
         if (std::is_same<T, double>::value) {
-            mathPrec = CUDNN_DATA_DOUBLE;
+            mathPrec = type = CUDNN_DATA_DOUBLE;
 #if ((CUDNN_MAJOR >= 8) || (CUDNN_MAJOR >= 7 && CUDNN_MINOR >= 2)) && USE_TENSOR_CORES == 1
             mathType = (get_compute_capability() >= 70) ? CUDNN_TENSOR_OP_MATH : CUDNN_DEFAULT_MATH;
 #else
