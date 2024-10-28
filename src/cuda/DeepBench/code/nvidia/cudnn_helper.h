@@ -58,7 +58,9 @@ public:
     TensorDescriptorNd(const std::vector<int>& dim,
                        const std::vector<int>& stride) {
         cudnnDataType_t type;
-        if (std::is_same<T, float>::value)
+        if (std::is_same<T, double>::value)
+            type = CUDNN_DATA_DOUBLE;
+        else if (std::is_same<T, float>::value)
             type = CUDNN_DATA_FLOAT;
         else if (std::is_same<T, uint16_t>::value)
             type = CUDNN_DATA_HALF;
@@ -105,7 +107,9 @@ class TensorDescriptorNdArray {
                             std::vector<int> stride,
                             int num) {
         cudnnDataType_t type;
-        if (std::is_same<T, float>::value)
+        if (std::is_same<T, double>::value)
+            type = CUDNN_DATA_DOUBLE;
+        else if (std::is_same<T, float>::value)
             type = CUDNN_DATA_FLOAT;
         else if (std::is_same<T, uint16_t>::value)
             type = CUDNN_DATA_HALF;
@@ -148,7 +152,9 @@ public:
     FilterDescriptorNd(const cudnnTensorFormat_t tensor_format,
                        const std::vector<int> dim) {
         cudnnDataType_t type;
-        if (std::is_same<T, float>::value)
+        if (std::is_same<T, double>::value)
+            type = CUDNN_DATA_DOUBLE;
+        else if (std::is_same<T, float>::value)
             type = CUDNN_DATA_FLOAT;
         else if (std::is_same<T, uint16_t>::value)
             type = CUDNN_DATA_HALF;
@@ -186,7 +192,9 @@ public:
     TensorDescriptor4d(const cudnnTensorFormat_t tensor_format,
                        const int n, const int c, const int h, const int w) {
         cudnnDataType_t type;
-        if (std::is_same<T, float>::value) {
+        if (std::is_same<T, double>::value) {
+            type = CUDNN_DATA_DOUBLE;
+        } else if (std::is_same<T, float>::value) {
             type = CUDNN_DATA_FLOAT;
 #if CUDNN_MAJOR >= 6
         } else if (std::is_same<T, uint8_t>::value) {
@@ -236,7 +244,9 @@ public:
     FilterDescriptor4d(const cudnnTensorFormat_t tensor_format,
                        int k, int c, int h, int w) {
         cudnnDataType_t type;
-        if (std::is_same<T, float>::value) {
+        if (std::is_same<T, double>::value) {
+            type = CUDNN_DATA_DOUBLE;
+        } else if (std::is_same<T, float>::value) {
             type = CUDNN_DATA_FLOAT;
 #if CUDNN_MAJOR >= 6
         } else if (std::is_same<T, uint8_t>::value) {
@@ -282,7 +292,9 @@ public:
         CHECK_CUDNN_ERROR(cudnnCreateConvolutionDescriptor(desc_.get()));
 #if CUDNN_MAJOR >= 6
         cudnnDataType_t type;
-        if (std::is_same<T, float>::value) {
+        if (std::is_same<T, double>::value) {
+            type = CUDNN_DATA_DOUBLE;
+        } else if (std::is_same<T, float>::value) {
             type = CUDNN_DATA_FLOAT;
         } else if (std::is_same<T, uint8_t>::value) {
             type = CUDNN_DATA_INT8;
@@ -347,7 +359,14 @@ public:
         cudnnMathType_t mathType;
         cudnnDataType_t type;
         cudnnDataType_t mathPrec;
-        if (std::is_same<T, float>::value) {
+        if (std::is_same<T, double>::value) {
+            mathPrec = CUDNN_DATA_DOUBLE;
+#if ((CUDNN_MAJOR >= 8) || (CUDNN_MAJOR >= 7 && CUDNN_MINOR >= 2)) && USE_TENSOR_CORES == 1
+            mathType = (get_compute_capability() >= 70) ? CUDNN_TENSOR_OP_MATH : CUDNN_DEFAULT_MATH;
+#else
+            mathType = CUDNN_DEFAULT_MATH;
+#endif
+        } else if (std::is_same<T, float>::value) {
             mathPrec = type = CUDNN_DATA_FLOAT;
 #if ((CUDNN_MAJOR >= 8) || (CUDNN_MAJOR >= 7 && CUDNN_MINOR >= 2)) && USE_TENSOR_CORES == 1
             mathType = (get_compute_capability() >= 70) ? CUDNN_TENSOR_OP_MATH_ALLOW_CONVERSION : CUDNN_DEFAULT_MATH;

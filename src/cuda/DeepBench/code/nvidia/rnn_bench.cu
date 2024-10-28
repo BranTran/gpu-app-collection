@@ -148,7 +148,9 @@ class cudnnRNN {
                                              rnn_type,
                                              cudnn_handle);
             cudnnDataType_t type;
-            if (std::is_same<T, float>::value)
+            if (std::is_same<T, double>::value)
+                type = CUDNN_DATA_DOUBLE;
+            else if (std::is_same<T, float>::value)
                 type = CUDNN_DATA_FLOAT;
 #if CUDNN_MAJOR >= 6
             else if (std::is_same<T, uint8_t>::value)
@@ -429,7 +431,16 @@ int main(int argc, char **argv) {
 
 #if CUDNN_MAJOR >= 6
     if (inference) {
-        if (precision == "float") {
+        if (precision == "double") {
+            std::tie(fwd_time, bwd_data_time, bwd_params_time) =
+                time_rnn<double>(hidden_state,
+                                batch_size,
+                                time_steps,
+                                type,
+                                inference,
+                                numRepeats);
+
+        } else if (precision == "float") {
             std::tie(fwd_time, bwd_data_time, bwd_params_time) =
                 time_rnn<float>(hidden_state,
                                 batch_size,
@@ -458,7 +469,16 @@ int main(int argc, char **argv) {
             throw std::runtime_error(ss.str());
         }
     } else {
-        if (precision == "float") {
+        if (precision == "double") {
+            std::tie(fwd_time, bwd_data_time, bwd_params_time) =
+                 time_rnn<double>(hidden_state,
+                                 batch_size,
+                                 time_steps,
+                                 type,
+                                 inference,
+                                 numRepeats);
+
+            } else if (precision == "float") {
             std::tie(fwd_time, bwd_data_time, bwd_params_time) =
                  time_rnn<float>(hidden_state,
                                  batch_size,

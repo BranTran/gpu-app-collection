@@ -603,7 +603,10 @@ int main(int argc, char **argv) {
         ss << "Unsupported precision requested. Precision: " << precision << " Inference: " << inference;
 
 #if CUDNN_MAJOR >= 6
-        if (precision == "float") {
+        if (precision == "double") {
+            std::tie(fwd_time, bwd_inputs_time, bwd_params_time, fwd_algo_s) =
+                time_cnn<double, double>(k, padded_c, r, s, n, padded_h, padded_w, pad_h, pad_w, hstride, wstride, num_repeats, curand_gen, inference);
+        } else if (precision == "float") {
             std::tie(fwd_time, bwd_inputs_time, bwd_params_time, fwd_algo_s) =
                 time_cnn<float, float>(k, padded_c, r, s, n, padded_h, padded_w, pad_h, pad_w, hstride, wstride, num_repeats, curand_gen, inference);
         } else if (precision == "half") {
