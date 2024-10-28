@@ -189,6 +189,7 @@ int main(int argc, char **argv) {
     cudaFree(0);
 
     int inference = 0;
+    int numRepeats = 1;
     if (argc > 1) {
         std::string inf = "inference";
         inference = argv[1] == inf ? 1 : 0;
@@ -212,7 +213,7 @@ int main(int argc, char **argv) {
             std::make_tuple(atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6])==0 ? false : true, atoi(argv[7])==0 ? false : true)
         );
         // Check for optional numRepeats argument or set default
-        int numRepeats = (argc == 9) ? atoi(argv[8]) : 1;
+        numRepeats = (argc == 9) ? atoi(argv[8]) : 1;
     } else {
         // Display usage message
         std::cout << "Usage: " << argv[0] << " [training|inference] [precision] <m> <n> <k> <a_t> <b_t> [numRepeats]" << std::endl;

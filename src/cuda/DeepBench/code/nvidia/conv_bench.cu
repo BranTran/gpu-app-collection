@@ -460,7 +460,7 @@ std::tuple<int, int, int, std::string> time_cnn(
 int main(int argc, char **argv) {
 
     int inference = 0;
-
+    int num_repeats = 1;
     if (argc > 1) {
         std::string inf = "inference";
         inference = argv[1] == inf ? 1 : 0;
@@ -492,7 +492,7 @@ int main(int argc, char **argv) {
             atoi(argv[8]), atoi(argv[9]), atoi(argv[10]), atoi(argv[11]), atoi(argv[12]),
             atoi(argv[13])
         ));
-        int num_repeats = (argc == 15) ? atoi(argv[14]) : 1  // Default numRepeats to 1 if not provided
+        num_repeats = (argc == 15) ? atoi(argv[14]) : 1;  // Default numRepeats to 1 if not provided
     } else {
         // Display usage message
         std::cout << "Usage: " << argv[0] << " [training|inference] [precision] "

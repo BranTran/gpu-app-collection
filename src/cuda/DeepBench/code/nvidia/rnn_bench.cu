@@ -361,7 +361,7 @@ int main(int argc, char **argv) {
     curandSetPseudoRandomGeneratorSeed(curand_gen, 123ULL);
 
     int inference = 0;
-
+    int numRepeats = 1;
     if (argc > 1) {
         std::string inf = "inference";
         inference = argv[1] == inf ? 1 : 0;
@@ -374,7 +374,7 @@ int main(int argc, char **argv) {
             std::make_tuple(atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), argv[6])
         );
         // Check for optional numRepeats argument or set default
-        int numRepeats = (argc == 8) ? atoi(argv[7]) : 1;
+        numRepeats = (argc == 8) ? atoi(argv[7]) : 1;
     } else {
         // Display usage message
         std::cout << "Usage: " << argv[0] << " [training|inference] [int8|half|float] <hidden_size> <batch> <timestep> "
