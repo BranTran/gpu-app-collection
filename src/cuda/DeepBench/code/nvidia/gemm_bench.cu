@@ -204,17 +204,17 @@ int main(int argc, char **argv) {
 #else
     std::string precision = "float";
 #endif
+    std::vector<std::tuple<int, int, int, bool, bool>> dataset;
     if (argc > 2) {
         precision = argv[2];
     }
-    std::vector<std::tuple<int, int, int, bool, bool>> dataset;
     if (argc == 8 || argc == 9) {
         dataset.push_back(
             std::make_tuple(atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6])==0 ? false : true, atoi(argv[7])==0 ? false : true)
         );
         // Check for optional numRepeats argument or set default
         numRepeats = (argc == 9) ? atoi(argv[8]) : 1;
-    } else {
+    } else if (argc > 3) {
         // Display usage message
         std::cout << "Usage: " << argv[0] << " [training|inference] [precision] <m> <n> <k> <a_t> <b_t> [numRepeats]" << std::endl;
         return 1;

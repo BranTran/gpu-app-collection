@@ -476,15 +476,13 @@ int main(int argc, char **argv) {
 #else
     std::string precision = "float";
 #endif
-    if (argc > 2) {
-        precision = argv[2];
-    }
 
     std::vector<std::tuple<unsigned int, unsigned int, unsigned int, unsigned int,
                            unsigned int, unsigned int, unsigned int,
                            unsigned int, unsigned int, unsigned int, unsigned int>> dataset;
-
-
+    if (argc > 2) {
+        precision = argv[2];
+    }
     if (argc == 14 || argc == 15) {
         // Push tuple to dataset, with optional numRepeats as last element
         dataset.push_back(std::make_tuple(
@@ -493,7 +491,7 @@ int main(int argc, char **argv) {
             atoi(argv[13])
         ));
         num_repeats = (argc == 15) ? atoi(argv[14]) : 1;  // Default numRepeats to 1 if not provided
-    } else {
+    } else if (argc > 3) {
         // Display usage message
         std::cout << "Usage: " << argv[0] << " [training|inference] [precision] "
                   << "<w> <h> <c> <n> <k> <s> <r> <pad_w> <pad_h> <wstride> <hstride> [numRepeats]" << std::endl;

@@ -375,7 +375,7 @@ int main(int argc, char **argv) {
         );
         // Check for optional numRepeats argument or set default
         numRepeats = (argc == 8) ? atoi(argv[7]) : 1;
-    } else {
+    } else if (argc > 3) {
         // Display usage message
         std::cout << "Usage: " << argv[0] << " [training|inference] [int8|half|float] <hidden_size> <batch> <timestep> "
                   << "type(vanilla|lstm|gru) [numRepeats]" << std::endl;
@@ -468,7 +468,7 @@ int main(int argc, char **argv) {
                                  numRepeats);
 
             } else if (precision == "half") {
-                std::tie(fwd_time, bwd_time) = time_rnn<uint16_t>(hidden_state,
+                std::tie(fwd_time, bwd_data_time, bwd_params_time) = time_rnn<uint16_t>(hidden_state,
                                                                   batch_size,
                                                                   time_steps,
                                                                   type,
@@ -481,18 +481,19 @@ int main(int argc, char **argv) {
 #else
         if (precision != "float")
             throw std::runtime_error(ss.str());
-        std::tie(fwd_time, bwd_time) = time_rnn<float>(hidden_state,
+        std::tie(fwd_time, bwd_data_time, bwd_params_time) = time_rnn<float>(hidden_state,
                                                        batch_size,
                                                        time_steps,
                                                        type,
                                                        inference,
                                                        numRepeats);
 #endif
-
-        std::cout << std::setw(18) << fwd_time;
-        if (!inference)
-            std::cout << std::setw(18) << bwd_time;
-        std::cout << std::endl;
+     std::cout << std::setw(18) << fwd_time;
+     if (!inference) {
+         std::cout << std::setw(20) << bwd_data_time;
+         std::cout << std::setw(20) << bwd_params_time;
+     }
+     std::cout << std::endl;
     }
 
     cudnnDestroy(cudnn_handle);
