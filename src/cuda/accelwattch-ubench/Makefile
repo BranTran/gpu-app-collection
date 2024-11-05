@@ -13,6 +13,7 @@ inline:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/IMAD_IADD/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LOP3_LUT/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/SHFL_IDX/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/IDP_4A/$(OPT)
 
 no_opt:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/MOV/$(OPT) ptxas=1
@@ -44,7 +45,8 @@ testing:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C testing_benchmarks/F2F_64_32_empty_v2/$(OPT) ptxas=1
 
 new:
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/IDP_4A/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDS_U_128/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDG64/$(OPT)
 
 tensor:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C tensor_benchmarks/TENSOR/$(OPT)
