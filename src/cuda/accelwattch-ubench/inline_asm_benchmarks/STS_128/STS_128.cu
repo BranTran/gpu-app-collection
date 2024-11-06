@@ -83,35 +83,24 @@ __global__ void lds_u128_kernel(uint64_t* A, uint64_t* B, unsigned long long ite
     int tid = threadIdx.x;
     int i = blockDim.x * blockIdx.x + tid;
 
-    __shared__ uint4 sharedInp[THREADS_PER_BLOCK];  
     __shared__ uint4 sharedOut[THREADS_PER_BLOCK];  
 
-    sharedInp[tid].x = A[i];
-    sharedInp[tid].y = A[i];
-    sharedInp[tid].z = A[i];
-    sharedInp[tid].w = A[i];
+    uint4 data;
+    data.x = A[i];
+    data.y = A[i];
+    data.z = A[i];
+    data.w = A[i];
     // Synchronize to ensure all data is in shared memory
     __syncthreads();
 
     // Declare a register to hold the 128-bit data
-    uint4 data;
 
     // Set up pointers to shared memory locations
-    size_t inptr = __cvta_generic_to_shared(sharedInp + tid);
     size_t outptr = __cvta_generic_to_shared(sharedOut + tid);
 
     #pragma unroll 100
         for (unsigned long long k = 0; k < iterations; k++) {
         // Use inline PTX to load 128 bits (4 x 32-bit values) at once from shared memory
-        asm volatile (
-            "{\n\t"
-            "ld.shared.v4.u32 {%0, %1, %2, %3}, [%4];\n\t"
-            "}"
-            : "=r"(data.x), "=r"(data.y), "=r"(data.z), "=r"(data.w)
-            : "l"(inptr)
-            : "memory"
-        );
-
         // Store the loaded data back to shared memory
         asm volatile (
             "{\n\t"
@@ -124,7 +113,7 @@ __global__ void lds_u128_kernel(uint64_t* A, uint64_t* B, unsigned long long ite
     }
 
     // Store result back to global memory (sum of all four uint components)
-    B[i] = data.x + data.y + data.z + data.w;
+    B[i] = sharedOut[tid].x + sharedOut[tid].y + sharedOut[tid].z + sharedOut[tid].w;
 }
 
 

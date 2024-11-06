@@ -113,8 +113,11 @@ int main(int argc, char** argv){
   int total_threads = THREADS_NUM*NUM_BLOCKS;
  printf("Power Microbenchmarks with iterations %lu\n",iterations);
 
-  uint64_t *dsink = (uint64_t*) malloc(total_threads*sizeof(uint64_t));
-  
+  //uint64_t *dsink = (uint64_t*) malloc(total_threads*sizeof(uint64_t));
+      // Use pinned (page-locked) memory for `dsink`
+    uint64_t *dsink;
+    checkCudaErrors(cudaHostAlloc((void**)&dsink, total_threads * sizeof(uint64_t), cudaHostAllocDefault));
+
 
   uint64_t *posArray_g;
   uint64_t *dsink_g;

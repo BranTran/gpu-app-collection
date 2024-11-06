@@ -57,10 +57,10 @@ __global__ void l1_pointers_init(uint64_t *posArray){
   if(tid == 0){
     for(uint32_t blk = 0; blk <NUM_BLOCKS; blk++){
       for (uint32_t i=0; i<(THREADS_NUM-1); i++){
-        posArray[(blk*THREADS_NUM)+i] = (uint64_t)(posArray + (blk*THREADS_NUM) + i);
+        posArray[(blk*THREADS_NUM)+i] = (uint64_t)(posArray + (blk*THREADS_NUM) + i + 1);
       }
 
-      posArray[((blk+1)*THREADS_NUM)-1] = (uint64_t)(posArray + (blk*THREADS_NUM) - 1);
+      posArray[((blk+1)*THREADS_NUM)-1] = (uint64_t)(posArray + (blk*THREADS_NUM));
     }
   }
 }
