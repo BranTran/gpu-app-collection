@@ -39,7 +39,8 @@
 
 // includes CUDA
 #include <cuda_runtime.h>
-#include <cuda.h> //for uint64_t
+#include <mma.h> //Get half precision in scope
+
 #define THREADS_PER_BLOCK 256
 #define NUM_OF_BLOCKS 640
 //#define ITERATIONS 40
@@ -50,7 +51,7 @@ float* h_A;
 float* h_B;
 float* d_A_fp32;
 half* d_A;
-half* d_B;
+float* d_B;
 //bool noprompt = false;
 //unsigned int my_timer;
 
@@ -96,19 +97,14 @@ __global__ void convertFp32ToFp16 (half *out, float *in, int n) {
 
 __global__ void PowerKernal2(const half* A, float* B, unsigned long long iterations)
 {
-  uint64_t tid = blockDim.x * blockIdx.x + threadIdx.x;
+  unsigned tid = blockDim.x * blockIdx.x + threadIdx.x;
   half input = A[tid];
-  float output;
+  //float output;
   float acc = 0;
 #pragma unroll 100
     // Excessive Addition access
     for(unsigned long long k=0; k<iterations;k++) {
-      asm volatile (
-          "cvt.rn.f16.f32 %0, %1;\n\t"
-          : "=f"(output)         // Output: float output
-          : "h"(input)           // Input: half input
-      );
-      acc += output;
+      acc += static_cast<float>(input);
     }
     B[tid] = acc;
 }
@@ -150,11 +146,12 @@ printf("after\n");
  // Copy vectors from host memory to device memory
  checkCudaErrors( cudaMemcpy(d_A_fp32, h_A, sizeof(float)*N, cudaMemcpyHostToDevice) );
 
- convertFp32ToFp16<<<dimGrid,dimBlock>>>(d_A,d_A_fp32,N);
 
  //VecAdd<<<blocksPerGrid, threadsPerBlock>>>(d_A, d_B, d_B, N);
  dim3 dimGrid(NUM_OF_BLOCKS,1);
  dim3 dimBlock(THREADS_PER_BLOCK,1);
+
+ convertFp32ToFp16<<<dimGrid,dimBlock>>>(d_A,d_A_fp32,N);
 
  checkCudaErrors(cudaEventRecord(start));              
  PowerKernal2<<<dimGrid,dimBlock>>>(d_A, d_B, iterations);  

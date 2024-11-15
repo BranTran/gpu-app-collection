@@ -39,7 +39,8 @@
 
 // includes CUDA
 #include <cuda_runtime.h>
-#include <cuda.h> //for uint64_t
+#include <mma.h> //Get half precision in scope
+
 #define THREADS_PER_BLOCK 256
 #define NUM_OF_BLOCKS 640
 //#define ITERATIONS 40
@@ -89,19 +90,14 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 __global__ void PowerKernal2(const float* A, half* B, unsigned long long iterations)
 {
-  uint64_t tid = blockDim.x * blockIdx.x + threadIdx.x;
+  unsigned tid = blockDim.x * blockIdx.x + threadIdx.x;
   float input = A[tid];
-  half output;
+  //half output;
   half acc = 0;
 #pragma unroll 100
     // Excessive Addition access
     for(unsigned long long k=0; k<iterations;k++) {
-      asm volatile (
-          "cvt.rn.f16.f32 %0, %1;\n\t"
-          : "=h"(output)         // Output: half output
-          : "f"(input)           // Input: float input
-      );
-      acc += output;
+      acc += __half(input);
     }
     B[tid] = acc;
 }
