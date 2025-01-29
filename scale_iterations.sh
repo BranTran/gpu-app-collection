@@ -4,6 +4,13 @@ usage() {
     echo "Usage: $0 <iterations>"
     exit 1
 }
+
+# Check if the number of arguments is exactly 1
+if [ "$#" -ne 1 ]; then
+    echo "Error: Invalid number of arguments."
+    usage
+fi
+
 path='accelwattch_validation_one_kernel'
 onek='_one_kernel'
 
