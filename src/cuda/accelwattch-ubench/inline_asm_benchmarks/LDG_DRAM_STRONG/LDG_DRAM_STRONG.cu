@@ -116,7 +116,7 @@ int main(int argc, char** argv){
   //uint64_t *dsink = (uint64_t*) malloc(total_threads*sizeof(uint64_t));
       // Use pinned (page-locked) memory for `dsink`
     uint64_t *dsink;
-    checkCudaErrors(cudaHostAlloc((void**)&dsink, total_threads * sizeof(uint64_t), cudaHostAllocDefault));
+    checkCudaErrors(cudaMallocHost((void**)&dsink, total_threads * sizeof(uint64_t)));
 
 
   uint64_t *posArray_g;
