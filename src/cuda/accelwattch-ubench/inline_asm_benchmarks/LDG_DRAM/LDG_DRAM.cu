@@ -27,35 +27,80 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 	}
 }
 
+// A thread 0 will do all of my initializations where A -> B -> C -> D -> E -> F
+__global__ void pointers_init(uint64_t* A,  uint64_t* B, uint64_t* C, uint64_t* D, uint64_t* E, uint64_t* F){
+
+  uint32_t tid = blockIdx.x*blockDim.x + threadIdx.x;
+
+  if(tid == 0){
+    for(uint32_t i = 0; i < ARRAY_SIZE/2; i=i+2){
+        A[2*i] =   (uint64_t)(B + 2*i + 2);
+        A[2*i+1] = (uint64_t)(B + 2*i + 3);
+        B[2*i] =   (uint64_t)(C + 2*i + 2);
+        B[2*i+1] = (uint64_t)(C + 2*i + 3);
+        C[2*i] =   (uint64_t)(D + 2*i + 2);
+        C[2*i+1] = (uint64_t)(D + 2*i + 3);
+        D[2*i] =   (uint64_t)(E + 2*i + 2);
+        D[2*i+1] = (uint64_t)(E + 2*i + 3);
+        E[2*i] =   (uint64_t)(F + 2*i + 2);
+        E[2*i+1] = (uint64_t)(F + 2*i + 3);
+        F[2*i] =   (uint64_t)(A + 2*i + 2);
+        F[2*i+1] = (uint64_t)(A + 2*i + 3);
+    }
+	A[ARRAY_SIZE-2] = (uint64_t)(B);
+	A[ARRAY_SIZE-1] = (uint64_t)(B + 1);
+	B[ARRAY_SIZE-2] = (uint64_t)(C);
+	B[ARRAY_SIZE-1] = (uint64_t)(C + 1);
+	C[ARRAY_SIZE-2] = (uint64_t)(D);
+	C[ARRAY_SIZE-1] = (uint64_t)(D + 1);
+	D[ARRAY_SIZE-2] = (uint64_t)(E);
+	D[ARRAY_SIZE-1] = (uint64_t)(E + 1);
+	E[ARRAY_SIZE-2] = (uint64_t)(F);
+	E[ARRAY_SIZE-1] = (uint64_t)(F + 1);
+	F[ARRAY_SIZE-2] = (uint64_t)(A);
+	F[ARRAY_SIZE-1] = (uint64_t)(A + 1);
+  }
+}
+
+
+
 /*
-Four Vector Addition using flost4 types
-Send as many as float4 read requests on the flight to increase Row buffer locality of DRAM and hit the max BW
+Pointer Chasing
  */
 
-__global__ void mem_bw (float* A,  float* B, float* C, float* D, float* E, float* F, unsigned long long iterations){
+__global__ void dram_pointer_chase (uint64_t* A, uint64_t* F, unsigned long long iterations){
 	// block and thread index
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
+
+  	// a register to avoid compiler optimization
+  	uint64_t *ptr = A + tid;
+  	uint64_t ptr1, ptr0;
+
+  	// initialize the thread pointer with the start address of the array
+  	// use ca modifier to cache the in L1
+  	asm volatile ("{\t\n"
+  	  "ld.global.cv.u64 %0, [%1];\n\t"
+  	  "}" : "=l"(ptr1) : "l"(ptr) : "memory"
+  	);
 
 	// synchronize all threads
 	asm volatile ("bar.sync 0;");
 
-	for(unsigned long long i=0; i<iterations; ++i) { 
-		for(int i = idx; i < ARRAY_SIZE/4; i += blockDim.x * gridDim.x) {
-			float4 a1 = reinterpret_cast<float4*>(A)[i];
-			float4 b1 = reinterpret_cast<float4*>(B)[i];
-			float4 d1 = reinterpret_cast<float4*>(D)[i];
-			float4 e1 = reinterpret_cast<float4*>(E)[i];
-			float4 f1 = reinterpret_cast<float4*>(F)[i];
-			float4 c1;
+  	// pointer-chasing iterations times
+	// because of the initialization, we should constantly be missing 
+  	#pragma unroll 100
+  	for(unsigned long long i=0; i<iterations; ++i) { 
+  	  asm volatile ("{\t\n"
+  	    "ld.global.cv.u64 %0, [%1];\n\t"
+  	    "}" : "=l"(ptr0) : "l"((uint64_t*)ptr1) : "memory"
+  	  );
+  	  ptr1 = ptr0;    //swap the register for the next load
+  	}
 
-			c1.x = a1.x + b1.x + d1.x + e1.x + f1.x;
-			c1.y = a1.y + b1.y + d1.y + e1.y + f1.y;
-			c1.z = a1.z + b1.z + d1.z + e1.z + f1.z;
-			c1.w = a1.w + b1.w + d1.w + e1.w + f1.w;
-
-			reinterpret_cast<float4*>(C)[i] = c1;
-		}
-	}
+  	// write data back to memory
+  	F[tid] = ptr1;
+  }
 
 	// synchronize all threads
 	asm volatile ("bar.sync 0;");
@@ -73,44 +118,34 @@ int main(int argc, char** argv){
  printf("Power Microbenchmarks with iterations %lu\n",iterations);
 	uint32_t *startClk = (uint32_t*) malloc(TOTAL_THREADS*sizeof(uint32_t));
 	uint32_t *stopClk = (uint32_t*) malloc(TOTAL_THREADS*sizeof(uint32_t));
-	float *A = (float*) malloc(ARRAY_SIZE*sizeof(float));
-	float *B = (float*) malloc(ARRAY_SIZE*sizeof(float));
-	float *C = (float*) malloc(ARRAY_SIZE*sizeof(float));
-	float *D = (float*) malloc(ARRAY_SIZE*sizeof(float));
-	float *E = (float*) malloc(ARRAY_SIZE*sizeof(float));
-	float *F = (float*) malloc(ARRAY_SIZE*sizeof(float));
+	uint64_t *A = (uint64_t*) malloc(ARRAY_SIZE*sizeof(uint64_t));
+	uint64_t *B = (uint64_t*) malloc(ARRAY_SIZE*sizeof(uint64_t));
+	uint64_t *C = (uint64_t*) malloc(ARRAY_SIZE*sizeof(uint64_t));
+	uint64_t *D = (uint64_t*) malloc(ARRAY_SIZE*sizeof(uint64_t));
+	uint64_t *E = (uint64_t*) malloc(ARRAY_SIZE*sizeof(uint64_t));
+	uint64_t *F = (uint64_t*) malloc(ARRAY_SIZE*sizeof(uint64_t));
 
 
-	float *A_g;
-	float *B_g;
-	float *C_g;
-	float *D_g;
-	float *E_g;
-	float *F_g;
+	uint64_t *A_g;
+	uint64_t *B_g;
+	uint64_t *C_g;
+	uint64_t *D_g;
+	uint64_t *E_g;
+	uint64_t *F_g;
+
+	gpuErrchk( cudaMalloc(&A_g, ARRAY_SIZE*sizeof(uint64_t)) );
+	gpuErrchk( cudaMalloc(&B_g, ARRAY_SIZE*sizeof(uint64_t)) );
+	gpuErrchk( cudaMalloc(&C_g, ARRAY_SIZE*sizeof(uint64_t)) );
+	gpuErrchk( cudaMalloc(&D_g, ARRAY_SIZE*sizeof(uint64_t)) );
+	gpuErrchk( cudaMalloc(&E_g, ARRAY_SIZE*sizeof(uint64_t)) );
+	gpuErrchk( cudaMalloc(&F_g, ARRAY_SIZE*sizeof(uint64_t)) );
 
 
-	for (uint32_t i=0; i<ARRAY_SIZE; i++){
-		A[i] = (float)i;
-		B[i] = (float)i;
-		D[i] = (float)i;
-		E[i] = (float)i;
-		F[i] = (float)i;
-
-	}
-
-	gpuErrchk( cudaMalloc(&A_g, ARRAY_SIZE*sizeof(float)) );
-	gpuErrchk( cudaMalloc(&B_g, ARRAY_SIZE*sizeof(float)) );
-	gpuErrchk( cudaMalloc(&C_g, ARRAY_SIZE*sizeof(float)) );
-	gpuErrchk( cudaMalloc(&D_g, ARRAY_SIZE*sizeof(float)) );
-	gpuErrchk( cudaMalloc(&E_g, ARRAY_SIZE*sizeof(float)) );
-	gpuErrchk( cudaMalloc(&F_g, ARRAY_SIZE*sizeof(float)) );
-
-
-	gpuErrchk( cudaMemcpy(A_g, A, ARRAY_SIZE*sizeof(float), cudaMemcpyHostToDevice) );
-	gpuErrchk( cudaMemcpy(B_g, B, ARRAY_SIZE*sizeof(float), cudaMemcpyHostToDevice) );
-	gpuErrchk( cudaMemcpy(D_g, D, ARRAY_SIZE*sizeof(float), cudaMemcpyHostToDevice) );
-	gpuErrchk( cudaMemcpy(E_g, E, ARRAY_SIZE*sizeof(float), cudaMemcpyHostToDevice) );
-	gpuErrchk( cudaMemcpy(F_g, F, ARRAY_SIZE*sizeof(float), cudaMemcpyHostToDevice) );
+	gpuErrchk( cudaMemcpy(A_g, A, ARRAY_SIZE*sizeof(uint64_t), cudaMemcpyHostToDevice) );
+	gpuErrchk( cudaMemcpy(B_g, B, ARRAY_SIZE*sizeof(uint64_t), cudaMemcpyHostToDevice) );
+	gpuErrchk( cudaMemcpy(D_g, D, ARRAY_SIZE*sizeof(uint64_t), cudaMemcpyHostToDevice) );
+	gpuErrchk( cudaMemcpy(E_g, E, ARRAY_SIZE*sizeof(uint64_t), cudaMemcpyHostToDevice) );
+	gpuErrchk( cudaMemcpy(F_g, F, ARRAY_SIZE*sizeof(uint64_t), cudaMemcpyHostToDevice) );
 
 	cudaEvent_t start, stop;
 	cudaEventCreate(&start);
@@ -123,7 +158,7 @@ int main(int argc, char** argv){
 
 	gpuErrchk( cudaPeekAtLastError() );
 
-	gpuErrchk( cudaMemcpy(C, C_g, ARRAY_SIZE*sizeof(float), cudaMemcpyDeviceToHost) );
+	gpuErrchk( cudaMemcpy(C, C_g, ARRAY_SIZE*sizeof(uint64_t), cudaMemcpyDeviceToHost) );
 
 	float elapsedTime = 0;
 	cudaEventElapsedTime(&elapsedTime, start, stop);
