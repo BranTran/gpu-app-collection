@@ -70,7 +70,6 @@ int main(int argc, char** argv){
   else {
     iterations = atoll(argv[1]);
   }
-  int total_threads = THREADS_NUM*NUM_BLOCKS;
  printf("Power Microbenchmarks with iterations %lu\n",iterations);
 	uint32_t *startClk = (uint32_t*) malloc(TOTAL_THREADS*sizeof(uint32_t));
 	uint32_t *stopClk = (uint32_t*) malloc(TOTAL_THREADS*sizeof(uint32_t));
@@ -82,8 +81,6 @@ int main(int argc, char** argv){
 	float *F = (float*) malloc(ARRAY_SIZE*sizeof(float));
 
 
-	uint32_t *startClk_g;
-	uint32_t *stopClk_g;
 	float *A_g;
 	float *B_g;
 	float *C_g;
