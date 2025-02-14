@@ -105,7 +105,8 @@ __global__ void PowerKernal2(const unsigned* A, const unsigned* B, unsigned* C, 
         // Doing permutations
         __asm volatile (
           "\n\tprmt.b32 %0, %0, %1, 30212;"   // From heterosync it was interesting to see the default 30212
-          : "r"(I1), "r"(I2)
+          : "+r"(I1)
+	  : "r"(I2)
       );
     }
     C[i] = I1;
