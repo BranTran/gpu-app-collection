@@ -56,6 +56,7 @@ testing:
 new:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDC64/$(OPT) ptxas=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDL/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDG_CONSTANT/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/STL/$(OPT)
 
 	# $(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/STG_L2_HIT/$(OPT)
