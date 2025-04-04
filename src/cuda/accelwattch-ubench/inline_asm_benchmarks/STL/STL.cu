@@ -90,7 +90,10 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 __global__ void PowerKernal2(unsigned* A, unsigned* B, unsigned long long N)
 {
     uint32_t uid = blockDim.x * blockIdx.x + threadIdx.x;
-    volatile unsigned sink = A[uid];
+    volatile unsigned sink;
+   
+    unsigned* A_ptr = A + uid;
+    unsigned* B_ptr = B + uid; 
   #pragma unroll 100
     for(uint64_t i=0; i<N; ++i) {
       asm volatile ("{\t\n"
