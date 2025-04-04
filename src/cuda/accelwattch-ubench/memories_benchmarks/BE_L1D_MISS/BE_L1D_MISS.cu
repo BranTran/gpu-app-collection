@@ -122,7 +122,7 @@ int main(int argc, char** argv)
 		iterations = atoll(argv[1]);
 	}
 
-	printf("Power Microbenchmark with %d iterations\n",iterations);
+	printf("Power Microbenchmark with iterations %llu\n",iterations);
 	int N = LINE_SIZE*SETS*ASSOC;
 	size_t size = N * sizeof(int) * 2;
 

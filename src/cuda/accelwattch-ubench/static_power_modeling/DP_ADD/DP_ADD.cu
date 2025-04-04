@@ -132,7 +132,7 @@ int main(int argc, char** argv)
     blocks = atoi(argv[2]);
   }
 
- printf("Power Microbenchmarks with iterations %lu\n",iterations);
+ printf("Power Microbenchmarks with iterations %llu\n",iterations);
  int N = THREADS_PER_BLOCK*blocks;
  size_t size = N * sizeof(double);
  // Allocate input vectors h_A and h_B in host memory

@@ -131,7 +131,7 @@ int main(int argc, char** argv)
 		iterations = atoll(argv[1]);
 	}
 
-	printf("Power Microbenchmark with %d iterations\n",iterations);
+	printf("Power Microbenchmark with iterations %llu\n",iterations);
 	unsigned texmem_size = LINE_SIZE*SETS*ASSOC;
 
 	float *host_texture1 = (float*) malloc(texmem_size*sizeof(float));

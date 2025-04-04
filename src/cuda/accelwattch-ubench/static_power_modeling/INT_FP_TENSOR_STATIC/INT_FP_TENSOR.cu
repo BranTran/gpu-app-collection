@@ -156,7 +156,7 @@ int main(int argc, char** argv){
     div = atoi(argv[3]);
   }
  
-  printf("Power Microbenchmarks with iterations %lu\n",iterations);
+  printf("Power Microbenchmarks with iterations %llu\n",iterations);
 
      // First: using WMMA
    dim3 gridDim;

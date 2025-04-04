@@ -132,7 +132,7 @@ int main(int argc, char** argv)
 		iterations = atoll(argv[1]);
 	}
 
-	printf("Power Microbenchmark with %d iterations\n",iterations);
+	printf("Power Microbenchmark with iterations %llu\n",iterations);
 	int N = (LINE_SIZE*ASSOC*SETS)/sizeof(int); //32768
 	size_t size = N * sizeof(int); // 128kB (l1d size with shmem = 0 bytes)
 	// Allocate input vectors h_A and h_B in host memory

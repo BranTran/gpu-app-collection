@@ -111,7 +111,7 @@ int main(int argc, char** argv){
     iterations = atoll(argv[1]);
   }
   int total_threads = THREADS_NUM*NUM_BLOCKS;
- printf("Power Microbenchmarks with iterations %lu\n",iterations);
+ printf("Power Microbenchmarks with iterations %llu\n",iterations);
 
   uint64_t *dsink = (uint64_t*) malloc(total_threads*sizeof(uint64_t));
   

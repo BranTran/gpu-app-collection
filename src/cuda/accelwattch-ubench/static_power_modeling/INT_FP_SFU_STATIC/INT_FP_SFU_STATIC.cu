@@ -107,7 +107,7 @@ int main(int argc, char** argv){
     div = atoi(argv[3]);
   }
  
- printf("Power Microbenchmarks with iterations %lu\n",iterations);
+ printf("Power Microbenchmarks with iterations %llu\n",iterations);
  int total_threads = THREADS_PER_BLOCK*blocks;
 
 

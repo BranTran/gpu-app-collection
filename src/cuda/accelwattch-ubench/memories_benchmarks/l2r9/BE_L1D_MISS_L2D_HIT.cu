@@ -117,7 +117,7 @@ int main(int argc, char** argv)
 		iterations = atoll(argv[1]);
 	}
 
-	printf("Power Microbenchmark with %d iterations\n",iterations);
+	printf("Power Microbenchmark with iterations %llu\n",iterations);
 	int N = (400*max_tid*LINE_SIZE);
 	size_t size = N * sizeof(int) ;
 	// Allocate input vectors h_A and h_B in host memory
