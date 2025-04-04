@@ -106,6 +106,9 @@ __global__ void PowerKernal2(const unsigned* A, const unsigned* B, unsigned* C, 
         if(i%2 == 0){
           I1 = I2;
         }
+	else{
+	  I1 = I1 + I2;
+	}
         __syncthreads();
     }
     C[i] = I1;

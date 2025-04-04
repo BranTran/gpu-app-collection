@@ -385,7 +385,7 @@ ifeq ($(ptxas), 1)
         NVCCFLAGS += --ptxas-options="-O0,-disable-optimizer-consts,-allow-expensive-optimizations=false"
 endif
 ifeq ($(ptxas), 2)
-        NVCCFLAGS += --ptxas-options="-O0"
+        NVCCFLAGS += --nvvm-options "-opt=0" --ptxas-options="-O0,-disable-optimizer-consts,-allow-expensive-optimizations=false"
 endif
 
 # Add cudacc flags
