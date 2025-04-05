@@ -89,15 +89,16 @@ __global__ void PowerKernal2(unsigned* B, unsigned long long N)
 {
     uint32_t uid = blockDim.x * blockIdx.x + threadIdx.x;
     unsigned arr[THREADS_PER_BLOCK];
-    unsigned val;
+    unsigned volatile val;
   #pragma unroll 100
     for(uint64_t i=0; i<N; ++i) {
-      #pragma unroll
-      for(int j=0; j < THREADS_PER_BLOCK; ++j)
-      val = arr[j];
-      arr[j] = i;
+#pragma unroll 256
+      for(int j=0; j < THREADS_PER_BLOCK; ++j){
+      	val = arr[j];
+      	arr[j] = i;
+      }
   }
-  B[uid] = val;
+  B[uid] = arr[threadIdx.x];
 }
 
 
