@@ -92,7 +92,7 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 
 
-__global__ void PowerKernal2(const unsigned* A, const unsigned* B, unsigned* C, unsigned N, int div)
+__global__ void PowerKernal2(const unsigned* A, const unsigned* B, unsigned* C, unsigned long long N, int div)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     //Do Some Computation
