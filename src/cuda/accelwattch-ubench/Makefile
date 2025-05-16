@@ -1,4 +1,4 @@
-bt: new no_opt inline
+bt:functional memories tensor new no_opt inline
 
 inline:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/NOP/$(OPT)
@@ -29,6 +29,7 @@ no_opt:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/IMAD_MOV_U32/$(OPT) ptxas=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/ISETP_GE_AND/$(OPT) ptxas=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/ISETP_NE_AND/$(OPT) ptxas=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/TLDADD/$(OPT) ptxas=1
 
 investigate:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/F2F_64_32_STG/$(OPT) ptxas=1
@@ -41,7 +42,6 @@ investigate:
 	# $(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/TLDSTG/$(OPT) ptxas=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDG/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/P2R/$(OPT) ptxas=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/TLDADD/$(OPT) ptxas=1
 	# $(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C testing_benchmarks/F2F_32_64_empty/$(OPT) ptxas=1
 	# $(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C testing_benchmarks/F2F_64_32_empty/$(OPT) ptxas=1
 	# $(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C testing_benchmarks/IMAD_IADD_no_mul/$(OPT)
