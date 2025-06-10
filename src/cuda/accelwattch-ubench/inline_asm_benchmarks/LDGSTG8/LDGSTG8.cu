@@ -91,13 +91,15 @@ __global__ void PowerKernal2(volatile uint8_t* A, volatile uint8_t* B, unsigned 
 {
     uint32_t uid = blockDim.x * blockIdx.x + threadIdx.x;
     volatile uint8_t sink = 0;
-    volatile uint8_t* inptr = A + uid;
-    volatile uint8_t* outptr = B + uid;
+//    volatile uint8_t* inptr = A + uid;
+//    volatile uint8_t* outptr = B + uid;
 
 #pragma unroll 100
 	for(uint64_t i=0; i<N; ++i) {
+	sink = A[uid];
+	B[uid] = sink;
         // Use inline PTX to load 128 bits (4 x 32-bit values) at once
-        asm volatile (
+/*        asm volatile (
             "{\n\t"
             "ld.global.u16 %0, [%1];\n\t"
             "}"
@@ -112,7 +114,7 @@ __global__ void PowerKernal2(volatile uint8_t* A, volatile uint8_t* B, unsigned 
             :
             : "l"(outptr), "h"(sink)
             : "memory"
-        );
+        );//*/
     }
 }
 
