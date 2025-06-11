@@ -42,7 +42,7 @@
 #define WARP_SIZE 32
 
 #define ARRAY_SIZE 67108864 // 2^26
-#define STRIDE THREADS_NUM*NUM_BLOCKS//2^14 * 10
+#define STRIDE THREADS_PER_BLOCK*NUM_OF_BLOCKS//2^14 * 10
 
 // GPU error check
 #define checkCudaErrors(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -72,7 +72,7 @@ __global__ void dram_stress(uint64_t *posArray, uint64_t *dsink, unsigned long l
   // thread index
   uint32_t tid = blockIdx.x*blockDim.x + threadIdx.x;
 
-  if(tid < NUM_BLOCKS*THREADS_NUM){
+  if(tid < NUM_OF_BLOCKS*THREADS_PER_BLOCK){
   	// a register to avoid compiler optimization
   	uint64_t *ptr = posArray + tid;
   	uint64_t ptr1, ptr0;
@@ -113,7 +113,7 @@ int main(int argc, char** argv){
   else {
     iterations = atoll(argv[1]);
   }
-  int total_threads = ARRAY_SIZE; //THREADS_NUM*NUM_BLOCKS;
+  int total_threads = ARRAY_SIZE; //THREADS_PER_BLOCK*NUM_OF_BLOCKS;
  printf("Power Microbenchmarks with iterations %llu\n",iterations);
 
   //uint64_t *dsink = (uint64_t*) malloc(total_threads*sizeof(uint64_t));
@@ -135,7 +135,7 @@ int main(int argc, char** argv){
 
     pointers_init<<<1,1>>>(posArray_g);
  checkCudaErrors(cudaEventRecord(start));    
-  dram_stress<<<NUM_BLOCKS,THREADS_NUM>>>(posArray_g, dsink_g, iterations);
+  dram_stress<<<NUM_OF_BLOCKS,THREADS_PER_BLOCK>>>(posArray_g, dsink_g, iterations);
  checkCudaErrors(cudaEventRecord(stop));               
  
  checkCudaErrors(cudaEventSynchronize(stop));           

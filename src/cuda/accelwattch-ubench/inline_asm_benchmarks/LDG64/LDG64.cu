@@ -55,12 +55,12 @@ __global__ void l1_pointers_init(uint64_t *posArray){
 
   uint32_t tid = blockIdx.x*blockDim.x + threadIdx.x;
   if(tid == 0){
-    for(uint32_t blk = 0; blk <NUM_BLOCKS; blk++){
-      for (uint32_t i=0; i<(THREADS_NUM-1); i++){
-        posArray[(blk*THREADS_NUM)+i] = (uint64_t)(posArray + (blk*THREADS_NUM) + i + 1);
+    for(uint32_t blk = 0; blk <NUM_OF_BLOCKS; blk++){
+      for (uint32_t i=0; i<(THREADS_PER_BLOCK-1); i++){
+        posArray[(blk*THREADS_PER_BLOCK)+i] = (uint64_t)(posArray + (blk*THREADS_PER_BLOCK) + i + 1);
       }
 
-      posArray[((blk+1)*THREADS_NUM)-1] = (uint64_t)(posArray + (blk*THREADS_NUM));
+      posArray[((blk+1)*THREADS_PER_BLOCK)-1] = (uint64_t)(posArray + (blk*THREADS_PER_BLOCK));
     }
   }
 }
@@ -70,7 +70,7 @@ __global__ void l1_stress(uint64_t *posArray, uint64_t *dsink, unsigned long lon
   // thread index
   uint32_t tid = blockIdx.x*blockDim.x + threadIdx.x;
 
-  if(tid < NUM_BLOCKS*THREADS_NUM){
+  if(tid < NUM_OF_BLOCKS*THREADS_PER_BLOCK){
   	// a register to avoid compiler optimization
   	uint64_t *ptr = posArray + tid;
   	uint64_t ptr1, ptr0;
@@ -111,7 +111,7 @@ int main(int argc, char** argv){
   else {
     iterations = atoll(argv[1]);
   }
-  int total_threads = THREADS_NUM*NUM_BLOCKS;
+  int total_threads = THREADS_PER_BLOCK*NUM_OF_BLOCKS;
  printf("Power Microbenchmarks with iterations %llu\n",iterations);
 
   uint64_t *dsink = (uint64_t*) malloc(total_threads*sizeof(uint64_t));
@@ -130,7 +130,7 @@ int main(int argc, char** argv){
 
     l1_pointers_init<<<1,1>>>(posArray_g);
  checkCudaErrors(cudaEventRecord(start));    
-  l1_stress<<<NUM_BLOCKS,THREADS_NUM>>>(posArray_g, dsink_g, iterations);
+  l1_stress<<<NUM_OF_BLOCKS,THREADS_PER_BLOCK>>>(posArray_g, dsink_g, iterations);
  checkCudaErrors(cudaEventRecord(stop));               
  
  checkCudaErrors(cudaEventSynchronize(stop));           
