@@ -46,16 +46,16 @@
 #define NUM_OF_BLOCKS 1
 #define SHARED_MEM_SIZE THREADS_PER_BLOCK*4
 // Variables
-unsigned* h_A;
-unsigned* h_B;
-unsigned* d_A;
-unsigned* d_B;
+uint64_t* h_A;
+uint64_t* h_B;
+uint64_t* d_A;
+uint64_t* d_B;
 //bool noprompt = false;
 //unsigned int my_timer;
 
 // Functions
 void CleanupResources(void);
-void RandomInit(unsigned*, int);
+void RandomInit(uint64_t*, int);
 //void ParseArguments(int, char**);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -88,75 +88,51 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 
 
-__global__ void PowerKernal2( unsigned* A, unsigned* B, unsigned long long N)
+__global__ void PowerKernal2( uint64_t* A, uint64_t* B, unsigned long long N)
 {
-    uint32_t tid = threadIdx.x;
-    uint32_t uid = blockDim.x * blockIdx.x + tid;
-//Defining shared memory space for each block
-    __shared__  volatile uint64_t s[SHARED_MEM_SIZE];//Set to 4*THREADS_PER_BLOCK
+    // Define a shared memory array large enough to hold multiple elements per thread.
+    int tid = threadIdx.x;
+    int i = blockDim.x * blockIdx.x + tid;
 
-  //Threads initialize pointer chasing
-  //I want each thread to pointer chase without contention
-  //So we want to do a strided access
-  //unsigned stride = THREADS_PER_BLOCK;
-  //uint64_t s_address = (uint64_t) s; //Uncertain
-  //Have thread 0 fill in all of the values of the shared memory array
-  if(tid == 0){
-	for (unsigned i=tid; i<(SHARED_MEM_SIZE-1); i++){
-        //s[i] = (uint64_t)(s + i + 1);
-        s[i] = (uint64_t) &s[i+1];
+    __shared__ uint64_t sharedInp[THREADS_PER_BLOCK];  
+    __shared__ uint64_t sharedOut[THREADS_PER_BLOCK];  
+
+    sharedInp[tid] = A[i];
+    // Synchronize to ensure all data is in shared memory
+    __syncthreads();
+
+    // Declare a register to hold the 128-bit data
+    uint64_t data;
+
+    // Set up pointers to shared memory locations
+    size_t inptr = __cvta_generic_to_shared(sharedInp + tid);
+    size_t outptr = __cvta_generic_to_shared(sharedOut + tid);
+
+    #pragma unroll 100
+        for (unsigned long long k = 0; k < N; k++) {
+        // Use inline PTX to load 64b at once from shared memory
+        asm volatile (
+            "{\n\t"
+            "ld.shared.u64 %0, [%1];\n\t"
+            "}"
+            : "=l"(data)
+            : "l"(inptr)
+            : "memory"
+        );
+
+        // Store the loaded data back to shared memory
+        asm volatile (
+            "{\n\t"
+            "st.shared.u64 [%0], %1;\n\t"
+            "}"
+            :
+            : "l"(outptr), "l"(data)
+            : "memory"
+        );
     }
-    s[SHARED_MEM_SIZE-1] = (uint64_t) &s;
-  }
-  __syncthreads();
-/* //Trying pointer chasing in CUDA
-   //RESULT: the memory accesses are LD.E.64.STRONG.SYS
-  volatile uint64_t* ptr = s+tid;
-  uint64_t temp_value, temp_mem;
 
-  temp_value = *ptr; //Get the value at the address of ptr, which is the next memory address
-  __syncthreads();
-#pragma unroll 100
-	for(uint64_t i=0; i<N; ++i) {	
-      temp_mem = *(volatile uint64_t*)temp_value; //treat temp as a pointer and get the next value
-      temp_value = temp_mem; //swap the pointer
-    }
-    B[uid] = temp_value;
-*/
-// TRYING ASM VOLATILE IMPLEMENTATION
-// a register to avoid compiler optimization
-	//volatile uint64_t *ptr = s + tid;
-	volatile uint64_t ptr1, ptr0;
-
-	// initialize the thread pointer with the start address of the array
-	// use ca modifier to cache the in L1
-
-//    ptr1 = s[tid];//attempting inline doesn't seem to work
-	asm volatile ("{\t\n"
-		"ld.shared.u64 %0, [%1];\n\t"
-		"}" : "=l"(ptr1) : "l"(s)
-
-	);
-
-	// synchronize all threads
-	asm volatile ("bar.sync 0;");
-
-
-	// pointer-chasing ITERS times
-	// use ca modifier to cache the load in L1
-//#pragma unroll 100
-//	for(uint64_t i=0; i<N; ++i) {	
-//		asm volatile ("{\t\n"
-//			"ld.volatile.shared.u64 %0, [%1];\n\t"
-//			"}" : "=l"(ptr0) : "l"((uint64_t*)ptr1) : "memory"
-//		);
-//        ptr0 = *((uint64_t*)ptr1);//This "works" as LDG.E.U64, not a shared memory load
-//		ptr1 = ptr0;    //swap the register for the next load
-
-//	}
-
-	// write time and data back to memory
-	B[uid] = ptr1;
+    // Store result back to global memory (sum of all four uint components)
+    B[i] = data;
 }
 
 
@@ -175,11 +151,11 @@ int main(int argc, char** argv)
  
  int N = THREADS_PER_BLOCK*NUM_OF_BLOCKS;
 
- size_t size = N * sizeof(unsigned);
+ size_t size = N * sizeof(uint64_t);
  // Allocate input vectors h_A and h_B in host memory
- h_A = (unsigned*)malloc(size);
+ h_A = (uint64_t*)malloc(size);
  if (h_A == 0) CleanupResources();
- h_B = (unsigned*)malloc(size);
+ h_B = (uint64_t*)malloc(size);
  if (h_B == 0) CleanupResources();
 
 
@@ -242,10 +218,11 @@ void CleanupResources(void)
 }
 
 // Allocates an array with random float entries.
-void RandomInit(unsigned* data, int n)
+void RandomInit(uint64_t* data, int n)
 {
   for (int i = 0; i < n; ++i){
-  srand((unsigned)time(0));  
+  srand((uint64_t)time(0));  
   data[i] = rand() / RAND_MAX;
   }
 }
+

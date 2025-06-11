@@ -85,18 +85,18 @@ __global__ void PowerKernal(uint4* Value, unsigned long long iterations)
 	int tid = threadIdx.x;
 	int i = blockIdx.x*THREADS_PER_BLOCK + tid;
 
-	uint4 Value1=0;
-    uint4 sink=0;
+	uint4 Value1;
+    // uint4 sink=0;
 	#pragma unroll 100
     for(unsigned long long k=0; k<iterations;k++) {
 		asm volatile(
-			"ld.const.v4.u32 %0, [%1];\t"
-			: "=l"(Value1)
+			"ld.const.v4.u32 {%0, %1, %2, %3}, [%4];\t"
+			: "=r"(Value1.x), "=r"(Value1.y), "=r"(Value1.z), "=r"(Value1.w) 
 			: "l"(ConstArray1)
 		);
-        sink += Value1;
 	}
-		Value[i] = sink;
+		// Value[i] = sink;
+		Value[i] = Value1;
 }
 
 

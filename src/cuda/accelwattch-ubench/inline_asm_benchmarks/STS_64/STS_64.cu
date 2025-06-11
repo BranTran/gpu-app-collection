@@ -41,7 +41,7 @@
 
 // includes CUDA
 #include <cuda_runtime.h>
-
+#include <cuda.h>
 #define THREADS_PER_BLOCK 256
 #define NUM_OF_BLOCKS 640
 

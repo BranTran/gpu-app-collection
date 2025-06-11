@@ -109,7 +109,7 @@ __global__ void PowerKernal2( uint16_t* A, uint16_t* B, unsigned long long N)
     size_t outptr = __cvta_generic_to_shared(sharedOut + tid);
 
     #pragma unroll 100
-        for (unsigned long long k = 0; k < iterations; k++) {
+        for (unsigned long long k = 0; k < N; k++) {
         // Use inline PTX to load 128 bits (4 x 32-bit values) at once from shared memory
         asm volatile (
             "{\n\t"
@@ -123,7 +123,7 @@ __global__ void PowerKernal2( uint16_t* A, uint16_t* B, unsigned long long N)
         // Store the loaded data back to shared memory
         asm volatile (
             "{\n\t"
-            "ld.shared.u16 [%0], %1;\n\t"
+            "st.shared.u16 [%0], %1;\n\t"
             "}"
             :
             : "l"(outptr), "h"(data)
