@@ -1,4 +1,4 @@
-bt: new no_opt inline
+bt: new no_opt inline functional memories tensor
 
 inline:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/NOP/$(OPT)
