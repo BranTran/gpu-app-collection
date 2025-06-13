@@ -1,9 +1,24 @@
 #!/bin/bash
 
+# Usage message
+usage() {
+    echo "Usage: $0 [--ptx] <path-to-binary>"
+    exit 1
+}
+
+# Parse optional flag
+dump_mode="sass"
+output_suffix="_dump"
+
+if [ "$1" == "--ptx" ]; then
+    dump_mode="ptx"
+    output_suffix="_ptx_dump"
+    shift
+fi
+
 # Check if binary path is provided
 if [ -z "$1" ]; then
-    echo "Usage: $0 <path-to-binary>"
-    exit 1
+    usage
 fi
 
 binary_path="$1"
@@ -24,11 +39,15 @@ binary_name="$(basename "$binary_path")"
 binary_base="${binary_name%.*}"  # remove extension if any
 
 # Output file
-output_file="${binary_base}_dump"
+output_file="${binary_base}${output_suffix}"
 
 # Run cuobjdump
 rm -f "$output_file"
-cuobjdump -sass "$binary_path" > "$output_file"
+if [ "$dump_mode" == "sass" ]; then
+    cuobjdump -sass "$binary_path" > "$output_file"
+else
+    cuobjdump --dump-ptx "$binary_path" > "$output_file"
+fi
 
 # Open the output in less
 less "$output_file"
