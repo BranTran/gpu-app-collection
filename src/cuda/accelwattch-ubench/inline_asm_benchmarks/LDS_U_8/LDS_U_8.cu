@@ -41,23 +41,21 @@
 
 // includes CUDA
 #include <cuda_runtime.h>
-
+#include <cuda.h> //BT: Needed for uint32_t
 #define THREADS_PER_BLOCK 256
 #define NUM_OF_BLOCKS 640
-
+#define SHARED_MEM_SIZE THREADS_PER_BLOCK*4
 // Variables
-unsigned* h_A;
-unsigned* h_B;
-unsigned* h_C;
-unsigned* d_A;
-unsigned* d_B;
-unsigned* d_C;
+uint8_t* h_A;
+uint8_t* h_B;
+uint8_t* d_A;
+uint8_t* d_B;
 //bool noprompt = false;
 //unsigned int my_timer;
 
 // Functions
 void CleanupResources(void);
-void RandomInit(unsigned*, int);
+void RandomInit(uint8_t*, int);
 //void ParseArguments(int, char**);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -90,43 +88,51 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 
 
-__global__ void PowerKernal2( unsigned* A, unsigned* B, unsigned long long N)
+__global__ void PowerKernal2( uint8_t* A, uint8_t* B, unsigned long long N)
 {
+    // Define a shared memory array large enough to hold multiple elements per thread.
     int tid = threadIdx.x;
     int i = blockDim.x * blockIdx.x + tid;
-    
 
-    __device__  __shared__  volatile unsigned sharedInp[THREADS_PER_BLOCK];
-    __device__  __shared__  volatile unsigned sharedOut[THREADS_PER_BLOCK];
+    __shared__ uint8_t sharedInp[THREADS_PER_BLOCK];  
+    __shared__ uint8_t sharedOut[THREADS_PER_BLOCK];  
 
-   sharedInp[tid] = A[i];
+    sharedInp[tid] = A[i];
+    // Synchronize to ensure all data is in shared memory
     __syncthreads();
 
-    unsigned load_value;
-    volatile unsigned* loadAddr = sharedInp+ tid;
-    volatile unsigned* storeAddr = sharedOut+ tid;
-    //unsigned sum_value = 0;
+    // Declare a register to hold the 128-bit data
+    uint16_t data;
+
+    // Set up pointers to shared memory locations
+    size_t inptr = __cvta_generic_to_shared(sharedInp + tid);
+    size_t outptr = __cvta_generic_to_shared(sharedOut + tid);
+
     #pragma unroll 100
+        for (unsigned long long k = 0; k < N; k++) {
+        // Use inline PTX to load 128 bits (4 x 32-bit values) at once from shared memory
+        asm volatile (
+            "{\n\t"
+            "ld.shared.u8 %0, [%1];\n\t"
+            "}"
+            : "=h"(data)
+            : "l"(inptr)
+            : "memory"
+        );
 
-    for(unsigned long long k=0; k<N;k++) {
-      // __asm volatile(
-      //   "ld.shared.u32 %0, [%1]; \n" 
-        
-      //   "st.shared.u32 [%2], %0;"
-      //   : "+r"(load_value) : "l"((loadAddr )) , "l"((storeAddr))
-
-      // );
-
-
-        load_value = *loadAddr;
-        *storeAddr = load_value;
-
-
+        // Store the loaded data back to shared memory
+        asm volatile (
+            "{\n\t"
+            "st.shared.u8 [%0], %1;\n\t"
+            "}"
+            :
+            : "l"(outptr), "h"(data)
+            : "memory"
+        );
     }
 
-    B[i] = sharedOut[tid];
-    __syncthreads();
-
+    // Store result back to global memory (sum of all four uint components)
+    B[i] = data;
 }
 
 
@@ -145,11 +151,11 @@ int main(int argc, char** argv)
  
  int N = THREADS_PER_BLOCK*NUM_OF_BLOCKS;
 
- size_t size = N * sizeof(unsigned);
+ size_t size = N * sizeof(uint8_t);
  // Allocate input vectors h_A and h_B in host memory
- h_A = (unsigned*)malloc(size);
+ h_A = (uint8_t*)malloc(size);
  if (h_A == 0) CleanupResources();
- h_B = (unsigned*)malloc(size);
+ h_B = (uint8_t*)malloc(size);
  if (h_B == 0) CleanupResources();
 
 
@@ -184,7 +190,6 @@ int main(int argc, char** argv)
  checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));  
  printf("gpu execution time = %.3f ms\n", elapsedTime);  
  getLastCudaError("kernel launch failure");              
- cudaThreadSynchronize(); 
 
  // Copy result from device memory to host memory
  // h_B contains the result in host memory
@@ -213,10 +218,10 @@ void CleanupResources(void)
 }
 
 // Allocates an array with random float entries.
-void RandomInit(unsigned* data, int n)
+void RandomInit(uint8_t* data, int n)
 {
   for (int i = 0; i < n; ++i){
-  srand((unsigned)time(0));  
+  srand((uint8_t)time(0));  
   data[i] = rand() / RAND_MAX;
   }
 }

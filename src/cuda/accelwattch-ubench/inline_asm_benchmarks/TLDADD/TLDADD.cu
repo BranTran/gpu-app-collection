@@ -144,8 +144,8 @@ int main(int argc, char** argv)
 	cudaBindTexture(0, texmem1, device_texture1, texmem_size*sizeof(float));
 
 
-	unsigned num_blocks = (texmem_size / MAX_THREADS_PER_BLOCK) + 1;
-	dim3  grid( num_blocks, 1, 1);
+	unsigned NUM_OF_BLOCKS = (texmem_size / MAX_THREADS_PER_BLOCK) + 1;
+	dim3  grid( NUM_OF_BLOCKS, 1, 1);
 	dim3  threads( MAX_THREADS_PER_BLOCK, 1, 1);
 	cudaEvent_t start, stop;
 	float elapsedTime = 0;

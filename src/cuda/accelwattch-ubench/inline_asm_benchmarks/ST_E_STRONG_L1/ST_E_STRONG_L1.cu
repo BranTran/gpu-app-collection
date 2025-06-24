@@ -41,17 +41,14 @@
 
 // includes CUDA
 #include <cuda_runtime.h>
-
+#include <cuda.h> //BT: Needed for uint32_t
 #define THREADS_PER_BLOCK 256
 #define NUM_OF_BLOCKS 640
-
 // Variables
 unsigned* h_A;
 unsigned* h_B;
-unsigned* h_C;
 unsigned* d_A;
 unsigned* d_B;
-unsigned* d_C;
 //bool noprompt = false;
 //unsigned int my_timer;
 
@@ -90,43 +87,29 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 
 
-__global__ void PowerKernal2( unsigned* A, unsigned* B, unsigned long long N)
+__global__ void PowerKernal2(unsigned* A, unsigned* B, unsigned long long N)
 {
-    int tid = threadIdx.x;
-    int i = blockDim.x * blockIdx.x + tid;
+    uint32_t uid = blockDim.x * blockIdx.x + threadIdx.x;
+    volatile unsigned sink;
+   
+    unsigned* A_ptr = A + uid;
+    unsigned* B_ptr = B + uid;
     
-
-    __device__  __shared__  volatile unsigned sharedInp[THREADS_PER_BLOCK];
-    __device__  __shared__  volatile unsigned sharedOut[THREADS_PER_BLOCK];
-
-   sharedInp[tid] = A[i];
-    __syncthreads();
-
-    unsigned load_value;
-    volatile unsigned* loadAddr = sharedInp+ tid;
-    volatile unsigned* storeAddr = sharedOut+ tid;
-    //unsigned sum_value = 0;
-    #pragma unroll 100
-
-    for(unsigned long long k=0; k<N;k++) {
-      // __asm volatile(
-      //   "ld.shared.u32 %0, [%1]; \n" 
-        
-      //   "st.shared.u32 [%2], %0;"
-      //   : "+r"(load_value) : "l"((loadAddr )) , "l"((storeAddr))
-
-      // );
-
-
-        load_value = *loadAddr;
-        *storeAddr = load_value;
-
-
-    }
-
-    B[i] = sharedOut[tid];
-    __syncthreads();
-
+    asm volatile ("{\t\n"
+      "ld.global.cg.u32 %0, [%1] ;\n\t"
+      "}" : "=r"(sink) : "l"(A_ptr) : "memory"
+    );
+#pragma unroll 100
+	for(uint64_t i=0; i<N; ++i) {
+    asm volatile ("{\t\n"
+      "st.cg.u32 [%1], %0;\n\t"
+      "}" : "=r"(sink) : "l"(B_ptr) : "memory"
+    );
+    asm volatile ("{\t\n"
+      "st.cg.u32 [%1], %0;\n\t"
+      "}" : "=r"(sink) : "l"(A_ptr) : "memory"
+    );    }
+    B[uid] = sink;
 }
 
 
@@ -144,7 +127,6 @@ int main(int argc, char** argv)
  printf("Power Microbenchmarks with iterations %lld\n",iterations);
  
  int N = THREADS_PER_BLOCK*NUM_OF_BLOCKS;
-
  size_t size = N * sizeof(unsigned);
  // Allocate input vectors h_A and h_B in host memory
  h_A = (unsigned*)malloc(size);
@@ -184,7 +166,6 @@ int main(int argc, char** argv)
  checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));  
  printf("gpu execution time = %.3f ms\n", elapsedTime);  
  getLastCudaError("kernel launch failure");              
- cudaThreadSynchronize(); 
 
  // Copy result from device memory to host memory
  // h_B contains the result in host memory
