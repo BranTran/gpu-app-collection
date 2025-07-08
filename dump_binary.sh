@@ -41,14 +41,25 @@ binary_base="${binary_name%.*}"  # remove extension if any
 # Output file
 output_file="${binary_base}${output_suffix}"
 
-# Run cuobjdump
-rm -f "$output_file"
-if [ "$dump_mode" == "sass" ]; then
-    cuobjdump -sass "$binary_path" > "$output_file"
-else
-    cuobjdump --dump-ptx "$binary_path" > "$output_file"
+# Output dir
+
+output_dir="SASS_PTX_${CUDA_VERSION}"
+
+if [ ! -d $output_dir ]; then
+	mkdir -p $output_dir
 fi
 
+# Run cuobjdump
+#rm -f "$output_dir/$output_file"
+
+if [ "$dump_mode" == "sass" ]; then
+    cuobjdump -sass "$binary_path" > "$output_dir/$output_file"
+else
+    cuobjdump --dump-ptx "$binary_path" > "$output_dir/$output_file"
+fi
+
+echo Finished with $output_file
+
 # Open the output in less
-less "$output_file"
+#less "$output_file"
 
