@@ -234,11 +234,11 @@ rodinia-3.1_one_kernel:
 	mv $(BINDIR)/$(BINSUBDIR)/backprop $(BINDIR)/$(BINSUBDIR)/backprop_k2_one_kernel
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/hotspot_k1 -f Makefile_nvidia
 	mv $(BINDIR)/$(BINSUBDIR)/hotspot $(BINDIR)/$(BINSUBDIR)/hotspot_k1_one_kernel
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/kmeans_k1 -f Makefile_nvidia
-	mv $(BINDIR)/$(BINSUBDIR)/kmeans $(BINDIR)/$(BINSUBDIR)/kmeans_k1_one_kernel
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/b+tree_k1/
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/pathfinder_k1/
-	mv cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/pathfinder_k1/pathfinder $(BINDIR)/$(BINSUBDIR)/pathfinder_k1_one_kernel
+#	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/kmeans_k1 -f Makefile_nvidia
+#	mv $(BINDIR)/$(BINSUBDIR)/kmeans $(BINDIR)/$(BINSUBDIR)/kmeans_k1_one_kernel
+#	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/b+tree_k1/
+#	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/pathfinder_k1/
+#	mv cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/pathfinder_k1/pathfinder $(BINDIR)/$(BINSUBDIR)/pathfinder_k1_one_kernel
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/srad/srad_v1_k1
 	mv cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/srad/srad_v1_k1/srad $(BINDIR)/$(BINSUBDIR)/srad_v1_k1_one_kernel
 	

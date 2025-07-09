@@ -36,7 +36,9 @@
 
 
 #define THREADS_PER_BLOCK 256
-#define NUM_OF_BLOCKS 640
+#ifndef NUM_OF_BLOCKS
+#define NUM_OF_BLOCKS 3456
+#endif
 
 __constant__ unsigned ConstArray1[THREADS_PER_BLOCK];
 

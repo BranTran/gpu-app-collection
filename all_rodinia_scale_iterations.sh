@@ -40,7 +40,6 @@ fi
 
 # List of iterations
 ITERS=(
-    100
     1000
     10000
     100000
@@ -53,9 +52,9 @@ ITERS=(
 # Loop through each iteration and run the command
 for i in "${ITERS[@]}"; do
     if $flag_set; then
-        ./rodinia_scale_iterations.sh -k $i
+        ./scale_iterations.sh -k $i
     else
-        ./rodinia_scale_iterations.sh $i
+        ./scale_iterations.sh $i
     fi
 done
 

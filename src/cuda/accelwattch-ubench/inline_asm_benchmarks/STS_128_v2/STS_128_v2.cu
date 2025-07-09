@@ -80,8 +80,7 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 // end of CUDA Helper Functions
 
 
-__global__ void lds_u128_kernel(uint64_t* A, uint64_t* B, unsigned long long iterations) {
-    // Define a shared memory array large enough to hold multiple elements per thread.
+__global__ void sts_u128_kernel(volatile uint64_t* A, volatile uint64_t* B, unsigned long long iterations) {
     int tid = threadIdx.x;
     int i = blockDim.x * blockIdx.x + tid;
 
@@ -104,17 +103,15 @@ __global__ void lds_u128_kernel(uint64_t* A, uint64_t* B, unsigned long long ite
 
     #pragma unroll 100
         for (unsigned long long k = 0; k < iterations; k++) {
-        // Use inline PTX to load 128 bits (4 x 32-bit values) at once from shared memory
+        // Store to shared memory
         asm volatile (
             "{\n\t"
-            "ld.shared.v4.u32 {%0, %1, %2, %3}, [%4];\n\t"
+            "st.shared.v4.u32 [%0], {%1, %2, %3, %4};\n\t"
             "}"
-            : "=r"(data.x), "=r"(data.y), "=r"(data.z), "=r"(data.w)
-            : "l"(inptr)
+            :
+            : "l"(inptr), "r"(data.x), "r"(data.y), "r"(data.z), "r"(data.w)
             : "memory"
         );
-
-        // Store the loaded data back to shared memory
         asm volatile (
             "{\n\t"
             "st.shared.v4.u32 [%0], {%1, %2, %3, %4};\n\t"
@@ -177,7 +174,7 @@ int main(int argc, char** argv)
 
 
  checkCudaErrors(cudaEventRecord(start));              
- lds_u128_kernel<<<dimGrid,dimBlock>>>(d_A,d_B,iterations);  
+ sts_u128_kernel<<<dimGrid,dimBlock>>>(d_A,d_B,iterations);  
  checkCudaErrors(cudaEventRecord(stop));               
  
  checkCudaErrors(cudaEventSynchronize(stop));           
