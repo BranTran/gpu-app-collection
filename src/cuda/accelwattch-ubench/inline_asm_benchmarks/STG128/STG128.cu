@@ -47,16 +47,16 @@
 #define NUM_OF_BLOCKS 3456
 #endif
 // Variables
-unsigned* h_A;
-unsigned* h_B;
-unsigned* d_A;
-unsigned* d_B;
+uint4* h_A;
+uint4* h_B;
+uint4* d_A;
+uint4* d_B;
 //bool noprompt = false;
 //unsigned int my_timer;
 
 // Functions
 void CleanupResources(void);
-void RandomInit(unsigned*, int);
+void RandomInit(uint4*, int);
 //void ParseArguments(int, char**);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -89,28 +89,44 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 
 
-__global__ void PowerKernal2(volatile unsigned* A, volatile unsigned* B, unsigned long long N)
+__global__ void PowerKernal2(uint4* A, uint4* B, unsigned long long N)
 {
     uint32_t uid = blockDim.x * blockIdx.x + threadIdx.x;
 
-    uint4 data;
-    data.x = A[4*uid];
-    data.y = A[4*uid+1];
-    data.z = A[4*uid+2];
-    data.w = A[4*uid+3];
+    volatile uint4  data;
+    data.x = A[uid].x;
+    data.y = A[uid].y;
+    data.z = A[uid].z;
+    data.w = A[uid].w;
+   
+   //uint4 data = A[uid];
     
-    volatile unsigned* outptr = B + 4*uid;
+	//volatile unsigned* outptr = B + 4*uid;
     #pragma unroll 100
         for (unsigned long long k = 0; k < N; k++) {
+		//B[uid] = data;
+		//A[uid] = data;
+//*		
+		B[uid].x = data.x;
+		B[uid].y = data.y;
+		B[uid].z = data.z;
+		B[uid].w = data.w;
+
+		A[uid].x = data.x;
+		A[uid].y = data.y;
+		A[uid].z = data.z;
+		A[uid].w = data.w;
+//*/
         // Use inline PTX to load 128 bits (4 x 32-bit values) at once
-        asm volatile (
+        /*
+	asm volatile (
             "{\n\t"
             "st.global.v4.u32 [%0], {%1, %2, %3, %4};\n\t"
             "}"
             :
             : "l"(outptr), "r"(data.x), "r"(data.y), "r"(data.z), "r"(data.w)
             : "memory"
-        );
+        );//*/
     }
 
     // Store result back to global memory (sum of all four uint components)
@@ -132,11 +148,11 @@ int main(int argc, char** argv)
  printf("Power Microbenchmarks with iterations %lld\n",iterations);
  
  int N = THREADS_PER_BLOCK*NUM_OF_BLOCKS;
- size_t size = 4 * N * sizeof(unsigned);//In order to vectorize to uint4 without collision
+ size_t size = N * sizeof(uint4);//In order to vectorize to uint4 without collision
  // Allocate input vectors h_A and h_B in host memory
- h_A = (unsigned*)malloc(size);
+ h_A = (uint4*)malloc(size);
  if (h_A == 0) CleanupResources();
- h_B = (unsigned*)malloc(size);
+ h_B = (uint4*)malloc(size);
  if (h_B == 0) CleanupResources();
 
 
@@ -199,10 +215,13 @@ void CleanupResources(void)
 }
 
 // Allocates an array with random float entries.
-void RandomInit(unsigned* data, int n)
+void RandomInit(uint4* data, int n)
 {
   for (int i = 0; i < n; ++i){
   srand((unsigned)time(0));  
-  data[i] = rand() / RAND_MAX;
+  data[i].x = rand() / RAND_MAX;
+  data[i].y = rand() / RAND_MAX;
+  data[i].z = rand() / RAND_MAX;
+  data[i].w = rand() / RAND_MAX;
   }
 }

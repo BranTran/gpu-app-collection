@@ -94,7 +94,7 @@ static_power:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C static_power_modeling/INT_FP_STATIC/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C static_power_modeling/INT_FP_DP_STATIC/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C static_power_modeling/INT_FP_TENSOR_STATIC/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C static_power_modeling/INT_FP_TEX_STATIC/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C static_power_modeling/INT_FP_TEX_STATIC/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C static_power_modeling/INT_FP_SFU_STATIC/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C static_power_modeling/LIGHT_SM/$(OPT)
 
@@ -223,7 +223,7 @@ mix:
 	#$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C mix_benchmarks/BE_SP_INT_FP
 	#$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C mix_benchmarks/BE_SFU/$(OPT)
 	#$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C mix_benchmarks/PP_FP_MEM/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C mix_benchmarks/BE_TEXTURE_ACCESS/$(OPT)
+	#$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C mix_benchmarks/BE_TEXTURE_ACCESS/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C mix_benchmarks/add_mem_1/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C mix_benchmarks/add_mem_2/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C mix_benchmarks/mul_add_tex_1/$(OPT)
@@ -235,7 +235,7 @@ mix:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C mix_benchmarks/BRANCHING3/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C mix_benchmarks/BRANCHING4/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C mix_benchmarks/BRANCHING5/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C mix_benchmarks/SHRD_TEX_SFU/$(OPT)
+	#$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C mix_benchmarks/SHRD_TEX_SFU/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C mix_benchmarks/const_mul/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C mix_benchmarks/immediates_constant/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C mix_benchmarks/immediates_texture/$(OPT)
@@ -284,7 +284,7 @@ cleanstatic:
 	$(SETENV) make $(MAKE_ARGS) clean -C static_power_modeling/INT_FP_STATIC/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C static_power_modeling/INT_FP_DP_STATIC/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C static_power_modeling/INT_FP_TENSOR_STATIC/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C static_power_modeling/INT_FP_TEX_STATIC/$(OPT)
+	# $(SETENV) make $(MAKE_ARGS) clean -C static_power_modeling/INT_FP_TEX_STATIC/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C static_power_modeling/INT_FP_SFU_STATIC/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C static_power_modeling/LIGHT_SM/$(OPT)
 
@@ -315,7 +315,7 @@ cleanfunctional:
 	$(SETENV) make $(MAKE_ARGS) clean -C functional_benchmarks/BE_HP_FP_DIV/$(OPT)  
 
 cleanmemories:
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/BE_TEXTURE_ACCESS_2/$(OPT)
+	#$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/BE_TEXTURE_ACCESS_2/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/BE_MEM_SHRD_Acss/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/BE_MEM_CNST_Acss/$(OPT)
 	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/BE_L1D_MISS/$(OPT)
@@ -323,7 +323,7 @@ cleanmemories:
 	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/BE_L2D_HIT/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/BE_MEM_DRAM_Acss/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/BE_MEM_ACCESS/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/BE_TEXTURE_ACCESS_2/$(OPT)
+	#$(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/BE_TEXTURE_ACCESS_2/$(OPT)
 	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/FE_IL0_HIT/$(OPT)
 	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/FE_IL1_HIT/$(OPT)
 	# $(SETENV) make $(MAKE_ARGS) clean -C memories_benchmarks/FE_IL1_MISS/$(OPT)
@@ -410,7 +410,7 @@ cleanmix:
 	#$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/BE_SP_INT_FP
 	#$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/BE_SFU/$(OPT)
 	#$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/PP_FP_MEM/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/BE_TEXTURE_ACCESS/$(OPT)
+	#$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/BE_TEXTURE_ACCESS/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/add_mem_1/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/add_mem_2/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/mul_add_tex_1/$(OPT)
@@ -422,7 +422,7 @@ cleanmix:
 	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/BRANCHING3/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/BRANCHING4/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/BRANCHING5/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/SHRD_TEX_SFU/$(OPT)
+	#$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/SHRD_TEX_SFU/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/const_mul/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/immediates_constant/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C mix_benchmarks/immediates_texture/$(OPT)
