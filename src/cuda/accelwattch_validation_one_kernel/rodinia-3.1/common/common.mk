@@ -24,7 +24,7 @@ INCLUDES += -I$(GPUAPPS_ROOT)src/cuda/NVIDIA_CUDA-11.0_Samples/common/inc
 #ADDITIONAL_LIBS := -L$(GPUAPPS_ROOT)/src/cuda/common/lib -lcutil_x86_64
 
 # Add new SM Versions here as devices with new Compute Capability are released
-SM_VERSIONS   := 61 70 75
+SM_VERSIONS   := 80
 
 CUDA_INSTALL_PATH ?= /home/tgrogers-raid/a/common/cuda-4.2
 
