@@ -402,6 +402,9 @@ ifeq ($(nvcc_warn_verbose),1)
 	NVCCFLAGS += --compiler-options -fno-strict-aliasing
 endif
 
+ifeq ($(h100),1)
+	NVCCFLAGS += "-DNUM_OF_BLOCKS=3648" 
+endif
 ################################################################################
 # Set up object files
 ################################################################################

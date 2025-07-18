@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BIN_DIR="/scratch/08944/brantran/wattchmen-sc25-artifact/gpu-app-collection/bin/12.0/v100_release"
+BIN_DIR=${1} #"/scratch/08944/brantran/wattchmen-sc25-artifact/gpu-app-collection/bin/12.0/v100_release"
 NARGS=100000
 NAMESPACE="occupancy"
 
@@ -16,8 +16,8 @@ for exe in "$BIN_DIR"/*; do
 
   # Run ncu and filter quoted lines
 #  ncu --section Occupancy --csv "$exe" "$NARGS" 2>/dev/null | grep '^"' > "$output_file"
-ncu --section Occupancy --csv --log-file "${output_file}" "$exe" "$NARGS"
-
+# ncu --section Occupancy --csv --log-file "${output_file}" "$exe" "$NARGS"
+ $exe "$NARGS" > "${base_name}_${NARGS}.txt"
   echo "Wrote $output_file"
 done
 
