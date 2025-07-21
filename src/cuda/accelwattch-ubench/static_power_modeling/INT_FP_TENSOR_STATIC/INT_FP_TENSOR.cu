@@ -24,9 +24,9 @@
 using namespace nvcuda;
 
 // Must be multiples of 16 for wmma code to work
-#define MATRIX_M 1024
-#define MATRIX_N 1024
-#define MATRIX_K 1024
+#define MATRIX_M 4096
+#define MATRIX_N 4096
+#define MATRIX_K 4096
 
 
 
