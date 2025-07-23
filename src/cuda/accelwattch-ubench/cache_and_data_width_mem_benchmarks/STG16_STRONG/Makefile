@@ -34,9 +34,9 @@
 # ################################################################################
 #
 # # Add source files here
-  EXECUTABLE      := STG_L2_HIT
+  EXECUTABLE      := STG8_STRONG
 # # Cuda source files (compiled with cudacc)
-  CUFILES         := STG_L2_HIT.cu
+  CUFILES         := STG8_STRONG.cu
 # # C/C++ source files (compiled with gcc / c++)
   CCFILES         := \
 	#

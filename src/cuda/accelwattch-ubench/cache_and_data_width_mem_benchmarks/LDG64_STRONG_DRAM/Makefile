@@ -34,9 +34,9 @@
 # ################################################################################
 #
 # # Add source files here
-  EXECUTABLE      := LDGSTG_L2HIT_STRONG
+  EXECUTABLE      := LDG64_STRONG_DRAM
 # # Cuda source files (compiled with cudacc)
-  CUFILES         := LDGSTG_L2HIT_STRONG.cu
+  CUFILES         := LDG64_STRONG_DRAM.cu
 # # C/C++ source files (compiled with gcc / c++)
   CCFILES         := \
 	#
