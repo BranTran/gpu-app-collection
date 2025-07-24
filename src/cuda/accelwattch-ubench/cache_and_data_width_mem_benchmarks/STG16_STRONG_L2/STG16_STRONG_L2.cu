@@ -41,14 +41,11 @@
 #define NUM_OF_BLOCKS 640
 #define WARP_SIZE 32
 
-//V100 has 6144KB L2, and we are doing 8B entries
+#define ARRAY_SIZE 268435456
+#define STRIDE 4194304
 
-#define ARRAY_SIZE 67108864 // 2^26 
-//V100 has 6144KB which would be 16384 8B entries
-#define STRIDE 1048576 // 2^20
-
-uint64_t* dsink;
-uint64_t* posArray_g;
+uint16_t* dsink;
+uint16_t* posArray_g;
 
 // GPU error check
 #define checkCudaErrors(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -60,15 +57,16 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 }
 
 
-__global__ void l2_stress(uint64_t *posArray, unsigned long long iterations){
-    uint32_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void l2_stress(uint16_t *posArray, unsigned long long iterations){
+    uint64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
     uint64_t current_index = tid;
+    uint16_t dummy = tid;
     #pragma unroll 100
     for(unsigned long long i = 0; i < iterations; ++i) {
-        uint64_t *ptr = posArray + current_index;
+        uint16_t *ptr = posArray + current_index;
 
-        asm volatile ("st.global.cg.u64 [%1], %0;"
-                      :: "l" (ptr), "l" (ptr)
+        asm volatile ("st.global.cg.u16 [%0], %1;"
+                      :: "l" (ptr), "h" (dummy)
                       : "memory");
 
         current_index = (current_index + STRIDE) % ARRAY_SIZE;
@@ -87,12 +85,12 @@ int main(int argc, char** argv){
   int total_threads = ARRAY_SIZE; //THREADS_PER_BLOCK*NUM_OF_BLOCKS;
  printf("Power Microbenchmarks with iterations %llu\n",iterations);
 
-  dsink = (uint64_t*) malloc(total_threads*sizeof(uint64_t));
+  dsink = (uint16_t*) malloc(total_threads*sizeof(uint16_t));
 
 
   
 
-  checkCudaErrors( cudaMalloc(&posArray_g, total_threads*sizeof(uint64_t)) );
+  checkCudaErrors( cudaMalloc(&posArray_g, total_threads*sizeof(uint16_t)) );
  cudaEvent_t start, stop;                   
  float elapsedTime = 0;                     
  checkCudaErrors(cudaEventCreate(&start));  

@@ -26,172 +26,93 @@
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-#include <stdio.h>
-#include <stdlib.h>
-//#include <cutil.h>
-//#include <mgp.h>
-// Includes
-//#include <stdio.h>
-//#include "../include/ContAcq-IntClk.h"
+//This code is a modification of L1 cache benchmark from 
+//"Dissecting the NVIDIA Volta GPU Architecture via Microbenchmarking": https://arxiv.org/pdf/1804.06826.pdf
 
-// includes, project
-//#include "../include/sdkHelper.h"  // helper for shared functions common to CUDA SDK samples
-//#include <shrQATest.h>
-//#include <shrUtils.h>
+//This benchmark stresses the L2 cache
 
-// includes CUDA
-#include <cuda_runtime.h>
-#include <cuda.h> //BT: Needed for uint32_t
+//This code have been tested on Volta V100 architecture
+
+#include <stdio.h>   
+#include <stdlib.h> 
+#include <cuda.h>
+
 #define THREADS_PER_BLOCK 256
 #define NUM_OF_BLOCKS 640
-// Variables
-unsigned* h_A;
-unsigned* h_B;
-unsigned* d_A;
-unsigned* d_B;
-//bool noprompt = false;
-//unsigned int my_timer;
+#define WARP_SIZE 32
 
-// Functions
-void CleanupResources(void);
-void RandomInit(unsigned*, int);
-//void ParseArguments(int, char**);
+//V100 has 6144KB L2, and we are doing 8B entries
+//#define FACTOR 2
+//#define ARRAY_SIZE (67108864 * FACTOR) // 2^26 
+//V100 has 6144KB which would be 16384 8B entries
+//#define STRIDE (1048576 * FACTOR) // 2^20
 
-////////////////////////////////////////////////////////////////////////////////
-// These are CUDA Helper functions
+#define ARRAY_SIZE 134217728
+#define STRIDE 2097152
+uint32_t* dsink;
+uint32_t* posArray_g;
 
-// This will output the proper CUDA error strings in the event that a CUDA host call returns an error
-#define checkCudaErrors(err)  __checkCudaErrors (err, __FILE__, __LINE__)
+// GPU error check
+#define checkCudaErrors(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true){
+        if (code != cudaSuccess) {
+                fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+                if (abort) exit(code);
+        }
+}
 
-inline void __checkCudaErrors(cudaError err, const char *file, const int line )
-{
-  if(cudaSuccess != err){
-  fprintf(stderr, "%s(%i) : CUDA Runtime API error %d: %s.\n",file, line, (int)err, cudaGetErrorString( err ) );
-   exit(-1);
+
+__global__ void l2_stress(uint32_t *posArray, unsigned long long iterations){
+    uint64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    uint32_t current_index = tid;
+
+    #pragma unroll 100
+    for(unsigned long long i = 0; i < iterations; ++i) {
+        uint32_t *ptr = posArray + current_index;
+
+        asm volatile ("st.global.cg.u32 [%1], %0;"
+                      :: "r" (current_index), "l" (ptr)
+                      : "memory");
+
+        current_index = (current_index + STRIDE) % ARRAY_SIZE;
+    }
+}
+
+int main(int argc, char** argv){
+  unsigned long long iterations;
+  if (argc != 2){
+    fprintf(stderr,"usage: %s #iterations #cores #ActiveThreadsperWarp\n",argv[0]);
+    exit(1);
   }
-}
-
-// This will output the proper error string when calling cudaGetLastError
-#define getLastCudaError(msg)      __getLastCudaError (msg, __FILE__, __LINE__)
-
-inline void __getLastCudaError(const char *errorMessage, const char *file, const int line )
-{
-  cudaError_t err = cudaGetLastError();
-  if (cudaSuccess != err){
-  fprintf(stderr, "%s(%i) : getLastCudaError() CUDA error : %s : (%d) %s.\n",file, line, errorMessage, (int)err, cudaGetErrorString( err ) );
-  exit(-1);
+  else {
+    iterations = atoll(argv[1]);
   }
-}
+  int total_threads = ARRAY_SIZE; //THREADS_PER_BLOCK*NUM_OF_BLOCKS;
+ printf("Power Microbenchmarks with iterations %llu\n",iterations);
 
-// end of CUDA Helper Functions
-
-
-
-__global__ void PowerKernal2(unsigned* A, unsigned* B, unsigned long long N)
-{
-    // Calculate the global unique ID for the thread
-    uint32_t uid = blockDim.x * blockIdx.x + threadIdx.x;
-    volatile unsigned sink;
-   
-    // The base pointers for this thread's region.
-    // We will then add the stride to these pointers within the loop.
-    unsigned* A_base_ptr = A + uid;
-    unsigned* B_base_ptr = B + uid;
-    
-    unsigned* A_ptr = A_base_ptr;
-    unsigned* B_ptr = B_base_ptr;
-
-    uint32_t N_total_elements = THREADS_PER_BLOCK * NUM_OF_BLOCKS;
-
-/* #pragma unroll 100 // Keep unroll for loop overhead reduction
-    for(uint64_t i = 0; i < N_iterations; ++i) {
-        uint64_t current_index_A = (uint64_t)uid + (i * STRIDE_OFFSET);
-        uint64_t current_index_B = (uint64_t)uid + (i * STRIDE_OFFSET);
-        
-        // Ensure the index wraps around to stay within the bounds of the array.
-        // `N_total_elements` should be `THREADS_PER_BLOCK * NUM_OF_BLOCKS`.
-        current_index_A %= (THREADS_PER_BLOCK * NUM_OF_BLOCKS);
-        current_index_B %= (THREADS_PER_BLOCK * NUM_OF_BLOCKS);
-
-        // Access A and B using the calculated strided indices.
-        // We are now relying on the access pattern to miss L1, so `cg` flags are removed.
-        // Direct memory access via array indexing.
-        sink = A[current_index_A]; // Load from A
-        B[current_index_B] = sink; // Store to B
-        A[current_index_A] = sink; // Store back to A (original logic, possibly for write/read test)
-    }//*/
-//    B[uid] = sink;
-}
+  dsink = (uint32_t*) malloc(total_threads*sizeof(uint32_t));
 
 
-int main(int argc, char** argv)
-{
- unsigned long long iterations;
- if(argc!=2) {
-   fprintf(stderr,"usage: %s #iterations\n",argv[0]);
-   exit(1);
- }
- else {
-   iterations = atoll(argv[1]);
- }
- 
- printf("Power Microbenchmarks with iterations %lld\n",iterations);
- 
- int N = THREADS_PER_BLOCK*NUM_OF_BLOCKS;
- size_t size = N * sizeof(unsigned);
- // Allocate input vectors h_A and h_B in host memory
- h_A = (unsigned*)malloc(size);
- if (h_A == 0) CleanupResources();
- h_B = (unsigned*)malloc(size);
- if (h_B == 0) CleanupResources();
+  
 
-
- // Initialize input vectors
-
-
- RandomInit(h_A, N);
-
-
- // Allocate vectors in device memory
- checkCudaErrors( cudaMalloc((void**)&d_A, size) );
- checkCudaErrors( cudaMalloc((void**)&d_B, size) );
-
-  // for (uint64_t i = 0; i < N; i++)
-  // {
-  //   h_A[i] = (uint64_t)(d_A + ((i + STRIDE_SIZE) % subtabSize + (i / subtabSize) * subtabSize));
-  // }
-  // h_A[N-1] = STRIDE_SIZE * sizeof(uint64_t);
-
-
- // Copy vector from host memory to device memory
- checkCudaErrors( cudaMemcpy(d_A, h_A, size, cudaMemcpyHostToDevice) );
-
-
+  checkCudaErrors( cudaMalloc(&posArray_g, total_threads*sizeof(uint32_t)) );
  cudaEvent_t start, stop;                   
  float elapsedTime = 0;                     
  checkCudaErrors(cudaEventCreate(&start));  
  checkCudaErrors(cudaEventCreate(&stop));
 
- //VecAdd<<<blocksPerGrid, threadsPerBlock>>>(d_A, d_B, d_C, N);
- dim3 dimGrid(NUM_OF_BLOCKS,1);
- dim3 dimBlock(THREADS_PER_BLOCK,1);
-
-
- checkCudaErrors(cudaEventRecord(start));              
- PowerKernal2<<<dimGrid,dimBlock>>>(d_A, d_B,iterations);  
+ checkCudaErrors(cudaEventRecord(start));    
+  l2_stress<<<NUM_OF_BLOCKS,THREADS_PER_BLOCK>>>(posArray_g, iterations);
  checkCudaErrors(cudaEventRecord(stop));               
  
  checkCudaErrors(cudaEventSynchronize(stop));           
  checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));  
  printf("gpu execution time = %.3f ms\n", elapsedTime);  
- getLastCudaError("kernel launch failure");              
-
- // Copy result from device memory to host memory
- // h_B contains the result in host memory
- checkCudaErrors( cudaMemcpy(h_B, d_B, size, cudaMemcpyDeviceToHost) );
+  
+  
+  checkCudaErrors( cudaPeekAtLastError() );
   checkCudaErrors(cudaEventDestroy(start));
  checkCudaErrors(cudaEventDestroy(stop));
- CleanupResources();
 
  return 0;
 }
@@ -199,24 +120,12 @@ int main(int argc, char** argv)
 void CleanupResources(void)
 {
   // Free device memory
-  if (d_A)
-  cudaFree(d_A);
-  if (d_B)
-  cudaFree(d_B);
+  if (posArray_g)
+  cudaFree(posArray_g);
 
   // Free host memory
-  if (h_A)
-  free(h_A);
-  if (h_B)
-  free(h_B);
+  if (dsink)
+  free(dsink);
 
 }
 
-// Allocates an array with random float entries.
-void RandomInit(unsigned* data, int n)
-{
-  for (int i = 0; i < n; ++i){
-  srand((unsigned)time(0));  
-  data[i] = rand() / RAND_MAX;
-  }
-}
