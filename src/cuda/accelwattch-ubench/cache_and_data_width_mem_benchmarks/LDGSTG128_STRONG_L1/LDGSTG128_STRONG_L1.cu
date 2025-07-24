@@ -101,7 +101,7 @@ __global__ void PowerKernal2(volatile unsigned* A, volatile unsigned* B, unsigne
         // Use inline PTX to load 128 bits (4 x 32-bit values) at once
         asm volatile (
             "{\n\t"
-            "ld.global.v4.u32 {%0, %1, %2, %3}, [%4];\n\t"
+            "ld.global.ca.v4.u32 {%0, %1, %2, %3}, [%4];\n\t"
             "}"
             : "=r"(data.x), "=r"(data.y), "=r"(data.z), "=r"(data.w)
             : "l"(inptr)
@@ -109,7 +109,7 @@ __global__ void PowerKernal2(volatile unsigned* A, volatile unsigned* B, unsigne
         );  
   	asm volatile (
             "{\n\t"
-            "st.global.v4.u32 [%0], {%1, %2, %3, %4};\n\t"
+            "st.global.ca.v4.u32 [%0], {%1, %2, %3, %4};\n\t"
             "}"
             :
             : "l"(outptr), "r"(data.x), "r"(data.y), "r"(data.z), "r"(data.w)

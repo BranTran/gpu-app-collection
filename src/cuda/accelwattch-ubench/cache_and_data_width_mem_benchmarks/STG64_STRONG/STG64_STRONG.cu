@@ -45,16 +45,16 @@
 #define THREADS_PER_BLOCK 256
 #define NUM_OF_BLOCKS 640
 // Variables
-uint8_t* h_A;
-uint8_t* h_B;
-uint8_t* d_A;
-uint8_t* d_B;
+uint64_t* h_A;
+uint64_t* h_B;
+uint64_t* d_A;
+uint64_t* d_B;
 //bool noprompt = false;
-//unsigned int my_timer;
+//uint64_t int my_timer;
 
 // Functions
 void CleanupResources(void);
-void RandomInit(uint8_t*, int);
+void RandomInit(uint64_t*, int);
 //void ParseArguments(int, char**);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -87,23 +87,22 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 
 
-__global__ void PowerKernal2(volatile uint8_t* A, volatile uint8_t* B, unsigned long long N)
+__global__ void PowerKernal2(uint64_t* A, uint64_t* B, unsigned long long N)
 {
     uint32_t uid = blockDim.x * blockIdx.x + threadIdx.x;
-    volatile uint8_t sink = A[uid];
-//    volatile uint8_t* outptr = B + uid;
+    volatile uint64_t sink = A[uid];
+    volatile uint64_t* outptr = B + uid;
 
 #pragma unroll 100
 	for(uint64_t i=0; i<N; ++i) {
-	B[uid] = sink;
-/*  	asm volatile (
+  	asm volatile (
             "{\n\t"
-            "st.global.u16 [%0], %1;\n\t"
+            "st.global.ca.u64 [%0], %1;\n\t"
             "}"
             :
-            : "l"(outptr), "h"(sink)
+            : "l"(outptr), "l"(sink)
             : "memory"
-        );//*/
+        );
     }
 }
 
@@ -122,11 +121,11 @@ int main(int argc, char** argv)
  printf("Power Microbenchmarks with iterations %lld\n",iterations);
  
  int N = THREADS_PER_BLOCK*NUM_OF_BLOCKS;
- size_t size = N * sizeof(uint8_t);
+ size_t size = N * sizeof(uint64_t);
  // Allocate input vectors h_A and h_B in host memory
- h_A = (uint8_t*)malloc(size);
+ h_A = (uint64_t*)malloc(size);
  if (h_A == 0) CleanupResources();
- h_B = (uint8_t*)malloc(size);
+ h_B = (uint64_t*)malloc(size);
  if (h_B == 0) CleanupResources();
 
 
@@ -189,10 +188,10 @@ void CleanupResources(void)
 }
 
 // Allocates an array with random float entries.
-void RandomInit(uint8_t* data, int n)
+void RandomInit(uint64_t* data, int n)
 {
   for (int i = 0; i < n; ++i){
-  srand((uint8_t)time(0));  
+  srand((uint64_t)time(0));  
   data[i] = rand() / RAND_MAX;
   }
 }
