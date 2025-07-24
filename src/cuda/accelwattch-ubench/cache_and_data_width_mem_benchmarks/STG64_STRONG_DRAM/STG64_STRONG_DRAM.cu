@@ -67,7 +67,7 @@ __global__ void l2_stress(uint64_t *posArray, unsigned long long iterations){
     for(unsigned long long i = 0; i < iterations; ++i) {
         uint64_t *ptr = posArray + current_index;
 
-        asm volatile ("st.global.cg.u64 [%1], %0;"
+        asm volatile ("st.global.u64 [%1], %0;"
                       : "=l" (ptr)
                       : "l" (ptr)
                       : "memory");
