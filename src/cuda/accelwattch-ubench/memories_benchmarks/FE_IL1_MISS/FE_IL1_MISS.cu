@@ -38,7 +38,9 @@
 #include<repeat.h>
 
 #define THREADS_PER_BLOCK 256
+#ifndef NUM_OF_BLOCKS
 #define NUM_OF_BLOCKS 640
+#endif
 
 
 // Variables
