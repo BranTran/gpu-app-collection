@@ -36,7 +36,7 @@
 # # Add source files here
   EXECUTABLE      := STG128_STRONG
 # # Cuda source files (compiled with cudacc)
-  CUFILES         := STG8_STRONG.cu
+  CUFILES         := STG128_STRONG.cu
 # # C/C++ source files (STG128_STRONG with gcc / c++)
   CCFILES         := \
 	#

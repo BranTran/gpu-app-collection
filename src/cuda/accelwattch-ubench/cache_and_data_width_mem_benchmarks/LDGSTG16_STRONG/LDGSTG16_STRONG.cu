@@ -109,7 +109,7 @@ __global__ void PowerKernal2(volatile uint16_t* A, volatile uint16_t* B, unsigne
         );  
   	asm volatile (
             "{\n\t"
-            "st.global.ca.u16 [%0], %1;\n\t"
+            "st.global.u16 [%0], %1;\n\t"
             "}"
             :
             : "l"(outptr), "h"(sink)

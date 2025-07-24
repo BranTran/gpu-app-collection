@@ -99,7 +99,7 @@ __global__ void PowerKernal2(uint64_t* A, uint64_t* B, unsigned long long N)
 	for(uint64_t i=0; i<N; ++i) {
   	asm volatile (
             "{\n\t"
-            "st.global.ca.u64 [%0], %1;\n\t"
+            "st.global.u64 [%0], %1;\n\t"
             "}"
             :
             : "l"(outptr), "l"(sink)
