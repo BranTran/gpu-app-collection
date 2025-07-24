@@ -29,7 +29,7 @@
 //This code is a modification of L1 cache benchmark from 
 //"Dissecting the NVIDIA Volta GPU Architecture via Microbenchmarking": https://arxiv.org/pdf/1804.06826.pdf
 
-//This benchmark stresses the L1 cache
+//This benchmark stresses the L2 cache
 
 //This code have been tested on Volta V100 architecture
 
@@ -41,8 +41,14 @@
 #define NUM_OF_BLOCKS 640
 #define WARP_SIZE 32
 
-#define ARRAY_SIZE 67108864 // 2^26
-#define STRIDE THREADS_PER_BLOCK*NUM_OF_BLOCKS//2^14 * 10
+//V100 has 6144KB L2, and we are doing 8B entries
+
+#define ARRAY_SIZE 524288 // 2^19
+//V100 has 128 KB L1 which would be 16384 8B entries
+#define STRIDE 16384
+
+uint64_t* dsink;
+uint64_t* posArray_g;
 
 // GPU error check
 #define checkCudaErrors(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -55,25 +61,19 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 
 
 __global__ void l2_stress(uint64_t *posArray, unsigned long long iterations){
+    uint32_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    uint64_t current_index = tid;
+    #pragma unroll 100
+    for(unsigned long long i = 0; i < iterations; ++i) {
+        uint64_t *ptr = posArray + current_index;
 
-  // thread index
-  uint32_t tid = blockIdx.x*blockDim.x + threadIdx.x;
-  // a register to avoid compiler optimization
-  uint64_t *ptr = posArray + tid;
-  // pointer-chasing iterations times
-  // use ca modifier to cache the load in L1
-  #pragma unroll 100
-  for(unsigned long long i=0; i<iterations; ++i) { 
-    asm volatile ("{\t\n"
-      "st.global.cg.u64 [%0], %1;\n\t"
-      "}"
-      : "l" ptr
-      : "l" ptr
-      : "memory"
-    );
-    ptr = (ptr + STRIDE) % ARRAY_SIZE;
+        asm volatile ("st.global.cg.u64 [%1], %0;"
+                      : "=l" (ptr)
+                      : "l" (ptr)
+                      : "memory");
 
-  }
+        current_index = (current_index + STRIDE) % ARRAY_SIZE;
+    }
 }
 
 int main(int argc, char** argv){
@@ -88,26 +88,19 @@ int main(int argc, char** argv){
   int total_threads = ARRAY_SIZE; //THREADS_PER_BLOCK*NUM_OF_BLOCKS;
  printf("Power Microbenchmarks with iterations %llu\n",iterations);
 
-  //uint64_t *dsink = (uint64_t*) malloc(total_threads*sizeof(uint64_t));
-      // Use pinned (page-locked) memory for `dsink`
-    uint64_t *dsink;
-    checkCudaErrors(cudaMallocHost((void**)&dsink, total_threads * sizeof(uint64_t)));
+  dsink = (uint64_t*) malloc(total_threads*sizeof(uint64_t));
 
 
-  uint64_t *posArray_g;
-  uint64_t *dsink_g;
   
 
   checkCudaErrors( cudaMalloc(&posArray_g, total_threads*sizeof(uint64_t)) );
-  checkCudaErrors( cudaMalloc(&dsink_g, total_threads*sizeof(uint64_t)) );
  cudaEvent_t start, stop;                   
  float elapsedTime = 0;                     
  checkCudaErrors(cudaEventCreate(&start));  
  checkCudaErrors(cudaEventCreate(&stop));
 
-    pointers_init<<<1,1>>>(posArray_g);
  checkCudaErrors(cudaEventRecord(start));    
-  dram_stress<<<NUM_OF_BLOCKS,THREADS_PER_BLOCK>>>(posArray_g, dsink_g, iterations);
+  l2_stress<<<NUM_OF_BLOCKS,THREADS_PER_BLOCK>>>(posArray_g, iterations);
  checkCudaErrors(cudaEventRecord(stop));               
  
  checkCudaErrors(cudaEventSynchronize(stop));           
@@ -116,8 +109,21 @@ int main(int argc, char** argv){
   
   
   checkCudaErrors( cudaPeekAtLastError() );
+  checkCudaErrors(cudaEventDestroy(start));
+ checkCudaErrors(cudaEventDestroy(stop));
 
-  checkCudaErrors( cudaMemcpy(dsink, dsink_g, total_threads*sizeof(uint64_t), cudaMemcpyDeviceToHost) );
+ return 0;
+}
 
-  return 0;
-} 
+void CleanupResources(void)
+{
+  // Free device memory
+  if (posArray_g)
+  cudaFree(posArray_g);
+
+  // Free host memory
+  if (dsink)
+  free(dsink);
+
+}
+
