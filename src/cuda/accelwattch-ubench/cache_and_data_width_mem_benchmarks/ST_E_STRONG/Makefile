@@ -34,9 +34,9 @@
 # ################################################################################
 #
 # # Add source files here
-  EXECUTABLE      := LDS
+  EXECUTABLE      := ST_E_STRONG
 # # Cuda source files (compiled with cudacc)
-  CUFILES         := LDS.cu
+  CUFILES         := ST_E_STRONG.cu
 # # C/C++ source files (compiled with gcc / c++)
   CCFILES         := \
 	#

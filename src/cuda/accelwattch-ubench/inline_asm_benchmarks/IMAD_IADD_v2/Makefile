@@ -1,4 +1,4 @@
-################################################################################
+###############################################################################
 #
 ## Copyright 1993-2006 NVIDIA Corporation.  All rights reserved.
 #
@@ -34,13 +34,12 @@
 # ################################################################################
 #
 # # Add source files here
-  EXECUTABLE      := LDC128
+  EXECUTABLE      := IMAD_IADD_v2
 # # Cuda source files (compiled with cudacc)
-  CUFILES         := LDC128.cu
+  CUFILES         := IMAD_IADD_v2.cu
 # # C/C++ source files (compiled with gcc / c++)
   CCFILES         := \
 	#
-#  CUDACCFLAGS=-Xopencc -OPT:Olimit=0
 #
 #
 # ################################################################################

@@ -89,27 +89,103 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 __global__ void PowerKernal2(unsigned* A, unsigned* B, unsigned long long N)
 {
+    // Calculate the global unique ID for the thread
     uint32_t uid = blockDim.x * blockIdx.x + threadIdx.x;
     volatile unsigned sink;
    
-    unsigned* A_ptr = A + uid;
-    unsigned* B_ptr = B + uid;
+    // The base pointers for this thread's region.
+    // We will then add the stride to these pointers within the loop.
+    unsigned* A_base_ptr = A + uid;
+    unsigned* B_base_ptr = B + uid;
     
-    asm volatile ("{\t\n"
-      "ld.global.cg.u32 %0, [%1] ;\n\t"
-      "}" : "=r"(sink) : "l"(A_ptr) : "memory"
-    );
-#pragma unroll 100
-	for(uint64_t i=0; i<N; ++i) {
-    asm volatile ("{\t\n"
-      "st.cg.u32 [%1], %0;\n\t"
-      "}" : "=r"(sink) : "l"(B_ptr) : "memory"
-    );
-    asm volatile ("{\t\n"
-      "st.cg.u32 [%1], %0;\n\t"
-      "}" : "=r"(sink) : "l"(A_ptr) : "memory"
-    );    }
-    B[uid] = sink;
+    unsigned* A_ptr = A_base_ptr;
+    unsigned* B_ptr = B_base_ptr;
+
+    uint32_t N_total_elements = THREADS_PER_BLOCK * NUM_OF_BLOCKS;
+
+#pragma unroll 100 // Keep unroll for loop overhead reduction
+    for(uint64_t i = 0; i < N_iterations; ++i) {
+        // Calculate the strided address for A and B for the current iteration
+        // We ensure that the stride wraps around the total allocated memory size
+        // to stay within bounds, if the number of iterations times stride
+        // exceeds the total number of elements.
+        // The total number of elements is THREADS_PER_BLOCK * NUM_OF_BLOCKS.
+        // Let N_total_elements = THREADS_PER_BLOCK * NUM_OF_BLOCKS;
+        // The effective offset for the current iteration for this thread is:
+        // (i * STRIDE) % N_total_elements.
+        // Adding this to the uid effectively gives:
+        // (uid + (i * STRIDE)) % N_total_elements.
+        // This ensures that each access is offset from the previous by `STRIDE`,
+        // and wraps around, distributing accesses widely.
+        uint64_t current_offset = (uint64_t)uid + (i * STRIDE);
+        
+        // Use modulo N_total_elements to ensure we stay within the allocated array bounds
+        // for `A` and `B`. This is crucial if `N_iterations * STRIDE` can exceed `N_total_elements`.
+        // If `STRIDE` is equal to `N_total_elements`, then `STRIDE % N_total_elements` is 0,
+        // which would make all accesses the same within the loop.
+        // So `STRIDE` should be chosen carefully. If `STRIDE` is `N_total_elements`,
+        // then `(i * STRIDE)` will always be a multiple of `N_total_elements`,
+        // and `(i * STRIDE) % N_total_elements` will be 0.
+        // This means `current_offset % N_total_elements` will always be `uid`.
+        // This would negate the striding effect!
+
+        // So, the STRIDE must be something *other* than the total number of elements
+        // if we intend to visit different locations within the loop.
+        // A simple way to guarantee cache misses is to stride by a constant amount
+        // that is much larger than a cache line and is not a power of 2 that aligns
+        // with cache sets, or simply a value that spreads accesses widely.
+
+        // Let's reconsider the STRIDE. If we want constant misses, each access needs
+        // to be far from the previous.
+        // Option 1: Each thread increments its own pointer by a fixed stride each iteration.
+        // This means `A_ptr = A + uid + i * CONSTANT_STRIDE;`
+        // `CONSTANT_STRIDE` should be large enough, e.g., `L1_CACHE_SIZE_ELEMENTS / 2` or more.
+        // Let's make `STRIDE` a value that ensures we jump sufficiently.
+        // If we use `STRIDE` as defined now (THREADS_PER_BLOCK * NUM_OF_BLOCKS),
+        // and `i` increases, then `A_base_ptr + i * STRIDE` could go out of bounds quickly
+        // if `N_iterations` is large.
+
+        // So the robust way to handle striding *within* the allocated buffer is:
+        // `offset = (uid + i * STRIDE_PER_ITERATION) % N_total_elements;`
+        // where `STRIDE_PER_ITERATION` is a constant designed to cause misses.
+        // Let's define `STRIDE_PER_ITERATION` that is a value intended to jump out of cache.
+        // A common practice for this is to use a large prime number or a number that
+        // is not a simple multiple of cache line sizes, or simply a value larger than L1 cache size.
+
+        // To ensure we don't go out of bounds for the array, and to still achieve striding,
+        // the index for each access should be calculated:
+        // `index = (uid + (i * STRIDE_OFFSET)) % N_total_elements;`
+        // Where `STRIDE_OFFSET` is your desired step between consecutive accesses by a single thread.
+        // This `STRIDE_OFFSET` should be large enough to miss L1.
+
+        #undef STRIDE // Undefine the previous STRIDE as it was causing issues with modulo logic
+        // Let's define a new STRIDE_OFFSET for the loop.
+        // A good value to aim for L1 misses is to stride by an amount larger than a typical L1 cache line (e.g., 128 bytes = 32 unsigned ints)
+        // and ideally an amount that breaks spatial locality and hits different cache sets.
+        // A simple large prime number or a value related to the total size can work.
+        // For simplicity and effectiveness in causing misses, let's use a large constant.
+        // Let's use 4096, which is much larger than a cache line and will likely cause misses.
+        // Or consider `L1_CACHE_SIZE_ELEMENTS / 2` or similar. Let's use `L1_CACHE_SIZE_ELEMENTS`.
+        // This ensures that for each iteration, a thread jumps to an address that is roughly
+        // an L1 cache size away from its "logical" base address.
+        #define STRIDE_OFFSET L1_CACHE_SIZE_ELEMENTS // Stride offset for each iteration
+
+        uint64_t current_index_A = (uint64_t)uid + (i * STRIDE_OFFSET);
+        uint64_t current_index_B = (uint64_t)uid + (i * STRIDE_OFFSET);
+        
+        // Ensure the index wraps around to stay within the bounds of the array.
+        // `N_total_elements` should be `THREADS_PER_BLOCK * NUM_OF_BLOCKS`.
+        current_index_A %= (THREADS_PER_BLOCK * NUM_OF_BLOCKS);
+        current_index_B %= (THREADS_PER_BLOCK * NUM_OF_BLOCKS);
+
+        // Access A and B using the calculated strided indices.
+        // We are now relying on the access pattern to miss L1, so `cg` flags are removed.
+        // Direct memory access via array indexing.
+        sink = A[current_index_A]; // Load from A
+        B[current_index_B] = sink; // Store to B
+        A[current_index_A] = sink; // Store back to A (original logic, possibly for write/read test)
+    }
+//    B[uid] = sink;
 }
 
 
@@ -136,12 +212,20 @@ int main(int argc, char** argv)
 
 
  // Initialize input vectors
+
+
  RandomInit(h_A, N);
 
 
  // Allocate vectors in device memory
  checkCudaErrors( cudaMalloc((void**)&d_A, size) );
  checkCudaErrors( cudaMalloc((void**)&d_B, size) );
+
+  // for (uint64_t i = 0; i < N; i++)
+  // {
+  //   h_A[i] = (uint64_t)(d_A + ((i + STRIDE_SIZE) % subtabSize + (i / subtabSize) * subtabSize));
+  // }
+  // h_A[N-1] = STRIDE_SIZE * sizeof(uint64_t);
 
 
  // Copy vector from host memory to device memory
