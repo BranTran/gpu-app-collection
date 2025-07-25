@@ -1,4 +1,3 @@
-
 // Copyright (c) 2018-2021, Vijay Kandiah, Junrui Pan, Mahmoud Khairy, Scott Peverelle, Timothy Rogers, Tor M. Aamodt, Nikos Hardavellas
 // Northwestern University, Purdue University, The University of British Columbia
 // All rights reserved.
@@ -30,7 +29,7 @@
 //This code is a modification of L1 cache benchmark from 
 //"Dissecting the NVIDIA Volta GPU Architecture via Microbenchmarking": https://arxiv.org/pdf/1804.06826.pdf
 
-//This benchmark stresses the L1 cache
+//This benchmark stresses the L2 cache
 
 //This code have been tested on Volta V100 architecture
 
@@ -44,8 +43,12 @@
 #endif
 #define WARP_SIZE 32
 
-#define ARRAY_SIZE 67108864
+#define ARRAY_SIZE 67108864 
 #define STRIDE 1048576
+
+
+uint4* dsink;
+uint4* posArray_g;
 
 // GPU error check
 #define checkCudaErrors(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -56,68 +59,33 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
         }
 }
 
-__global__ void pointers_init(uint4 *posArray){
-    // This kernel is launched with a single thread (1 block, 1 thread)
-    // to initialize the entire array sequentially.
-    uint32_t tid = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if(tid == 0){ // Ensure only one thread performs the initialization
-        for (uint64_t i = 0; i < ARRAY_SIZE; i++){
-            // Calculate the offset for the next pointer in the circular array
-            uint64_t offset = (i + STRIDE) % ARRAY_SIZE;
-            
-            // Calculate the actual 64-bit address of the next element
-            // This is a pointer to an uint4 element
-            uint64_t next_ptr_value = (uint64_t)(posArray + offset);
-            
-            // Split the 64-bit pointer into two 32-bit parts
-            uint32_t low_32_bits = (uint32_t)next_ptr_value;
-            uint32_t high_32_bits = (uint32_t)(next_ptr_value >> 32);
-
-            // Store the 32-bit parts into the 'x' and 'y' components of the uint4
-            // The 'z' and 'w' components are unused for this pointer.
-            posArray[i].x = low_32_bits;
-            posArray[i].y = high_32_bits;
-            posArray[i].z = 0; 
-            posArray[i].w = 0;
-        }
-    }
-}
-__global__ void dram_stress(uint4 *posArray, uint4 *dsink, unsigned long long iterations){
-    // Calculate the global thread index
-    uint32_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-
-    // Initialize the current pointer for this thread.
-    // Each thread starts at a different uint4 element in the posArray.
-    uint4 *current_ptr = posArray + tid;
-
-    // Variable to hold the loaded 128-bit value (uint4)
-    uint4 loaded_val;
-
-    // Pointer-chasing iterations
-    // The #pragma unroll directive encourages the compiler to unroll the loop,
-    // which can help in observing consistent cache behavior by reducing loop overhead.
-    #pragma unroll 100 // Unroll factor can be adjusted or removed based on performance
+__global__ void l2_stress(uint4 *posArray, unsigned long long iterations){
+    uint64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    uint32_t current_index = tid;
+    uint4 data;
+    #pragma unroll 100
     for(unsigned long long i = 0; i < iterations; ++i) {
-        // Perform a 128-bit coherent global load operation.
-        // 'ld.global.cv.v4.u32' is the SASS instruction for a 128-bit coherent global load
-        // into four 32-bit registers (vector load of 4 unsigned 32-bit integers).
-        // '.cv' (Coherent Volatile) ensures the load goes through the cache hierarchy
-        // and prevents compiler reordering.
-        // {%0, %1, %2, %3} are output operands for loaded_val.x, .y, .z, .w respectively.
-        // [%4] is the input operand for the base address (current_ptr).
-        asm volatile ("ld.global.cv.v4.u32 {%0, %1, %2, %3}, [%4];"
-                      : "=r" (loaded_val.x),         // Output: loaded_val.x
-                        "=r" (loaded_val.y),         // Output: loaded_val.y
-                        "=r" (loaded_val.z),         // Output: loaded_val.z
-                        "=r" (loaded_val.w)          // Output: loaded_val.w
-                      : "l" (current_ptr)            // Input: current_ptr (long long register, holding the base address)
-                      : "memory");                   // Clobbers: memory (informs compiler about memory side effects)
+        uint4 *ptr = posArray + current_index;
+        asm volatile (
+            "{\n\t"
+            "ld.global.cv.v4.u32 {%0, %1, %2, %3}, [%4];\n\t"
+            "}"
+            : "=r"(data.x), "=r"(data.y), "=r"(data.z), "=r"(data.w)
+            : "l"(ptr)
+            : "memory"
+	    );
 
-        current_ptr = (uint4*)(((uint64_t)loaded_val.y << 32) | loaded_val.x);
+        asm volatile (
+            "{\n\t"
+            "st.global.cg.v4.u32 [%0], {%1, %2, %3, %4};\n\t"
+            "}"
+            :
+            : "l"(ptr), "r"(data.x), "r"(data.y), "r"(data.z), "r"(data.w)
+            : "memory"
+        );
+        current_index = (current_index + STRIDE) % ARRAY_SIZE;
     }
-    // Write the final pointer value for this thread back to device memory
-    dsink[tid].x = (unsigned)current_ptr;
 }
 
 int main(int argc, char** argv){
@@ -132,26 +100,19 @@ int main(int argc, char** argv){
   int total_threads = ARRAY_SIZE; //THREADS_PER_BLOCK*NUM_OF_BLOCKS;
  printf("Power Microbenchmarks with iterations %llu\n",iterations);
 
-  //uint64_t *dsink = (uint64_t*) malloc(total_threads*sizeof(uint64_t));
-      // Use pinned (page-locked) memory for `dsink`
-    uint4 *dsink;
-    checkCudaErrors(cudaMallocHost((void**)&dsink, total_threads * sizeof(uint4)));
+  dsink = (uint4*) malloc(total_threads*sizeof(uint4));
 
 
-  uint4 *posArray_g;
-  uint4 *dsink_g;
   
 
   checkCudaErrors( cudaMalloc(&posArray_g, total_threads*sizeof(uint4)) );
-  checkCudaErrors( cudaMalloc(&dsink_g, total_threads*sizeof(uint4)) );
  cudaEvent_t start, stop;                   
  float elapsedTime = 0;                     
  checkCudaErrors(cudaEventCreate(&start));  
  checkCudaErrors(cudaEventCreate(&stop));
 
-    pointers_init<<<1,1>>>(posArray_g);
  checkCudaErrors(cudaEventRecord(start));    
-  dram_stress<<<NUM_OF_BLOCKS,THREADS_PER_BLOCK>>>(posArray_g, dsink_g, iterations);
+  l2_stress<<<NUM_OF_BLOCKS,THREADS_PER_BLOCK>>>(posArray_g, iterations);
  checkCudaErrors(cudaEventRecord(stop));               
  
  checkCudaErrors(cudaEventSynchronize(stop));           
@@ -160,8 +121,21 @@ int main(int argc, char** argv){
   
   
   checkCudaErrors( cudaPeekAtLastError() );
+  checkCudaErrors(cudaEventDestroy(start));
+ checkCudaErrors(cudaEventDestroy(stop));
 
-  checkCudaErrors( cudaMemcpy(dsink, dsink_g, total_threads*sizeof(uint4), cudaMemcpyDeviceToHost) );
+ return 0;
+}
 
-  return 0;
-} 
+void CleanupResources(void)
+{
+  // Free device memory
+  if (posArray_g)
+  cudaFree(posArray_g);
+
+  // Free host memory
+  if (dsink)
+  free(dsink);
+
+}
+

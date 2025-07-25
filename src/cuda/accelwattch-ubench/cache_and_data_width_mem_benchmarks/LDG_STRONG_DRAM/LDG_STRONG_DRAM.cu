@@ -29,7 +29,7 @@
 //This code is a modification of L1 cache benchmark from 
 //"Dissecting the NVIDIA Volta GPU Architecture via Microbenchmarking": https://arxiv.org/pdf/1804.06826.pdf
 
-//This benchmark stresses the L1 cache
+//This benchmark stresses the L2 cache
 
 //This code have been tested on Volta V100 architecture
 
@@ -43,8 +43,16 @@
 #endif
 #define WARP_SIZE 32
 
-#define ARRAY_SIZE 67108864
-#define STRIDE 1048576
+//V100 has 6144KB L2, and we are doing 8B entries
+//#define FACTOR 2
+//#define ARRAY_SIZE (67108864 * FACTOR) // 2^26 
+//V100 has 6144KB which would be 16384 8B entries
+//#define STRIDE (1048576 * FACTOR) // 2^20
+
+#define ARRAY_SIZE 134217728
+#define STRIDE 2097152
+uint32_t* dsink;
+uint32_t* posArray_g;
 
 // GPU error check
 #define checkCudaErrors(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -55,56 +63,25 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
         }
 }
 
-__global__ void pointers_init(uint64_t *posArray){
 
-  uint32_t tid = blockIdx.x*blockDim.x + threadIdx.x;
-  if(tid == 0){
-      for (uint64_t i=0; i<ARRAY_SIZE; i++){
-	uint64_t offset = (i + STRIDE) % ARRAY_SIZE;
-        posArray[i] = (uint64_t)(posArray + offset);
-      }
-  }
-}
-
-__global__ void dram_stress(uint64_t *posArray, uint64_t *dsink, unsigned long long iterations){
-
-  // thread index
-  uint32_t tid = blockIdx.x*blockDim.x + threadIdx.x;
-
-    uint64_t *current_ptr = posArray + tid;
-
-    // Variables to hold the two 32-bit loaded values
-    uint32_t loaded_val_low;
-    uint32_t loaded_val_high;
-
-    // Pointer-chasing iterations times
-    // The #pragma unroll directive encourages the compiler to unroll the loop,
-    // which can help in observing consistent cache behavior by reducing loop overhead.
+__global__ void l2_stress(uint32_t *posArray, unsigned long long iterations){
+    uint64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    uint32_t current_index = tid*2;
+    uint32_t data;
     #pragma unroll 100
     for(unsigned long long i = 0; i < iterations; ++i) {
-        // Cast the current 64-bit pointer to a 32-bit pointer type for assembly loads.
-        // This allows us to specify byte offsets for 32-bit accesses.
-        uint32_t *addr_32_ptr = (uint32_t*)current_ptr;
+        uint32_t *ptr = posArray + current_index;
+        asm volatile ("ld.global.cv.u32 %0, [%1];"
+                      :"=r" (data)
+		      : "l" (ptr)
+                      : "memory");
 
-        // Perform two coherent global load operations for 32-bit values.
-        // 'ld.global.cg.u32' is the SASS instruction for a 32-bit coherent global load.
-        // '.cg' (Coherent Global) ensures the load goes through the cache hierarchy.
-        // '%0' and '%1' are output operands for loaded_val_low and loaded_val_high.
-        // '%2' is the input operand for the base address (addr_32_ptr).
-        // The first load is from the base address, the second from base address + 4 bytes.
-        asm volatile ("ld.global.cv.u32 %0, [%2];\n\t"  // Load lower 32 bits from current_ptr
-                      "ld.global.cv.u32 %1, [%2 + 4];" // Load upper 32 bits from current_ptr + 4 bytes
-                      : "=r" (loaded_val_low),         // Output: loaded_val_low (general-purpose register)
-                        "=r" (loaded_val_high)         // Output: loaded_val_high (general-purpose register)
-                      : "l" (addr_32_ptr)              // Input: addr_32_ptr (long long register, holding the the base address for loads)
-                      : "memory");                     // Clobbers: memory (informs compiler about memory side effects)
+        asm volatile ("st.global.cg.u32 [%1], %0;"
+                      :: "r" (data), "l" (ptr)
+                      : "memory");
 
-        // Stitch the two 32-bit values back together to form the complete 64-bit value.
-        // This 64-bit value is the *next memory address* (pointer) to jump to.
-        current_ptr = (uint64_t*)(((uint64_t)loaded_val_high << 32) | loaded_val_low);
+        current_index = (current_index + STRIDE) % ARRAY_SIZE;
     }
-  	// write data back to memory
-  	dsink[tid] = (uint64_t)current_ptr;
 }
 
 int main(int argc, char** argv){
@@ -119,26 +96,19 @@ int main(int argc, char** argv){
   int total_threads = ARRAY_SIZE; //THREADS_PER_BLOCK*NUM_OF_BLOCKS;
  printf("Power Microbenchmarks with iterations %llu\n",iterations);
 
-  //uint64_t *dsink = (uint64_t*) malloc(total_threads*sizeof(uint64_t));
-      // Use pinned (page-locked) memory for `dsink`
-    uint64_t *dsink;
-    checkCudaErrors(cudaMallocHost((void**)&dsink, total_threads * sizeof(uint64_t)));
+  dsink = (uint32_t*) malloc(total_threads*sizeof(uint32_t));
 
 
-  uint64_t *posArray_g;
-  uint64_t *dsink_g;
   
 
-  checkCudaErrors( cudaMalloc(&posArray_g, total_threads*sizeof(uint64_t)) );
-  checkCudaErrors( cudaMalloc(&dsink_g, total_threads*sizeof(uint64_t)) );
+  checkCudaErrors( cudaMalloc(&posArray_g, total_threads*sizeof(uint32_t)) );
  cudaEvent_t start, stop;                   
  float elapsedTime = 0;                     
  checkCudaErrors(cudaEventCreate(&start));  
  checkCudaErrors(cudaEventCreate(&stop));
 
-    pointers_init<<<1,1>>>(posArray_g);
  checkCudaErrors(cudaEventRecord(start));    
-  dram_stress<<<NUM_OF_BLOCKS,THREADS_PER_BLOCK>>>(posArray_g, dsink_g, iterations);
+  l2_stress<<<NUM_OF_BLOCKS,THREADS_PER_BLOCK>>>(posArray_g, iterations);
  checkCudaErrors(cudaEventRecord(stop));               
  
  checkCudaErrors(cudaEventSynchronize(stop));           
@@ -147,8 +117,21 @@ int main(int argc, char** argv){
   
   
   checkCudaErrors( cudaPeekAtLastError() );
+  checkCudaErrors(cudaEventDestroy(start));
+ checkCudaErrors(cudaEventDestroy(stop));
 
-  checkCudaErrors( cudaMemcpy(dsink, dsink_g, total_threads*sizeof(uint64_t), cudaMemcpyDeviceToHost) );
+ return 0;
+}
 
-  return 0;
-} 
+void CleanupResources(void)
+{
+  // Free device memory
+  if (posArray_g)
+  cudaFree(posArray_g);
+
+  // Free host memory
+  if (dsink)
+  free(dsink);
+
+}
+
