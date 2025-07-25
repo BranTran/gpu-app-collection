@@ -38,7 +38,9 @@
 #include <cuda.h>
 
 #define THREADS_PER_BLOCK 256
+#ifndef NUM_OF_BLOCKS
 #define NUM_OF_BLOCKS 640
+#endif
 #define WARP_SIZE 32
 
 //V100 has 6144KB L2, and we are doing 8B entries

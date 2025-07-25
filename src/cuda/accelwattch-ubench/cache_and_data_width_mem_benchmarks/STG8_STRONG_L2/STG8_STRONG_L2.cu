@@ -38,7 +38,9 @@
 #include <cuda.h>
 
 #define THREADS_PER_BLOCK 256
+#ifndef NUM_OF_BLOCKS
 #define NUM_OF_BLOCKS 640
+#endif
 #define WARP_SIZE 32
 
 #define ARRAY_SIZE 536870912
