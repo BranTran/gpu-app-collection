@@ -39,7 +39,7 @@
 
 #define THREADS_PER_BLOCK 256
 #ifndef NUM_OF_BLOCKS
-#define NUM_OF_BLOCKS 3456
+#define NUM_OF_BLOCKS 640
 #endif
 #define WARP_SIZE 32
 
@@ -52,7 +52,8 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
         }
 }
 
-__global__ void l2_pointers_init(uint64_t *posArray){
+//BT: setting up pointers so they should do a lot of cache hits.
+__global__ void l1_pointers_init(uint64_t *posArray){
 
   uint32_t tid = blockIdx.x*blockDim.x + threadIdx.x;
   if(tid == 0){
@@ -66,41 +67,40 @@ __global__ void l2_pointers_init(uint64_t *posArray){
   }
 }
 
-__global__ void l2_stress(uint64_t *posArray, uint64_t *dsink, unsigned long long iterations){
+__global__ void l1_stress(uint64_t *posArray, uint64_t *dsink, unsigned long long iterations){
 
   // thread index
   uint32_t tid = blockIdx.x*blockDim.x + threadIdx.x;
 
-
   if(tid < NUM_OF_BLOCKS*THREADS_PER_BLOCK){
-  // a register to avoid compiler optimization
-  uint64_t *ptr = posArray + tid;
-  uint64_t ptr1, ptr0;
+  	// a register to avoid compiler optimization
+  	uint64_t *ptr = posArray + tid;
+  	uint64_t ptr1, ptr0;
 
-  // initialize the thread pointer with the start address of the array
-  // use cg modifier to cache the in L1
-  asm volatile ("{\t\n"
-    "ld.global.cg.u64 %0, [%1];\n\t"
-    "}" : "=l"(ptr1) : "l"(ptr) : "memory"
-  );
+  	// initialize the thread pointer with the start address of the array
+  	// use ca modifier to cache the in L1
+  	asm volatile ("{\t\n"
+  	  "ld.global.u64 %0, [%1];\n\t"
+  	  "}" : "=l"(ptr1) : "l"(ptr) : "memory"
+  	);
 
-  // synchronize all threads
-  asm volatile ("bar.sync 0;");
+  	// synchronize all threads
+  	asm volatile ("bar.sync 0;");
 
-  // pointer-chasing iterations times
-  // use cg modifier to cache the load in L1
-  #pragma unroll 100
-  for(unsigned long long i=0; i<iterations; ++i) { 
-    asm volatile ("{\t\n"
-      "ld.global.cg.u64 %0, [%1];\n\t"
-      "}" : "=l"(ptr0) : "l"((uint64_t*)ptr1) : "memory"
-    );
-    ptr1 = ptr0;    //swap the register for the next load
+  	// pointer-chasing iterations times
+  	// use ca modifier to cache the load in L1
+  	#pragma unroll 100
+  	for(unsigned long long i=0; i<iterations; ++i) { 
+  	  asm volatile ("{\t\n"
+  	    "ld.global.u64 %0, [%1];\n\t"
+  	    "}" : "=l"(ptr0) : "l"((uint64_t*)ptr1) : "memory"
+  	  );
+  	  ptr1 = ptr0;    //swap the register for the next load
 
-  }
+  	}
 
-  // write data back to memory
-  dsink[tid] = ptr1;
+  	// write data back to memory
+  	dsink[tid] = ptr1;
   }
 }
 
@@ -130,14 +130,16 @@ int main(int argc, char** argv){
  checkCudaErrors(cudaEventCreate(&start));  
  checkCudaErrors(cudaEventCreate(&stop));
 
-  l2_pointers_init<<<1,1>>>(posArray_g);
+    l1_pointers_init<<<1,1>>>(posArray_g);
  checkCudaErrors(cudaEventRecord(start));    
-  l2_stress<<<NUM_OF_BLOCKS,THREADS_PER_BLOCK>>>(posArray_g, dsink_g, iterations);
+  l1_stress<<<NUM_OF_BLOCKS,THREADS_PER_BLOCK>>>(posArray_g, dsink_g, iterations);
  checkCudaErrors(cudaEventRecord(stop));               
  
  checkCudaErrors(cudaEventSynchronize(stop));           
  checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));  
  printf("gpu execution time = %.3f ms\n", elapsedTime);  
+  
+  
   checkCudaErrors( cudaPeekAtLastError() );
 
   checkCudaErrors( cudaMemcpy(dsink, dsink_g, total_threads*sizeof(uint64_t), cudaMemcpyDeviceToHost) );

@@ -190,7 +190,9 @@ else
 	CXXFLAGS    += -fno-strict-aliasing
 	CFLAGS      += -fno-strict-aliasing
 endif
-
+ifeq ($(a100),1)
+	NVCCFLAGS += "-DNUM_OF_BLOCKS=3456" 
+endif
 # architecture flag for cubin build
 CUBIN_ARCH_FLAG :=
 
