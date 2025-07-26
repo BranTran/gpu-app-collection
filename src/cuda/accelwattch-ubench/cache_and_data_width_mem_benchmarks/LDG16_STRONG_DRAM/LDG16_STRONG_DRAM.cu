@@ -43,8 +43,8 @@
 #endif
 #define WARP_SIZE 32
 
-#define ARRAY_SIZE 2147483648
-#define STRIDE 33554432
+#define ARRAY_SIZE 268435456
+#define STRIDE 4194304
 
 uint16_t* dsink;
 uint16_t* posArray_g;
@@ -61,7 +61,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 
 __global__ void l2_stress(uint16_t *posArray, unsigned long long iterations){
     uint64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-    uint64_t current_index = tid*8;
+    uint64_t current_index = tid*4;
     uint16_t dummy = tid;
     #pragma unroll 100
     for(unsigned long long i = 0; i < iterations; ++i) {
@@ -88,7 +88,7 @@ int main(int argc, char** argv){
   else {
     iterations = atoll(argv[1]);
   }
-  long total_threads = ARRAY_SIZE; //THREADS_PER_BLOCK*NUM_OF_BLOCKS;
+  int total_threads = ARRAY_SIZE; //THREADS_PER_BLOCK*NUM_OF_BLOCKS;
  printf("Power Microbenchmarks with iterations %llu\n",iterations);
 
   dsink = (uint16_t*) malloc(total_threads*sizeof(uint16_t));

@@ -47,14 +47,14 @@
 #define NUM_OF_BLOCKS 640
 #endif
 // Variables
-unsigned* h_B;
-unsigned* d_B;
+uint8_t* h_B;
+uint8_t* d_B;
 //bool noprompt = false;
 //unsigned int my_timer;
 
 // Functions
 void CleanupResources(void);
-void RandomInit(unsigned*, int);
+void RandomInit(uint8_t*, int);
 //void ParseArguments(int, char**);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -87,19 +87,19 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 
 
-__global__ void PowerKernal2(unsigned* B, unsigned long long N)
+__global__ void PowerKernal2(uint8_t* B, unsigned long long N)
 {
     uint32_t uid = blockDim.x * blockIdx.x + threadIdx.x;
-    unsigned arr[THREADS_PER_BLOCK];
+    uint8_t arr[THREADS_PER_BLOCK];
    
   #pragma unroll 100
     for(uint64_t i=0; i<N; ++i) {
       #pragma unroll
       for(int j=0; j < THREADS_PER_BLOCK; ++j){
-	size_t pointer = __cvta_generic_to_local(arr+j);
+	size_t pointer = __cvta_generic_to_local(arr);
         asm volatile ("{\t\n"
-          "st.local.u32 [%1], %0;\n\t"
-          "}" :: "r"(uid), "l"(pointer) : "memory"
+          "st.local.u8 [%1], %0;\n\t"
+          "}" :: "r"(uid), "l"(pointer+j) : "memory"
         );
       }
   }
@@ -121,9 +121,9 @@ int main(int argc, char** argv)
  printf("Power Microbenchmarks with iterations %lld\n",iterations);
  
  int N = THREADS_PER_BLOCK*NUM_OF_BLOCKS;
- size_t size = N * sizeof(unsigned);
+ size_t size = N * sizeof(uint8_t);
  // Allocate input vectors h_A and h_B in host memory
- h_B = (unsigned*)malloc(size);
+ h_B = (uint8_t*)malloc(size);
  if (h_B == 0) CleanupResources();
 
 

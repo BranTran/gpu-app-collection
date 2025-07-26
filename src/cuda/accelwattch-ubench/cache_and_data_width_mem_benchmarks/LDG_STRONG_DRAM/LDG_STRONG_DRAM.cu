@@ -43,9 +43,14 @@
 #endif
 #define WARP_SIZE 32
 
-#define ARRAY_SIZE 536870912 //29
-#define STRIDE 8388608
+//V100 has 6144KB L2, and we are doing 8B entries
+//#define FACTOR 2
+//#define ARRAY_SIZE (67108864 * FACTOR) // 2^26 
+//V100 has 6144KB which would be 16384 8B entries
+//#define STRIDE (1048576 * FACTOR) // 2^20
 
+#define ARRAY_SIZE 134217728
+#define STRIDE 2097152
 uint32_t* dsink;
 uint32_t* posArray_g;
 
@@ -61,7 +66,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 
 __global__ void l2_stress(uint32_t *posArray, unsigned long long iterations){
     uint64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-    uint32_t current_index = tid*4;
+    uint32_t current_index = tid*2;
     uint32_t data;
     #pragma unroll 100
     for(unsigned long long i = 0; i < iterations; ++i) {
