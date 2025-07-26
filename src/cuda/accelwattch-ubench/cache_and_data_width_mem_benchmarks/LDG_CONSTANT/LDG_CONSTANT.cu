@@ -52,33 +52,34 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
         }
 }
 
-__global__ void l1_pointers_init(uint64_t *posArray){
+__global__ void l1_pointers_init(uint32_t *posArray){
 
   uint32_t tid = blockIdx.x*blockDim.x + threadIdx.x;
   if(tid == 0){
     for(uint32_t blk = 0; blk <NUM_OF_BLOCKS; blk++){
       for (uint32_t i=0; i<(THREADS_PER_BLOCK-1); i++){
-        posArray[(blk*THREADS_PER_BLOCK)+i] = (uint64_t)(posArray + (blk*THREADS_PER_BLOCK) + i + 1);
+        posArray[(blk*THREADS_PER_BLOCK)+i] = (uint32_t)(blk*THREADS_PER_BLOCK) + i + 1;
       }
 
-      posArray[((blk+1)*THREADS_PER_BLOCK)-1] = (uint64_t)(posArray + (blk*THREADS_PER_BLOCK));
+      posArray[((blk+1)*THREADS_PER_BLOCK)-1] = (uint32_t)(blk*THREADS_PER_BLOCK);
     }
   }
 }
 
-__global__ void l1_stress(uint64_t *posArray, uint64_t *dsink, unsigned long long iterations){
+__global__ void l1_stress(uint32_t *posArray, uint32_t *dsink, unsigned long long iterations){
 
   // thread index
   uint32_t tid = blockIdx.x*blockDim.x + threadIdx.x;
 
   if(tid < NUM_OF_BLOCKS*THREADS_PER_BLOCK){
   	// a register to avoid compiler optimization
-  	uint64_t *ptr = posArray + tid;
-  	uint64_t ptr1, ptr0;
+  	uint32_t *ptr = posArray;
+	uint32_t current_index = tid;
+  	uint32_t next_index;
 
   	// initialize the thread pointer with the start address of the array
   	// use ca modifier to cache the in L1
-    ptr1 = __ldg(ptr);
+        next_index = __ldg(ptr+current_index);
   	// synchronize all threads
   	asm volatile ("bar.sync 0;");
 
@@ -86,12 +87,11 @@ __global__ void l1_stress(uint64_t *posArray, uint64_t *dsink, unsigned long lon
   	// use ca modifier to cache the load in L1
   	#pragma unroll 100
   	for(unsigned long long i=0; i<iterations; ++i) { 
-      ptr0 = __ldg((uint64_t*)ptr1);
-  	  ptr1 = ptr0;    //swap the register for the next load
+          next_index = __ldg(ptr + next_index);
   	}
 
   	// write data back to memory
-  	dsink[tid] = ptr1;
+  	dsink[tid] = next_index;
   }
 }
 
@@ -107,15 +107,15 @@ int main(int argc, char** argv){
   int total_threads = THREADS_PER_BLOCK*NUM_OF_BLOCKS;
  printf("Power Microbenchmarks with iterations %llu\n",iterations);
 
-  uint64_t *dsink = (uint64_t*) malloc(total_threads*sizeof(uint64_t));
+  uint32_t *dsink = (uint32_t*) malloc(total_threads*sizeof(uint32_t));
   
 
-  uint64_t *posArray_g;
-  uint64_t *dsink_g;
+  uint32_t *posArray_g;
+  uint32_t *dsink_g;
   
 
-  checkCudaErrors( cudaMalloc(&posArray_g, total_threads*sizeof(uint64_t)) );
-  checkCudaErrors( cudaMalloc(&dsink_g, total_threads*sizeof(uint64_t)) );
+  checkCudaErrors( cudaMalloc(&posArray_g, total_threads*sizeof(uint32_t)) );
+  checkCudaErrors( cudaMalloc(&dsink_g, total_threads*sizeof(uint32_t)) );
  cudaEvent_t start, stop;                   
  float elapsedTime = 0;                     
  checkCudaErrors(cudaEventCreate(&start));  
@@ -133,7 +133,7 @@ int main(int argc, char** argv){
   
   checkCudaErrors( cudaPeekAtLastError() );
 
-  checkCudaErrors( cudaMemcpy(dsink, dsink_g, total_threads*sizeof(uint64_t), cudaMemcpyDeviceToHost) );
+  checkCudaErrors( cudaMemcpy(dsink, dsink_g, total_threads*sizeof(uint32_t), cudaMemcpyDeviceToHost) );
 
   return 0;
 } 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BIN_DIR="/scratch/08944/brantran/wattchmen-sc25-artifact/gpu-app-collection/bin/12.0/v100_release"
+BIN_DIR=${1} #"/scratch/08944/brantran/wattchmen-sc25-artifact/gpu-app-collection/bin/12.0/v100_release"
 NARGS=100000
 NAMESPACE="occupancy"
 
