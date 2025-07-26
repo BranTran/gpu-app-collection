@@ -42,7 +42,7 @@
 #include <cuda.h> //for uint64_t
 #define THREADS_PER_BLOCK 256
 #ifndef NUM_OF_BLOCKS
-#define NUM_OF_BLOCKS 3456
+#define NUM_OF_BLOCKS 640
 #endif
 //#define ITERATIONS 40
 //#include "../include/ContAcq-IntClk.h"
