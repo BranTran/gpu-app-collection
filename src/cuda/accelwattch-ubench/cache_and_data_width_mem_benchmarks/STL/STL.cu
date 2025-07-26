@@ -95,11 +95,13 @@ __global__ void PowerKernal2(unsigned* B, unsigned long long N)
   #pragma unroll 100
     for(uint64_t i=0; i<N; ++i) {
       #pragma unroll
-      for(int j=0; j < THREADS_PER_BLOCK; ++j)
+      for(int j=0; j < THREADS_PER_BLOCK; ++j){
+	size_t pointer = __cvta_generic_to_local(arr);
         asm volatile ("{\t\n"
           "st.local.u32 [%1], %0;\n\t"
-          "}" :: "r"(uid), "l"(&arr[j]) : "memory"
+          "}" :: "r"(uid), "l"(pointer+j) : "memory"
         );
+      }
   }
   B[uid] = arr[threadIdx.x];
 }
