@@ -100,7 +100,7 @@ __global__ void PowerKernal2(volatile uint8_t* A, volatile uint8_t* B, unsigned 
 	B[uid] = sink;
 /*  	asm volatile (
             "{\n\t"
-            "st.global.u8 [%0], %1;\n\t"
+            "st.volatile.global.u8 [%0], %1;\n\t"
             "}"
             :
             : "l"(outptr), "h"(sink)

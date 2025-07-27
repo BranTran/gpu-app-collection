@@ -65,7 +65,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 
 
 __global__ void l2_stress(uint32_t *posArray, unsigned long long iterations){
-    uint64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    uint32_t tid = blockIdx.x * blockDim.x + threadIdx.x;
     uint32_t current_index = tid*2;
 
     #pragma unroll 100
@@ -73,7 +73,7 @@ __global__ void l2_stress(uint32_t *posArray, unsigned long long iterations){
         uint32_t *ptr = posArray + current_index;
 
         asm volatile ("st.global.cg.u32 [%1], %0;"
-                      :: "r" (current_index), "l" (ptr)
+                      :: "r" (tid), "l" (ptr)
                       : "memory");
 
         current_index = (current_index + STRIDE) % ARRAY_SIZE;
