@@ -94,7 +94,7 @@ __global__ void l1_stress(uint4 *posArray, uint4 *dsink, unsigned long long iter
   	#pragma unroll 100
   	for(unsigned long long i=0; i<iterations; ++i) {
 	  current_index = next_index.x + next_index.y - next_index.z;	
-          next_index = __ldg(ptr + next_index.x);
+          next_index = __ldg(ptr + current_index);
   	}
 
   	// write data back to memory

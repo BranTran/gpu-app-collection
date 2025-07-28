@@ -98,11 +98,20 @@ __global__ void PowerKernal2(volatile unsigned* A, volatile unsigned* B, unsigne
     data.y = A[4*uid+1];
     data.z = A[4*uid+2];
     data.w = A[4*uid+3];
-    
+
+    volatile unsigned* ptr = A + 4*uid;
     volatile unsigned* outptr = B + 4*uid;
     #pragma unroll 100
         for (unsigned long long k = 0; k < N; k++) {
-        // Use inline PTX to load 128 bits (4 x 32-bit values) at once
+        // Use inline PTX to load 128 bits (4 x 32-bit values) at once   
+        asm volatile (
+            "{\n\t"
+            "st.global.v4.u32 [%0], {%1, %2, %3, %4};\n\t"
+            "}"
+            :
+            : "l"(ptr), "r"(data.x), "r"(data.y), "r"(data.z), "r"(data.w)
+            : "memory"
+        );
         asm volatile (
             "{\n\t"
             "st.global.v4.u32 [%0], {%1, %2, %3, %4};\n\t"
@@ -116,6 +125,7 @@ __global__ void PowerKernal2(volatile unsigned* A, volatile unsigned* B, unsigne
     // Store result back to global memory (sum of all four uint components)
     A[uid] = B[uid];
 }
+
 
 
 int main(int argc, char** argv)

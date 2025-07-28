@@ -43,11 +43,6 @@
 #endif
 #define WARP_SIZE 32
 
-//V100 has 6144KB L2, and we are doing 8B entries
-//#define FACTOR 2
-//#define ARRAY_SIZE (67108864 * FACTOR) // 2^26 
-//V100 has 6144KB which would be 16384 8B entries
-//#define STRIDE (1048576 * FACTOR) // 2^20
 
 #define ARRAY_SIZE 134217728
 #define STRIDE 2097152
@@ -65,7 +60,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 
 
 __global__ void l2_stress(uint32_t *posArray, unsigned long long iterations){
-    uint64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    uint32_t tid = blockIdx.x * blockDim.x + threadIdx.x;
     uint32_t current_index = tid*2;
 
     #pragma unroll 100
@@ -73,7 +68,7 @@ __global__ void l2_stress(uint32_t *posArray, unsigned long long iterations){
         uint32_t *ptr = posArray + current_index;
 
         asm volatile ("st.global.cg.u32 [%1], %0;"
-                      :: "r" (current_index), "l" (ptr)
+                      :: "r" (tid), "l" (ptr)
                       : "memory");
 
         current_index = (current_index + STRIDE) % ARRAY_SIZE;
