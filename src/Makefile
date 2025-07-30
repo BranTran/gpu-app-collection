@@ -17,7 +17,7 @@ accelwattch_validation: rodinia-3.1_accelwattch_validation parboil_accelwattch_v
 accelwattch_hw_power: rodinia-3.1_hw_power parboil_hw_power cuda_samples-11.0_hw_power
 
 #LOWER priority to get cuda_samples working
-bt_val: rodinia-3.1_one_kernel bt_backprop_mod#cuda_samples-11.0_one_kernel
+bt_val: rodinia-3.1_one_kernel #cuda_samples-11.0_one_kernel
 bt_backprop_mod: 
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cuda/accelwattch_validation_one_kernel/rodinia-3.1/cuda/backprop_k2_mod -f Makefile_nvidia
 	mv $(BINDIR)/$(BINSUBDIR)/backprop $(BINDIR)/$(BINSUBDIR)/backprop_k2_mod_one_kernel

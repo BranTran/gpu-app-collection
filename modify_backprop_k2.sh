@@ -19,11 +19,11 @@ make bt_backprop_mod -C src
 
 #Rename the benchmarks
 # Loop over all files in $BINDIR/release that end with ${onek}
-for file in $BINDIR/release/*${onek}; do
+for file in $BINDIR/$BINSUBDIR/*${onek}; do
   # Extract the base name of the file (without the directory part)
   base_name=$(basename "$file")
   # Rename the file
-  mv "$file" "$BINDIR/release/${base_name}_${ITERS}iter"
+  mv "$file" "$BINDIR/$BINSUBDIR/${base_name}_${ITERS}iter"
 done
  
 

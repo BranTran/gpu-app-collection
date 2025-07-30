@@ -1,4 +1,4 @@
-// Copyright (c 2018-2021, Vijay Kandiah, Junrui Pan, Mahmoud Khairy, Scott Peverelle, Timothy Rogers, Tor M. Aamodt, Nikos Hardavellas
+// Copyright (c) 2018-2021, Vijay Kandiah, Junrui Pan, Mahmoud Khairy, Scott Peverelle, Timothy Rogers, Tor M. Aamodt, Nikos Hardavellas
 // Northwestern University, Purdue University, The University of British Columbia
 // All rights reserved.
 //
@@ -43,11 +43,13 @@
 #endif
 #define WARP_SIZE 32
 
-#define ARRAY_SIZE 536870912
-#define STRIDE 8388608
+// #define ARRAY_SIZE 67108864 
+// #define STRIDE 1048576
+#define ARRAY_SIZE 268435456
+#define STRIDE 4194304
 
-uint8_t* dsink;
-uint8_t* posArray_g;
+uint4* dsink;
+uint4* posArray_g;
 
 // GPU error check
 #define checkCudaErrors(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -59,18 +61,22 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 }
 
 
-__global__ void l2_stress(uint8_t *posArray, unsigned long long iterations){
-    uint64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-    uint64_t current_index = tid*8;
-    uint16_t dummy = tid;
-    #pragma unroll 100
+__global__ void l2_stress(uint4 *posArray, unsigned long long iterations){
+    uint32_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    uint32_t current_index = tid;
+
+    #pragma unroll 500
     for(unsigned long long i = 0; i < iterations; ++i) {
-        uint8_t *ptr = posArray + current_index;
+        uint4 *ptr = posArray + current_index;
 
-        asm volatile ("st.global.cg.u8 [%1], %0;"
-                      :: "h" (dummy), "l" (ptr)
-                      : "memory");
-
+        asm volatile (
+            "{\n\t"
+            "st.global.cg.v4.u32 [%0], {%1, %2, %3, %4};\n\t"
+            "}"
+            :
+            : "l"(ptr), "r"(tid), "r"(tid), "r"(tid), "r"(tid)
+            : "memory"
+        );
         current_index = (current_index + STRIDE) % ARRAY_SIZE;
     }
 }
@@ -87,12 +93,12 @@ int main(int argc, char** argv){
   int total_threads = ARRAY_SIZE; //THREADS_PER_BLOCK*NUM_OF_BLOCKS;
  printf("Power Microbenchmarks with iterations %llu\n",iterations);
 
-  dsink = (uint8_t*) malloc(total_threads*sizeof(uint8_t));
+  dsink = (uint4*) malloc(total_threads*sizeof(uint4));
 
 
   
 
-  checkCudaErrors( cudaMalloc(&posArray_g, total_threads*sizeof(uint8_t)) );
+  checkCudaErrors( cudaMalloc(&posArray_g, total_threads*sizeof(uint4)) );
  cudaEvent_t start, stop;                   
  float elapsedTime = 0;                     
  checkCudaErrors(cudaEventCreate(&start));  
