@@ -92,11 +92,11 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 //__global__ void PowerKernal2(const int* A, const int* B, long long* C, unsigned long long iterations)
 __global__ void PowerKernal2( unsigned long long iterations)
 {
-	asm volatile("fence.mbarrier_init.release.cluster;");
 //	unsigned int val = threadIdx.x;
-//#pragma unroll 100
+#pragma unroll 100
     // Excessive Addition access
-//    for(unsigned long long k=0; k<iterations;k++) {
+    for(unsigned long long k=0; k<iterations;k++) {
+	asm volatile("fence.mbarrier_init.release.cluster;");
 	    //In H100 the undefined behavior below no long emits just NOPs
       //asm volatile ("bar.warp.sync 0;");
               // Inline PTX to issue a usad instruction
@@ -111,7 +111,7 @@ __global__ void PowerKernal2( unsigned long long iterations)
 		:"+r"(val)
 	);//*/
 //	asm volatile("fence.mbarrier_init.release.cluster;");
-//    }
+    }
 }
 
 int main(int argc, char** argv)
