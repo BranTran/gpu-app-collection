@@ -5,7 +5,7 @@ usage() {
     exit 1
 }
 path='accelwattch_validation_one_kernel/rodinia-3.1/cuda/backprop_k2'
-onek='mod'
+onek='mod_one_kernel'
 
 ITERS=${1}
 
