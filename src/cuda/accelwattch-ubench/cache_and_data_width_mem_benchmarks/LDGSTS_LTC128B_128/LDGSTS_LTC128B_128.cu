@@ -99,6 +99,7 @@ __global__ void async_load_kernel(const uint64_t* global_input, uint64_t* global
     // In a real kernel, this would be spread across threads for coalesced access.
     unsigned long long num_batches = iterations / BATCH_SIZE;
     unsigned remaining_ops = iterations % BATCH_SIZE;
+    size_t inptr = __cvta_generic_to_shared(smem);
 
     for (unsigned long long i = 0; i < num_batches; ++i) {
         // This inner loop issues a fixed number of async copies.
@@ -109,7 +110,7 @@ __global__ void async_load_kernel(const uint64_t* global_input, uint64_t* global
             asm volatile(
                 "cp.async.cg.shared.global.L2::128B [%0], [%1], 16, 16;"
                 : // No outputs
-                : "l"(smem), "l"(global_input)
+                : "l"(inptr), "l"(global_input)
             );
         }
         
