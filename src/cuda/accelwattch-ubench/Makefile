@@ -41,6 +41,24 @@ inline:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/SHFL_IDX/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/IDP_4A/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/PRMT/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDG_CONSTANT/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDGSTG128/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/STG128/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDGSTG16/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/STG16/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDGSTG8_STRONG_L2/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/STG8_STRONG/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDGSTG8/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/STG8/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDS_U_16/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/STS_16/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDS_U_64/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/STS_64/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDS_U_8/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/STS_8/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDGSTG8/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/STG8/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/ST_E_STRONG_L1/$(OPT)
 
 
 no_opt:
@@ -52,6 +70,9 @@ no_opt:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/ISETP_GE_AND/$(OPT) ptxas=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/ISETP_NE_AND/$(OPT) ptxas=1
 	# $(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/TLDADD/$(OPT) ptxas=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDC64/$(OPT) ptxas=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDC16/$(OPT) ptxas=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDC8/$(OPT) ptxas=1	
 
 
 investigate:
