@@ -16,8 +16,8 @@ for exe in "$BIN_DIR"/*; do
 
   # Run ncu and filter quoted lines
 #  ncu --section Occupancy --csv "$exe" "$NARGS" 2>/dev/null | grep '^"' > "$output_file"
-# ncu --section Occupancy --csv --log-file "${output_file}" "$exe" "$NARGS"
- $exe "$NARGS" > "${base_name}_${NARGS}.txt"
+ncu --section Occupancy --csv --log-file "${output_file}" "$exe" "$NARGS"
+
   echo "Wrote $output_file"
 done
 

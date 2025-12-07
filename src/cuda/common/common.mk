@@ -382,6 +382,7 @@ ifeq ($(mem), 1)
 	NVCCFLAGS += -Xptxas="-flcm=cv,-fscm=wt"
 endif
 
+endif
 ifeq ($(ptxas), 1)
         NVCCFLAGS += --ptxas-options="-O0,-disable-optimizer-consts,-allow-expensive-optimizations=false"
 endif

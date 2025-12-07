@@ -48,44 +48,58 @@ using namespace nvcuda;
 #define MATRIX_N 4096
 #define MATRIX_K 4096
 
+#define WMMA_M 16
+#define WMMA_N 8
+#define WMMA_K 16
+#define WARP_SIZE 32
 
+__global__ void dmma16816_example(double *a, double *b, double *c, int M, int N, int K, unsigned long long iterations) {
+    // Each warp processes a 16x8x16 tile.
+    const unsigned int warp_id = threadIdx.x / WARP_SIZE;
+    const unsigned int lane_id = threadIdx.x % WARP_SIZE;
+    
+    // Allocate registers for the fragments for this thread.
+    // D and C are M x N matrices (16x8), each thread gets (16*8)/32 = 4 elements.
+    double c_frag[4];
+    // A is M x K matrix (16x16), each thread gets (16*16)/32 = 8 elements.
+    double a_frag[8];
+    // B is K x N matrix (16x8), each thread gets (16*8)/32 = 4 elements.
+    double b_frag[4];
 
-// The only dimensions currently supported by WMMA
-const int WMMA_M = 8;
-const int WMMA_N = 8;
-const int WMMA_K = 4;
+    // Initialize fragments (dummy loads for a microbenchmark)
+    // The sizes of the loops must be updated.
+    for (int i = 0; i < 8; ++i) {
+        a_frag[i] = a[lane_id * 8 + i];
+    }
+    for (int i = 0; i < 4; ++i) {
+        b_frag[i] = b[lane_id * 4 + i];
+        c_frag[i] = c[lane_id * 4 + i];
+    }
+    
+    // The mma instruction requires the operands to be passed as individual registers.
+    
+    #pragma unroll 100
+    for (unsigned long long i = 0; i < iterations; i++){
+        asm volatile(
+            "mma.sync.aligned.m16n8k16.row.col.f64.f64.f64.f64 "
+            "  {%0, %1, %2, %3}, "      // D (Result) - 4 registers
+            "  {%4, %5, %6, %7, %8, %9, %10, %11}, "  // A - 8 registers
+            "  {%12, %13, %14, %15}, "  // B - 4 registers
+            "  {%0, %1, %2, %3};"       // C (Accumulator) - 4 registers
+            : "+d"(c_frag[0]), "+d"(c_frag[1]), "+d"(c_frag[2]), "+d"(c_frag[3])
+            : "d"(a_frag[0]), "d"(a_frag[1]), "d"(a_frag[2]), "d"(a_frag[3]), "d"(a_frag[4]), "d"(a_frag[5]), "d"(a_frag[6]), "d"(a_frag[7])
+            , "d"(b_frag[0]), "d"(b_frag[1]), "d"(b_frag[2]), "d"(b_frag[3])
+        );
+    }
 
-
-
-__global__ void wmma_example(double *a, double *b, double *c, int M, int N, int K, unsigned long long iterations) {
-   // Leading dimensions. Packed with no transpositions.
-   int lda = M;
-   int ldb = K;
-   int ldc = M;
-
-   // Declare the fragments
-   wmma::fragment<wmma::matrix_a, WMMA_M, WMMA_N, WMMA_K, double, wmma::col_major> a_frag;
-   wmma::fragment<wmma::matrix_b, WMMA_M, WMMA_N, WMMA_K, double, wmma::col_major> b_frag;
-   wmma::fragment<wmma::accumulator, WMMA_M, WMMA_N, WMMA_K, double> c_frag;
-        
-   wmma::load_matrix_sync(a_frag, a , lda);
-   wmma::load_matrix_sync(b_frag, b , ldb);
-   wmma::load_matrix_sync(c_frag, c , ldc, wmma::mem_col_major);
-   
-   #pragma unroll 100
-   for(unsigned long long i=0; i<iterations; i++){
-      wmma::mma_sync(c_frag, a_frag, b_frag, c_frag);
-   }
-
-   wmma::store_matrix_sync(c, c_frag, ldc, wmma::mem_col_major);
+    // Store the result back to global memory (again, simplified)
+    for (int i = 0; i < 4; ++i) {
+        c[lane_id * 4 + i] = c_frag[i];
+    }
 }
 
-// __global__ void convertFp32ToFp16 (half *out, float *in, int n) {
-//    int idx = blockDim.x * blockIdx.x + threadIdx.x;
-//    if (idx < n) {
-//       out[idx] = in[idx];
-//    }
-// }
+
+
 
 void RandomInit_fp(double* data, int n)
 {
@@ -105,11 +119,12 @@ int main(int argc, char* argv[]) {
     }
    double *a_fp64;
    double *b_fp64;
+//   half *a_fp16;
+//   half *b_fp16;
 
    double *c_wmma;
 
    double *c_host_wmma;
-   
    
    cudaEvent_t startWMMA;
    cudaEvent_t stopWMMA;
@@ -131,9 +146,9 @@ int main(int argc, char* argv[]) {
    RandomInit_fp(a_fp64_h, MATRIX_M * MATRIX_K);
    RandomInit_fp(b_fp64_h, MATRIX_K * MATRIX_N);
    RandomInit_fp( c_host_wmma, MATRIX_M * MATRIX_N);
+   cudaErrCheck(cudaMemcpy(c_wmma, c_host_wmma, MATRIX_M * MATRIX_N * sizeof(double), cudaMemcpyHostToDevice));
    cudaErrCheck(cudaMemcpy(a_fp64, a_fp64_h, MATRIX_M * MATRIX_K * sizeof(double), cudaMemcpyHostToDevice));
    cudaErrCheck(cudaMemcpy(b_fp64, b_fp64_h, MATRIX_K * MATRIX_N * sizeof(double), cudaMemcpyHostToDevice));
-   cudaErrCheck(cudaMemcpy(c_wmma, c_host_wmma, MATRIX_M * MATRIX_N * sizeof(double), cudaMemcpyHostToDevice));
 
 
    printf("\nM = %d, N = %d, K = %d\n\n", MATRIX_M, MATRIX_N, MATRIX_K);
@@ -151,7 +166,7 @@ int main(int argc, char* argv[]) {
    gridDim.y = (MATRIX_N + WMMA_N * blockDim.y - 1) / (WMMA_N * blockDim.y);
    
    cudaErrCheck(cudaEventRecord(startWMMA));
-   wmma_example <<< gridDim, blockDim >>> (a_fp64, b_fp64, c_wmma, MATRIX_M, MATRIX_N, MATRIX_K, iterations);
+   dmma16816_example <<< gridDim, blockDim >>> (a_fp64, b_fp64, c_wmma, MATRIX_M, MATRIX_N, MATRIX_K, iterations);
    cudaErrCheck(cudaEventRecord(stopWMMA));
 
    
