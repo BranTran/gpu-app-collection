@@ -46,9 +46,7 @@ using namespace nvcuda;
 
 
 #define THREADS_PER_BLOCK 256
-#ifndef NUM_OF_BLOCKS
-#define NUM_OF_BLOCKS 3456
-#endif
+#define NUM_OF_BLOCKS 640
 //#define ITERATIONS 40
 //#include "../include/ContAcq-IntClk.h"
 

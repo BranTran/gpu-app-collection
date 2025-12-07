@@ -43,9 +43,7 @@
 #include <cuda_runtime.h>
 #include <cuda.h> //BT: Needed for uint32_t
 #define THREADS_PER_BLOCK 256
-#ifndef NUM_OF_BLOCKS
-#define NUM_OF_BLOCKS 3456
-#endif
+#define NUM_OF_BLOCKS 640
 // Variables
 uint16_t* h_A;
 uint16_t* h_B;
@@ -89,24 +87,22 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 
 
-__global__ void PowerKernal2(uint16_t* A, uint16_t* B, unsigned long long N)
+__global__ void PowerKernal2(volatile uint16_t* A, volatile uint16_t* B, unsigned long long N)
 {
     uint32_t uid = blockDim.x * blockIdx.x + threadIdx.x;
     volatile uint16_t sink = A[uid];
-    //volatile uint16_t* outptr = B + uid;
+    volatile uint16_t* outptr = B + uid;
 
 #pragma unroll 100
 	for(uint64_t i=0; i<N; ++i) {
-	B[uid] = sink;
-	A[uid] = sink;
-  /*	asm volatile (
+  	asm volatile (
             "{\n\t"
             "st.global.u16 [%0], %1;\n\t"
             "}"
             :
             : "l"(outptr), "h"(sink)
             : "memory"
-        );//*/
+        );
     }
 }
 

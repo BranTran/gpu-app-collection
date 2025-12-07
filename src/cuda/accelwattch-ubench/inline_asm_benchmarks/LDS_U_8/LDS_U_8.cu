@@ -43,9 +43,7 @@
 #include <cuda_runtime.h>
 #include <cuda.h> //BT: Needed for uint32_t
 #define THREADS_PER_BLOCK 256
-#ifndef NUM_OF_BLOCKS
-#define NUM_OF_BLOCKS 3456
-#endif
+#define NUM_OF_BLOCKS 640
 #define SHARED_MEM_SIZE THREADS_PER_BLOCK*4
 // Variables
 uint8_t* h_A;

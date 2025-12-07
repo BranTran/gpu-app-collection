@@ -51,8 +51,12 @@ no_opt:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/BRA/$(OPT) ptxas=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/ISETP_GE_AND/$(OPT) ptxas=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/ISETP_NE_AND/$(OPT) ptxas=1
+<<<<<<< Updated upstream
 	# $(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/TLDADD/$(OPT) ptxas=1
 
+=======
+	#$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/TLDADD/$(OPT) ptxas=1
+>>>>>>> Stashed changes
 
 investigate:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/F2F_64_32_STG/$(OPT) ptxas=1
@@ -213,14 +217,14 @@ functional:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C functional_benchmarks/BE_HP_FP_DIV/$(OPT)    
 
 memories:
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C memories_benchmarks/BE_TEXTURE_ACCESS_2/$(OPT)
+	#$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C memories_benchmarks/BE_TEXTURE_ACCESS_2/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C memories_benchmarks/BE_MEM_SHRD_Acss/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C memories_benchmarks/BE_MEM_CNST_Acss/$(OPT)
 	#$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C memories_benchmarks/BE_L1D_MISS/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C memories_benchmarks/BE_L1D_HIT/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C memories_benchmarks/BE_L2D_HIT/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C memories_benchmarks/BE_MEM_DRAM_Acss/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C memories_benchmarks/BE_TEXTURE_ACCESS_2/$(OPT)
+	#$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C memories_benchmarks/BE_TEXTURE_ACCESS_2/$(OPT)
 	#$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C memories_benchmarks/FE_IL0_HIT/$(OPT)
 	#$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C memories_benchmarks/FE_IL1_HIT/$(OPT)
 	#$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C memories_benchmarks/FE_IL1_MISS/$(OPT)
