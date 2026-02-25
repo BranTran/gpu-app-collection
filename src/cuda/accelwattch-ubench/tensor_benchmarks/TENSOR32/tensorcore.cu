@@ -71,15 +71,28 @@ __global__ void wmma_example(half *a, half *b, float *c, int M, int N, int K, un
    wmma::load_matrix_sync(a_frag, a , lda);
    wmma::load_matrix_sync(b_frag, b , ldb);
    wmma::load_matrix_sync(c_frag, c , ldc, wmma::mem_col_major);
-   
-   #pragma unroll 100
-   for(unsigned long long i=0; i<iterations; i++){
-      wmma::mma_sync(c_frag, a_frag, b_frag, c_frag);
-   }
+   uint32_t const *A = reinterpret_cast<uint32_t const *>(&a_frag);
+   uint32_t const *B = reinterpret_cast<uint32_t const *>(&b_frag);
+   float *C = reinterpret_cast<float *>(&c_frag);
+   float *D = C;  // D is the destination, which is the same as the accumulator C.
 
+   // #pragma unroll is used to unroll the loop in the SASS.
+   // The mma instruction is called in a tight loop to measure performance.
+   #pragma unroll 100
+   for (unsigned long long i = 0; i < iterations; i++){
+       asm(
+       "mma.sync.aligned.m16n8k8.row.col.f32.f16.f16.f32 "
+       "{%0,%1,%2,%3}, {%4,%5}, {%6}, {%7,%8,%9,%10};\n"
+       : "=f"(D[0]), "=f"(D[1]), "=f"(D[2]), "=f"(D[3])
+       :
+           "r"(A[0]), "r"(A[1]),
+           "r"(B[0]),
+           "f"(C[0]), "f"(C[1]), "f"(C[2]), "f"(C[3])
+       );
+
+   }
    wmma::store_matrix_sync(c, c_frag, ldc, wmma::mem_col_major);
 }
-
 __global__ void convertFp32ToFp16 (half *out, float *in, int n) {
    int idx = blockDim.x * blockIdx.x + threadIdx.x;
    if (idx < n) {
