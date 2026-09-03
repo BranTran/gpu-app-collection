@@ -29,7 +29,7 @@
 //This code is a modification of L1 cache benchmark from 
 //"Dissecting the NVIDIA Volta GPU Architecture via Microbenchmarking": https://arxiv.org/pdf/1804.06826.pdf
 
-//This benchmark stresses the L2 cache
+//This benchmark stresses DRAM
 
 //This code have been tested on Volta V100 architecture
 
@@ -59,7 +59,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 }
 
 
-__global__ void l2_stress(uint8_t *posArray, unsigned long long iterations){
+__global__ void dram_stress(uint8_t *posArray, unsigned long long iterations){
     uint64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
     uint64_t current_index = tid*32;
     uint16_t dummy = tid;
@@ -104,7 +104,7 @@ int main(int argc, char** argv){
  checkCudaErrors(cudaEventCreate(&stop));
 
  checkCudaErrors(cudaEventRecord(start));    
-  l2_stress<<<NUM_OF_BLOCKS,THREADS_PER_BLOCK>>>(posArray_g, iterations);
+  dram_stress<<<NUM_OF_BLOCKS,THREADS_PER_BLOCK>>>(posArray_g, iterations);
  checkCudaErrors(cudaEventRecord(stop));               
  
  checkCudaErrors(cudaEventSynchronize(stop));           

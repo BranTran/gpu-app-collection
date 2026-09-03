@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # The string to be replaced
-OLD_STRING="LDGSTG"
+OLD_STRING="LDG"
 
 # The new string
 NEW_STRING="LDG"

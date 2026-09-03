@@ -29,7 +29,7 @@
 //This code is a modification of L1 cache benchmark from 
 //"Dissecting the NVIDIA Volta GPU Architecture via Microbenchmarking": https://arxiv.org/pdf/1804.06826.pdf
 
-//This benchmark stresses the L1 cache
+//This benchmark stresses DRAM
 
 //This code have been tested on Volta V100 architecture
 
