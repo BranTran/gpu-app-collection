@@ -7,15 +7,15 @@ bt_memories:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDC64/$(OPT) a100=1 ptxas=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDG64/$(OPT) a100=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDG64_STRONG_DRAM/$(OPT) a100=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDGSTG/$(OPT) a100=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDGSTG_STRONG/$(OPT) a100=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDGSTG8/$(OPT) a100=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDGSTG16/$(OPT) a100=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDGSTG128/$(OPT) a100=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDS_U_8/$(OPT) a100=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDS_U_16/$(OPT) a100=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDS_U_64/$(OPT) a100=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDS_U_128/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDG/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDG_STRONG/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDG8/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDG16/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDG128/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDS_U8/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDS_U16/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDS_U64/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDS_U128/$(OPT) a100=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/ST_E_STRONG/$(OPT) a100=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/STG/$(OPT) a100=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/STG8/$(OPT) a100=1
@@ -24,17 +24,17 @@ bt_memories:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/STG64/$(OPT) a100=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/STG128/$(OPT) a100=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/STS/$(OPT) a100=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/STS_8/$(OPT) a100=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/STS_16/$(OPT) a100=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/STS_64/$(OPT) a100=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/STS_128/$(OPT) a100=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDGSTG_STRONG_L2/$(OPT) a100=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDGSTG8_STRONG/$(OPT) a100=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDGSTG8_STRONG_L2/$(OPT) a100=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDGSTG16_STRONG/$(OPT) a100=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDGSTG16_STRONG_L2/$(OPT) a100=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDGSTG128_STRONG/$(OPT) a100=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDGSTG128_STRONG_L2/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/STS8/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/STS16/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/STS64/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/STS128/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDG_STRONG_L2/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDG8_STRONG/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDG8_STRONG_L2/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDG16_STRONG/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDG16_STRONG_L2/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDG128_STRONG/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDG128_STRONG_L2/$(OPT) a100=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/STG_STRONG/$(OPT) a100=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/STG_STRONG_L2/$(OPT) a100=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/STG16_STRONG/$(OPT) a100=1
@@ -65,6 +65,11 @@ inline:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/SHFL_IDX/$(OPT) a100=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/IDP_4A/$(OPT) a100=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/PRMT/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/NANOSLEEP/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LEA/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/ST_E_STRONG_L1/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/STG64_L1_HIT/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/STG_L2_HIT/$(OPT) a100=1
 
 
 no_opt:
@@ -86,12 +91,12 @@ investigate:
 	# $(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDS/$(OPT) a100=1
 	# $(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/TLD/$(OPT) a100=1 ptxas=1
 	# $(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/TLDSTG/$(OPT) a100=1 ptxas=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDG/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C testing_benchmarks/LDG/$(OPT) a100=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/P2R/$(OPT) a100=1 ptxas=1
 	# $(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C testing_benchmarks/F2F_32_64_empty/$(OPT) a100=1 ptxas=1
 	# $(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C testing_benchmarks/F2F_64_32_empty/$(OPT) a100=1 ptxas=1
 	# $(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C testing_benchmarks/IMAD_IADD_no_mul/$(OPT) a100=1
-	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/IMAD_MOV_U32/$(OPT) a100=1 ptxas=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C testing_benchmarks/IMAD_MOV_U32/$(OPT) a100=1 ptxas=1
 	# $(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/LDC128/$(OPT) a100=1
 testing:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C testing_benchmarks/F2F_32_F2F/$(OPT) a100=1 ptxas=1
@@ -110,11 +115,17 @@ testing:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDL64/$(OPT) a100=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/STL128/$(OPT) a100=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDL128/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C testing_benchmarks/DADD_DMUL_base/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C testing_benchmarks/DADD_DMUL_DMUL/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C testing_benchmarks/DADD_DMUL_twice/$(OPT) a100=1
 new:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDSM_16_MT88_4/$(OPT) a100=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDSM_16_M88_4/$(OPT) a100=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDGSTS_LTC128B_128/$(OPT) a100=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDGSTS_LTC128B_128_CCTL/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDG64_STRONG_L2/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/STG128_STRONG_L2_v2/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/STS_128_v2/$(OPT) a100=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDGSTS_LTC128B_128_OFFSET/$(OPT) a100=1
 	# $(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C inline_asm_benchmarks/BSSY/$(OPT) a100=1 ptxas=1
 
@@ -136,6 +147,12 @@ static_power:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C static_power_modeling/INT_FP_TEX_STATIC/$(OPT) a100=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C static_power_modeling/INT_FP_SFU_STATIC/$(OPT) a100=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C static_power_modeling/LIGHT_SM/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C static_power_modeling/DP_ADD/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C static_power_modeling/DP_MAD/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C static_power_modeling/DP_MUL/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C static_power_modeling/FP_ADD/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C static_power_modeling/FP_MAD/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C static_power_modeling/FP_MUL/$(OPT) a100=1
 
 branching:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C branching_benchmarks/BE_SP_INT_ADD_l1/$(OPT)
@@ -226,6 +243,7 @@ memories:
 	#$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C memories_benchmarks/BE_L1D_MISS/$(OPT) a100=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C memories_benchmarks/BE_L1D_HIT/$(OPT) a100=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C memories_benchmarks/BE_L2D_HIT/$(OPT) a100=1
+	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C memories_benchmarks/BE_L2D_MISS/$(OPT) a100=1
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C memories_benchmarks/BE_MEM_DRAM_Acss/$(OPT) a100=1
 	#$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C memories_benchmarks/BE_TEXTURE_ACCESS_2/$(OPT) a100=1
 	#$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C memories_benchmarks/FE_IL0_HIT/$(OPT) a100=1
@@ -310,8 +328,7 @@ cleaninline:
 	$(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/BAR/$(OPT)
 	# $(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/LDS/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/STS/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/LDG/$(OPT)
-	$(SETENV) make $(MAKE_ARGS) clean -C inline_asm_benchmarks/LDGSTG/$(OPT)
+	$(SETENV) make $(MAKE_ARGS) clean -C testing_benchmarks/LDG/$(OPT)
 
 cleantensor:
 	$(SETENV) make $(MAKE_ARGS) clean -C tensor_benchmarks/TENSOR/$(OPT)   
