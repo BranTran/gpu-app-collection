@@ -34,9 +34,9 @@
 # ################################################################################
 #
 # # Add source files here
-  EXECUTABLE      := STG64_STRONG
+  EXECUTABLE      := STS128
 # # Cuda source files (compiled with cudacc)
-  CUFILES         := STG64_STRONG.cu
+  CUFILES         := STS128.cu
 # # C/C++ source files (compiled with gcc / c++)
   CCFILES         := \
 	#

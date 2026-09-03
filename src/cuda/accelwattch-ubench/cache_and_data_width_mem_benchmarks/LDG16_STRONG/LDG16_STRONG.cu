@@ -43,18 +43,20 @@
 #include <cuda_runtime.h>
 #include <cuda.h> //BT: Needed for uint32_t
 #define THREADS_PER_BLOCK 256
+#ifndef NUM_OF_BLOCKS
 #define NUM_OF_BLOCKS 640
+#endif
 // Variables
-unsigned* h_A;
-unsigned* h_B;
-unsigned* d_A;
-unsigned* d_B;
+uint16_t* h_A;
+uint16_t* h_B;
+uint16_t* d_A;
+uint16_t* d_B;
 //bool noprompt = false;
 //unsigned int my_timer;
 
 // Functions
 void CleanupResources(void);
-void RandomInit(unsigned*, int);
+void RandomInit(uint16_t*, int);
 //void ParseArguments(int, char**);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -87,14 +89,32 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 
 
-__global__ void PowerKernal2(unsigned* A, unsigned* B, unsigned long long N)
+__global__ void PowerKernal2(volatile uint16_t* A, volatile uint16_t* B, unsigned long long N)
 {
     uint32_t uid = blockDim.x * blockIdx.x + threadIdx.x;
-    volatile unsigned sink = 0;
+    volatile uint16_t sink = 0;
+    volatile uint16_t* inptr = A + uid;
+    volatile uint16_t* outptr = B + uid;
+
 #pragma unroll 100
 	for(uint64_t i=0; i<N; ++i) {
-      sink = A[uid];
-      B[uid] = sink;   
+        // Use inline PTX to load 128 bits (4 x 32-bit values) at once
+        asm volatile (
+            "{\n\t"
+            "ld.global.ca.u16 %0, [%1];\n\t"
+            "}"
+            : "=h"(sink)
+            : "l"(inptr)
+            : "memory"
+        );  
+  	asm volatile (
+            "{\n\t"
+            "st.volatile.global.u16 [%0], %1;\n\t"
+            "}"
+            :
+            : "l"(outptr), "h"(sink)
+            : "memory"
+        );
     }
 }
 
@@ -113,11 +133,11 @@ int main(int argc, char** argv)
  printf("Power Microbenchmarks with iterations %lld\n",iterations);
  
  int N = THREADS_PER_BLOCK*NUM_OF_BLOCKS;
- size_t size = N * sizeof(unsigned);
+ size_t size = N * sizeof(uint16_t);
  // Allocate input vectors h_A and h_B in host memory
- h_A = (unsigned*)malloc(size);
+ h_A = (uint16_t*)malloc(size);
  if (h_A == 0) CleanupResources();
- h_B = (unsigned*)malloc(size);
+ h_B = (uint16_t*)malloc(size);
  if (h_B == 0) CleanupResources();
 
 
@@ -180,10 +200,10 @@ void CleanupResources(void)
 }
 
 // Allocates an array with random float entries.
-void RandomInit(unsigned* data, int n)
+void RandomInit(uint16_t* data, int n)
 {
   for (int i = 0; i < n; ++i){
-  srand((unsigned)time(0));  
+  srand((uint16_t)time(0));  
   data[i] = rand() / RAND_MAX;
   }
 }

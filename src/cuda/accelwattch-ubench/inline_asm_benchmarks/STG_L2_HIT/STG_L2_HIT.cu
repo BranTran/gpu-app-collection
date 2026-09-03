@@ -43,7 +43,9 @@
 #include <cuda_runtime.h>
 #include <cuda.h> //BT: Needed for uint32_t
 #define THREADS_PER_BLOCK 256
-#define NUM_OF_BLOCKS 640
+#ifndef NUM_OF_BLOCKS
+#define NUM_OF_BLOCKS 3456
+#endif
 // Variables
 unsigned* h_A;
 unsigned* h_B;
@@ -90,12 +92,26 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 __global__ void PowerKernal2(unsigned* A, unsigned* B, unsigned long long N)
 {
     uint32_t uid = blockDim.x * blockIdx.x + threadIdx.x;
-    volatile unsigned sink = 0;
+    volatile unsigned sink;
+   
+    unsigned* A_ptr = A + uid;
+    unsigned* B_ptr = B + uid;
+    
+    asm volatile ("{\t\n"
+      "ld.global.cg.u32 %0, [%1] ;\n\t"
+      "}" : "=r"(sink) : "l"(A_ptr) : "memory"
+    );
 #pragma unroll 100
 	for(uint64_t i=0; i<N; ++i) {
-      sink = A[uid];
-      B[uid] = sink;   
-    }
+    asm volatile ("{\t\n"
+      "st.cg.u32 [%1], %0;\n\t"
+      "}" : "=r"(sink) : "l"(B_ptr) : "memory"
+    );
+    asm volatile ("{\t\n"
+      "st.cg.u32 [%1], %0;\n\t"
+      "}" : "=r"(sink) : "l"(A_ptr) : "memory"
+    );    }
+    B[uid] = sink;
 }
 
 

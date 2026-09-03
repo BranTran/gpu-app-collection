@@ -43,18 +43,20 @@
 #include <cuda_runtime.h>
 #include <cuda.h> //BT: Needed for uint32_t
 #define THREADS_PER_BLOCK 256
+#ifndef NUM_OF_BLOCKS
 #define NUM_OF_BLOCKS 640
+#endif
 // Variables
-unsigned* h_A;
-unsigned* h_B;
-unsigned* d_A;
-unsigned* d_B;
+uint4* h_A;
+uint4* h_B;
+uint4* d_A;
+uint4* d_B;
 //bool noprompt = false;
 //unsigned int my_timer;
 
 // Functions
 void CleanupResources(void);
-void RandomInit(unsigned*, int);
+void RandomInit(uint4*, int);
 //void ParseArguments(int, char**);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -86,16 +88,35 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 // end of CUDA Helper Functions
 
 
-
-__global__ void PowerKernal2(unsigned* A, unsigned* B, unsigned long long N)
+__global__ void PowerKernal2(volatile uint4* A, volatile uint4* B, unsigned long long N)
 {
     uint32_t uid = blockDim.x * blockIdx.x + threadIdx.x;
-    volatile unsigned sink = 0;
-#pragma unroll 100
-	for(uint64_t i=0; i<N; ++i) {
-      sink = A[uid];
-      B[uid] = sink;   
+ 
+    uint4 data;
+    data.x = A[uid].x;
+    data.y = A[uid].y;
+    data.z = A[uid].z;
+    data.w = A[uid].w;
+
+    volatile uint4* outptr = B + uid;
+    #pragma unroll 100
+        for (unsigned long long k = 0; k < N; k++) {
+        // Use inline PTX to load 128 bits (4 x 32-bit values) at once
+        asm volatile (
+            "{\n\t"
+            "st.volatile.global.v4.u32 [%0], {%1, %2, %3, %4};\n\t"
+            "}"
+            :
+            : "l"(outptr), "r"(data.x), "r"(data.y), "r"(data.z), "r"(data.w)
+            : "memory"
+        );
     }
+
+    // Store result back to global memory (sum of all four uint components)
+    A[uid].x = B[uid].x;
+    A[uid].y = B[uid].y;
+    A[uid].z = B[uid].z;
+    A[uid].w = B[uid].w;
 }
 
 
@@ -113,11 +134,11 @@ int main(int argc, char** argv)
  printf("Power Microbenchmarks with iterations %lld\n",iterations);
  
  int N = THREADS_PER_BLOCK*NUM_OF_BLOCKS;
- size_t size = N * sizeof(unsigned);
+ size_t size = N * sizeof(uint4);//In order to vectorize to uint4 without collision
  // Allocate input vectors h_A and h_B in host memory
- h_A = (unsigned*)malloc(size);
+ h_A = (uint4*)malloc(size);
  if (h_A == 0) CleanupResources();
- h_B = (unsigned*)malloc(size);
+ h_B = (uint4*)malloc(size);
  if (h_B == 0) CleanupResources();
 
 
@@ -180,10 +201,13 @@ void CleanupResources(void)
 }
 
 // Allocates an array with random float entries.
-void RandomInit(unsigned* data, int n)
+void RandomInit(uint4* data, int n)
 {
   for (int i = 0; i < n; ++i){
   srand((unsigned)time(0));  
-  data[i] = rand() / RAND_MAX;
+  data[i].x = rand() / RAND_MAX;
+  data[i].y = rand() / RAND_MAX;
+  data[i].z = rand() / RAND_MAX;
+  data[i].w = rand() / RAND_MAX;
   }
 }

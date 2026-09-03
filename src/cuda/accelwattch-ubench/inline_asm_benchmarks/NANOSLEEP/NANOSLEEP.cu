@@ -29,10 +29,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 //#include <cutil.h>
-//#include <mgp.h>
 // Includes
 //#include <stdio.h>
-//#include "../include/ContAcq-IntClk.h"
 
 // includes, project
 //#include "../include/sdkHelper.h"  // helper for shared functions common to CUDA SDK samples
@@ -41,20 +39,27 @@
 
 // includes CUDA
 #include <cuda_runtime.h>
-#include <cuda.h> //BT: Needed for uint32_t
+
 #define THREADS_PER_BLOCK 256
+#ifndef NUM_OF_BLOCKS
 #define NUM_OF_BLOCKS 640
+#endif
+//#define ITERATIONS 40
+//#include "../include/ContAcq-IntClk.h"
+
 // Variables
-unsigned* h_A;
-unsigned* h_B;
-unsigned* d_A;
-unsigned* d_B;
+int* h_A;
+int* h_B;
+long long* h_C;
+int* d_A;
+int* d_B;
+long long* d_C;
 //bool noprompt = false;
 //unsigned int my_timer;
 
 // Functions
 void CleanupResources(void);
-void RandomInit(unsigned*, int);
+void RandomInit(int*, int);
 //void ParseArguments(int, char**);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -66,8 +71,8 @@ void RandomInit(unsigned*, int);
 inline void __checkCudaErrors(cudaError err, const char *file, const int line )
 {
   if(cudaSuccess != err){
-  fprintf(stderr, "%s(%i) : CUDA Runtime API error %d: %s.\n",file, line, (int)err, cudaGetErrorString( err ) );
-   exit(-1);
+	fprintf(stderr, "%s(%i) : CUDA Runtime API error %d: %s.\n",file, line, (int)err, cudaGetErrorString( err ) );
+	 exit(-1);
   }
 }
 
@@ -78,26 +83,20 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 {
   cudaError_t err = cudaGetLastError();
   if (cudaSuccess != err){
-  fprintf(stderr, "%s(%i) : getLastCudaError() CUDA error : %s : (%d) %s.\n",file, line, errorMessage, (int)err, cudaGetErrorString( err ) );
-  exit(-1);
+	fprintf(stderr, "%s(%i) : getLastCudaError() CUDA error : %s : (%d) %s.\n",file, line, errorMessage, (int)err, cudaGetErrorString( err ) );
+	exit(-1);
   }
 }
 
 // end of CUDA Helper Functions
-
-
-
-__global__ void PowerKernal2(unsigned* A, unsigned* B, unsigned long long N)
+__global__ void PowerKernal2(const int* A, const int* B, long long* C, unsigned long long iterations)
 {
-    uint32_t uid = blockDim.x * blockIdx.x + threadIdx.x;
-    volatile unsigned sink = 0;
 #pragma unroll 100
-	for(uint64_t i=0; i<N; ++i) {
-      sink = A[uid];
-      B[uid] = sink;   
+    // Excessive Addition access
+    for(unsigned long long k=0; k<iterations;k++) {
+	    asm volatile ("nanosleep.u32 1000;");
     }
 }
-
 
 int main(int argc, char** argv)
 {
@@ -109,54 +108,55 @@ int main(int argc, char** argv)
  else {
    iterations = atoll(argv[1]);
  }
- 
- printf("Power Microbenchmarks with iterations %lld\n",iterations);
- 
- int N = THREADS_PER_BLOCK*NUM_OF_BLOCKS;
- size_t size = N * sizeof(unsigned);
- // Allocate input vectors h_A and h_B in host memory
- h_A = (unsigned*)malloc(size);
- if (h_A == 0) CleanupResources();
- h_B = (unsigned*)malloc(size);
- if (h_B == 0) CleanupResources();
 
+ printf("Power Microbenchmarks with iterations %lld\n",iterations);
+ int N = THREADS_PER_BLOCK*NUM_OF_BLOCKS;
+ size_t size = N * sizeof(int);
+ // Allocate input vectors h_A and h_B in host memory
+ h_A = (int*)malloc(size);
+ if (h_A == 0) CleanupResources();
+ h_B = (int*)malloc(size);
+ if (h_B == 0) CleanupResources();
+ h_C = (long long*)malloc(N*sizeof(long long));
+ if (h_C == 0) CleanupResources();
 
  // Initialize input vectors
  RandomInit(h_A, N);
-
+ RandomInit(h_B, N);
 
  // Allocate vectors in device memory
+printf("before\n");
  checkCudaErrors( cudaMalloc((void**)&d_A, size) );
  checkCudaErrors( cudaMalloc((void**)&d_B, size) );
-
-
- // Copy vector from host memory to device memory
- checkCudaErrors( cudaMemcpy(d_A, h_A, size, cudaMemcpyHostToDevice) );
-
+ checkCudaErrors( cudaMalloc((void**)&d_C, N * sizeof(long long)) );
+printf("after\n");
 
  cudaEvent_t start, stop;                   
  float elapsedTime = 0;                     
  checkCudaErrors(cudaEventCreate(&start));  
  checkCudaErrors(cudaEventCreate(&stop));
 
+ // Copy vectors from host memory to device memory
+ checkCudaErrors( cudaMemcpy(d_A, h_A, size, cudaMemcpyHostToDevice) );
+ checkCudaErrors( cudaMemcpy(d_B, h_B, size, cudaMemcpyHostToDevice) );
+
  //VecAdd<<<blocksPerGrid, threadsPerBlock>>>(d_A, d_B, d_C, N);
  dim3 dimGrid(NUM_OF_BLOCKS,1);
  dim3 dimBlock(THREADS_PER_BLOCK,1);
 
-
  checkCudaErrors(cudaEventRecord(start));              
- PowerKernal2<<<dimGrid,dimBlock>>>(d_A, d_B,iterations);  
+ PowerKernal2<<<dimGrid,dimBlock>>>(d_A, d_B, d_C, iterations);  
  checkCudaErrors(cudaEventRecord(stop));               
  
  checkCudaErrors(cudaEventSynchronize(stop));           
  checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));  
  printf("gpu execution time = %.3f ms\n", elapsedTime);  
- getLastCudaError("kernel launch failure");              
+ getLastCudaError("kernel launch failure");         
 
  // Copy result from device memory to host memory
- // h_B contains the result in host memory
- checkCudaErrors( cudaMemcpy(h_B, d_B, size, cudaMemcpyDeviceToHost) );
-  checkCudaErrors(cudaEventDestroy(start));
+ // h_C contains the result in host memory
+ checkCudaErrors( cudaMemcpy(h_C, d_C, size, cudaMemcpyDeviceToHost) );
+ checkCudaErrors(cudaEventDestroy(start));
  checkCudaErrors(cudaEventDestroy(stop));
  CleanupResources();
 
@@ -167,23 +167,32 @@ void CleanupResources(void)
 {
   // Free device memory
   if (d_A)
-  cudaFree(d_A);
+	cudaFree(d_A);
   if (d_B)
-  cudaFree(d_B);
+	cudaFree(d_B);
+  if (d_C)
+	cudaFree(d_C);
 
   // Free host memory
   if (h_A)
-  free(h_A);
+	free(h_A);
   if (h_B)
-  free(h_B);
+	free(h_B);
+  if (h_C)
+	free(h_C);
 
 }
 
-// Allocates an array with random float entries.
-void RandomInit(unsigned* data, int n)
+// Allocates an array with random int entries.
+void RandomInit(int* data, int n)
 {
-  for (int i = 0; i < n; ++i){
-  srand((unsigned)time(0));  
-  data[i] = rand() / RAND_MAX;
+  for (int i = 0; i < n; ++i){ 
+	data[i] = rand() / RAND_MAX;
   }
 }
+
+
+
+
+
+
