@@ -41,6 +41,8 @@ echo "================================================================="
 
 found_executable=false
 
+FALLBACK_NARGS=1000
+
 # --- 2. Main Execution Loop ---
 for exe in "$BIN_DIR"/*; do
     # Skip if not executable or if it's a directory
@@ -48,45 +50,66 @@ for exe in "$BIN_DIR"/*; do
     found_executable=true
 
     base_name=$(basename "$exe")
-    output_file="${OUT_DIR}/${base_name}_${NARGS}.txt"
+    current_nargs=$NARGS
+    output_file="${OUT_DIR}/${base_name}_${current_nargs}.txt"
 
-    echo -n "Running ${base_name}... "
+    # Full newline print ensures output is immediately flushed to the console
+    echo "Running ${base_name} (NARGS=${current_nargs})..."
 
-    # High-resolution start time (nanoseconds)
     start_ns=$(date +%s%N 2>/dev/null || echo "0")
+    exit_code=0
 
-    # Run with timeout guardrail if available
+    # Execute primary attempt (NARGS=100000)
     if $HAS_TIMEOUT; then
-        timeout "${TIMEOUT_SEC}s" "$exe" "$NARGS" > "$output_file" 2>&1
-        exit_code=$?
+        timeout "${TIMEOUT_SEC}s" "$exe" "$current_nargs" > "$output_file" 2>&1 || exit_code=$?
     else
-        "$exe" "$NARGS" > "$output_file" 2>&1
-        exit_code=$?
+        "$exe" "$current_nargs" > "$output_file" 2>&1 || exit_code=$?
     fi
-
-    # High-resolution end time (nanoseconds)
     end_ns=$(date +%s%N 2>/dev/null || echo "0")
 
-    # --- 3. Status Handling & High-Precision Timing ---
+    # --- Backoff Retry Logic (If timed out with code 124) ---
     if [[ $exit_code -eq 124 ]]; then
-        echo "TIMED OUT (Exceeded ${TIMEOUT_SEC}s limit)"
-        echo -e "\n[WARNING]: Execution terminated by timeout (${TIMEOUT_SEC}s)." >> "$output_file"
+        echo "  └─ [TIMED OUT] Exceeded ${TIMEOUT_SEC}s at NARGS=${current_nargs}."
+        echo "  └─ Retrying with backed-off NARGS=${FALLBACK_NARGS}..."
+        
+        # Annotate primary output file before switching
+        echo -e "\n[WARNING]: Timed out at NARGS=${current_nargs} (${TIMEOUT_SEC}s limit)." >> "$output_file"
+
+        # Switch parameters to fallback run
+        current_nargs=$FALLBACK_NARGS
+        output_file="${OUT_DIR}/${base_name}_${current_nargs}.txt"
+
+        start_ns=$(date +%s%N 2>/dev/null || echo "0")
+        exit_code=0
+
+        if $HAS_TIMEOUT; then
+            timeout "${TIMEOUT_SEC}s" "$exe" "$current_nargs" > "$output_file" 2>&1 || exit_code=$?
+        else
+            "$exe" "$current_nargs" > "$output_file" 2>&1 || exit_code=$?
+        fi
+        end_ns=$(date +%s%N 2>/dev/null || echo "0")
+    fi
+
+    # --- Final Status Reporting ---
+    if [[ $exit_code -eq 124 ]]; then
+        echo "  └─ [FAILED] Timed out again at fallback NARGS=${current_nargs}."
+        echo -e "\n[WARNING]: Timed out at fallback NARGS=${current_nargs} (${TIMEOUT_SEC}s limit)." >> "$output_file"
     elif [[ $exit_code -ne 0 ]]; then
-        echo "FAILED (Exit Code: $exit_code)"
+        echo "  └─ [FAILED] Exit code: $exit_code"
     else
-        # Calculate elapsed time in milliseconds if sub-second precision is supported
+        # Calculate wall time
         if [[ "$start_ns" != "0" && "$end_ns" != "0" && "$end_ns" -ge "$start_ns" ]]; then
             elapsed_ms=$(( (end_ns - start_ns) / 1000000 ))
-
             if [[ $elapsed_ms -lt $MIN_TIME_MS ]]; then
-                echo "DONE (${elapsed_ms} ms) -> [WARNING: Execution < ${MIN_TIME_MS}ms, verify output]"
+                echo "  └─ [DONE] NARGS=${current_nargs} (${elapsed_ms} ms) -> [WARNING: Execution < ${MIN_TIME_MS}ms]"
             else
-                echo "DONE (${elapsed_ms} ms)"
+                echo "  └─ [DONE] NARGS=${current_nargs} (${elapsed_ms} ms)"
             fi
         else
-            echo "DONE"
+            echo "  └─ [DONE] NARGS=${current_nargs}"
         fi
     fi
+    echo ""
 done
 
 if ! $found_executable; then
