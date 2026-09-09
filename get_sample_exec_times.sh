@@ -72,8 +72,8 @@ for exe in "$BIN_DIR"/*; do
         echo "  └─ [TIMED OUT] Exceeded ${TIMEOUT_SEC}s at NARGS=${current_nargs}."
         echo "  └─ Retrying with backed-off NARGS=${FALLBACK_NARGS}..."
         
-        # Annotate primary output file before switching
-        echo -e "\n[WARNING]: Timed out at NARGS=${current_nargs} (${TIMEOUT_SEC}s limit)." >> "$output_file"
+        # Delete the output file 
+        rm "$output_file"
 
         # Switch parameters to fallback run
         current_nargs=$FALLBACK_NARGS
