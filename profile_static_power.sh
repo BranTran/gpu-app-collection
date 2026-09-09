@@ -45,15 +45,17 @@ threshold_power_diff=1  # Threshold above starting power allowed for idle, adjus
 
 # Define the array of frequencies to test
 # V100
-frequencies=(135 870 952 1035 1117 1200 1282 1365 1447 1530)
+#frequencies=(135 870 952 1035 1117 1200 1282 1365 1447 1530)
 # H100?
 # frequencies=(345 495 660 810 975 1125 1290 1440 1605 1755)
+frequencies=(135 210 315 412 510 615 712 810 915 1012 1110 1215 1312 1410 1515 1612 1710 1815 1912)
 
 # Number of runs for each benchmark at each frequency
 NUM_RUNS=3 
 # Fixed GPU Device ID (as per your request to set DEVID=1)
 #DEVID=1
  
+
 # --- Pathing and Setup ---
 SCRIPT_DIR="$GPUAPPS_ROOT/../flop_counting"
 BINDIR="$BINDIR/$BINSUBDIR" # Path to compiled benchmark binaries
@@ -113,56 +115,56 @@ for freq in "${frequencies[@]}"; do
 	        bm=$(echo "$line" | awk '{print $1}')
         initial_args_string=$(echo "$line" | cut -d' ' -f2-) # Capture original arguments as a string
 
-        # --- NEW LOGIC: Adjust iterations based on frequency ---
-        # Only attempt to scale if there are arguments provided for the benchmark
-        if [ -n "$initial_args_string" ]; then 
-            initial_iterations=$(echo "$initial_args_string" | awk '{print $1}')
-            
-            # Use a regex to check if initial_iterations is purely numeric
-            if [[ "$initial_iterations" =~ ^[0-9]+$ ]]; then
-                remaining_args=$(echo "$initial_args_string" | cut -d' ' -f2-) # Get all arguments *after* the first one
-
-                # The frequencies array is defined at the top and is sorted.
-                # The last element will be the highest frequency.
-                highest_freq=${frequencies[-1]} # Assumes frequencies array is globally defined and sorted
-
-                # Calculate scaling factor: current_freq / highest_freq
-                # Using 'bc' for floating-point arithmetic, with 4 decimal places precision for the factor.
-                scaling_factor=$(echo "scale=4; $freq / $highest_freq" | bc)
-                
-                # Calculate new iterations: original_iterations * scaling_factor, then round down (truncate)
-                # 'cut -d'.' -f1' effectively truncates the decimal part, achieving rounding down.
-                new_iterations=$(echo "$initial_iterations * $scaling_factor" | bc | cut -d'.' -f1)
-                
-                # Ensure new_iterations is at least 1, to prevent 0 iterations
-                if (( new_iterations < 1 )); then
-                    new_iterations=1
-                fi
-
-                echo "  Scaling iterations for '$bm' at ${freq}MHz:"
-                echo "    Original Iterations: $initial_iterations"
-                echo "    Highest Freq (tuned for): ${highest_freq} MHz"
-                echo "    Current Freq: ${freq} MHz"
-                echo "    Scaling Factor: $scaling_factor"
-                echo "    New Iterations: $new_iterations"
-
-                # Reconstruct the 'args' variable with the new iteration count
-                if [ -z "$remaining_args" ]; then
-                    args="$new_iterations" # If there were no other arguments
-                else
-                    args="$new_iterations $remaining_args" # Prepend new iterations to existing arguments
-                fi
-            else
-                # If the first argument isn't numeric, we can't scale it. Use original args.
-                echo "  Warning: First argument '$initial_iterations' for benchmark '$bm' is not a number. Skipping iteration scaling."
-                args="$initial_args_string"
-            fi
-        else
-            # If no arguments were provided for the benchmark, args remains empty.
-            echo "  No arguments provided for benchmark '$bm'. Skipping iteration scaling."
+#        # --- NEW LOGIC: Adjust iterations based on frequency ---
+#        # Only attempt to scale if there are arguments provided for the benchmark
+#        if [ -n "$initial_args_string" ]; then 
+#            initial_iterations=$(echo "$initial_args_string" | awk '{print $1}')
+#            
+#            # Use a regex to check if initial_iterations is purely numeric
+#            if [[ "$initial_iterations" =~ ^[0-9]+$ ]]; then
+#                remaining_args=$(echo "$initial_args_string" | cut -d' ' -f2-) # Get all arguments *after* the first one
+#
+#                # The frequencies array is defined at the top and is sorted.
+#                # The last element will be the highest frequency.
+#                highest_freq=${frequencies[-1]} # Assumes frequencies array is globally defined and sorted
+#
+#                # Calculate scaling factor: current_freq / highest_freq
+#                # Using 'bc' for floating-point arithmetic, with 4 decimal places precision for the factor.
+#                scaling_factor=$(echo "scale=4; $freq / $highest_freq" | bc)
+#                
+#                # Calculate new iterations: original_iterations * scaling_factor, then round down (truncate)
+#                # 'cut -d'.' -f1' effectively truncates the decimal part, achieving rounding down.
+#                new_iterations=$(echo "$initial_iterations * $scaling_factor" | bc | cut -d'.' -f1)
+#                
+#                # Ensure new_iterations is at least 1, to prevent 0 iterations
+#                if (( new_iterations < 1 )); then
+#                    new_iterations=1
+#                fi
+#
+#                echo "  Scaling iterations for '$bm' at ${freq}MHz:"
+#                echo "    Original Iterations: $initial_iterations"
+#                echo "    Highest Freq (tuned for): ${highest_freq} MHz"
+#                echo "    Current Freq: ${freq} MHz"
+#                echo "    Scaling Factor: $scaling_factor"
+#                echo "    New Iterations: $new_iterations"
+#
+#                # Reconstruct the 'args' variable with the new iteration count
+#                if [ -z "$remaining_args" ]; then
+#                    args="$new_iterations" # If there were no other arguments
+#                else
+#                    args="$new_iterations $remaining_args" # Prepend new iterations to existing arguments
+#                fi
+#            else
+#                # If the first argument isn't numeric, we can't scale it. Use original args.
+#                echo "  Warning: First argument '$initial_iterations' for benchmark '$bm' is not a number. Skipping iteration scaling."
+#                args="$initial_args_string"
+#            fi
+#        else
+#            # If no arguments were provided for the benchmark, args remains empty.
+#            echo "  No arguments provided for benchmark '$bm'. Skipping iteration scaling."
             args="$initial_args_string" # args is already empty, but explicitly assign for clarity
-        fi
-        # --- END NEW LOGIC ---
+#        fi
+#        # --- END NEW LOGIC ---
 
 
 	
@@ -222,14 +224,14 @@ for freq in "${frequencies[@]}"; do
 	            DEVID="$DEVID" # Use the fixed device ID
 	            GPU_UUID=${UUID_list[${DEVID}]} # Get UUID for the fixed device
 	
-	            echo "Starting profiling of $bm_name on $HOSTNAME gpu${DEVID} (${GPU_UUID}) at ${freq}MHz, run ${run}"
+	            echo "Starting profiling of $bm_name running |${bm_exec_cmd}| on $HOSTNAME gpu${DEVID} (${GPU_UUID}) at ${freq}MHz, run ${run}"
 	            
 	            # Get initial idle power before launching profiler/benchmark
 	            # This helps in the adaptive sleeping later
 	            idle_power=$(nvidia-smi --query-gpu=power.draw --format=csv,noheader,nounits --id="${DEVID}")
 	
 	            # Start the power profiler in the background
-	            "$PROFILER" -r 100 -n -1 -d "${DEVID}" > "$OUT_BASE_DIR/ubench_profile_output/${freq}_${bm_name}/${HOSTNAME}/${HOSTNAME}_gpu${DEVID}_${GPU_UUID}_${bm_name}_${run}.txt" 2>&1 &
+	            "$PROFILER" -r 1000 -n -1 -d "${DEVID}" > "$OUT_BASE_DIR/ubench_profile_output/${freq}_${bm_name}/${HOSTNAME}/${HOSTNAME}_gpu${DEVID}_${GPU_UUID}_${bm_name}_${run}.txt" 2>&1 &
 	            pid_profiler=$!
 	            
 	            sleep 10 # Give profiler time to start
