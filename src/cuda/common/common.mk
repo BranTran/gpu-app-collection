@@ -382,10 +382,10 @@ ifeq ($(mem), 1)
 	NVCCFLAGS += -Xptxas="-flcm=cv,-fscm=wt"
 endif
 
-endif
 ifeq ($(ptxas), 1)
         NVCCFLAGS += --ptxas-options="-O0,-disable-optimizer-consts,-allow-expensive-optimizations=false"
 endif
+
 ifeq ($(ptxas), 2)
         NVCCFLAGS += --nvvm-options "-opt=0" --ptxas-options="-O0,-disable-optimizer-consts,-allow-expensive-optimizations=false"
 endif
@@ -403,7 +403,7 @@ ifeq ($(nvcc_warn_verbose),1)
 	NVCCFLAGS += --compiler-options -fno-strict-aliasing
 endif
 
-ifeq ($(h100),1)
+ifeq ($(h100), 1)
 	NVCCFLAGS += "-DNUM_OF_BLOCKS=3648" 
 endif
 ################################################################################
