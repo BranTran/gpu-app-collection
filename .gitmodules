@@ -1,3 +1,6 @@
 [submodule "src/cuda/cutlass-bench/tools/external/googletest"]
 	path = src/cuda/cutlass-bench/tools/external/googletest
 	url = https://github.com/google/googletest.git
+[submodule "src/cuda/accelwattch-ubench/tensor_benchmarks/wgmma"]
+	path = src/cuda/accelwattch-ubench/tensor_benchmarks/wgmma
+	url = https://github.com/hal-uw/wattchmen-sc25-artifact.git

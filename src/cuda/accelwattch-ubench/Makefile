@@ -1,4 +1,4 @@
-bt: new no_opt inline functional memories bt_memories tensor
+bt: new no_opt inline functional memories bt_memories tensor wgmma
 
 bt_memories:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C cache_and_data_width_mem_benchmarks/LDC/$(OPT) ptxas=1
@@ -136,6 +136,14 @@ tensor:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C tensor_benchmarks/TENSOR_TF_1684/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C tensor_benchmarks/TENSOR64_1688/$(OPT)
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C tensor_benchmarks/TENSOR64_16816/$(OPT)
+
+# wgmma is a Hopper-only (sm_90a) benchmark built via its own upstream Makefile
+# (not the common.mk template used by the other ubenches above), so it is
+# invoked directly here and its binary is copied into the standard bin dir.
+wgmma:
+	$(SETENV) make $(MAKE_ARGS) -C tensor_benchmarks/wgmma bt
+	mkdir -p $(BINDIR)/$(BINSUBDIR)
+	cp tensor_benchmarks/wgmma/out/wgmma $(BINDIR)/$(BINSUBDIR)/wgmma
 
 static_power:
 	$(SETENV) make $(MAKE_ARGS) noinline=$(noinline) -C static_power_modeling/ACT_CORE1/$(OPT)
