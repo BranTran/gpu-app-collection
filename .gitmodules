@@ -3,4 +3,4 @@
 	url = https://github.com/google/googletest.git
 [submodule "src/cuda/accelwattch-ubench/tensor_benchmarks/wgmma"]
 	path = src/cuda/accelwattch-ubench/tensor_benchmarks/wgmma
-	url = https://github.com/hal-uw/wattchmen-sc25-artifact.git
+	url = git@github.com:BranTran/wgmma.git
