@@ -290,18 +290,18 @@ int main(int argc, char** argv)
 	dim3 dimGrid2(1,1);
 	dim3 dimBlock2(1,1);
 
-	 cudaThreadSynchronize() ;
+	 cudaDeviceSynchronize() ;
 	PowerKernalEmpty<<<dimGrid2,dimBlock2>>>(d_A, d_B, d_C, N, iterations);
-	 cudaThreadSynchronize() ;
+	 cudaDeviceSynchronize() ;
 
 
 dimGrid.y = NUM_OF_BLOCKS;
 for (int i=0; i<3; i++) {
 	dimGrid.y /= 3;
 	 PowerKernal1<<<dimGrid,dimBlock>>>(d_A, d_B, d_C, N, iterations);
-	 cudaThreadSynchronize() ;
+	 cudaDeviceSynchronize() ;
 	 PowerKernalEmpty<<<dimGrid2,dimBlock2>>>(d_A, d_B, d_C, N, iterations);
-	 cudaThreadSynchronize() ;
+	 cudaDeviceSynchronize() ;
 }
 
 
@@ -309,9 +309,9 @@ dimGrid.y = NUM_OF_BLOCKS;
 for (int i=0; i<3; i++) {
 	dimGrid.y /= 3;
 	 PowerKernal2<<<dimGrid,dimBlock>>>(d_A, d_B, d_C, N, iterations);
-	 cudaThreadSynchronize() ;
+	 cudaDeviceSynchronize() ;
 	 PowerKernalEmpty<<<dimGrid2,dimBlock2>>>(d_A, d_B, d_C, N, iterations);
-	 cudaThreadSynchronize() ;
+	 cudaDeviceSynchronize() ;
 }
 
 
@@ -319,13 +319,13 @@ dimGrid.y = NUM_OF_BLOCKS;
 for (int i=0; i<3; i++) {
 	dimGrid.y /= 3;
 	 PowerKernal3<<<dimGrid,dimBlock>>>(d_A, d_B, d_C, N, iterations);
-	 cudaThreadSynchronize() ;
+	 cudaDeviceSynchronize() ;
 	 PowerKernalEmpty<<<dimGrid2,dimBlock2>>>(d_A, d_B, d_C, N, iterations);
 }
 
 
  getLastCudaError("kernel launch failure");
- cudaThreadSynchronize() ;
+ cudaDeviceSynchronize() ;
 
 #ifdef _DEBUG
  checkCudaErrors( cudaDeviceSynchronize() );

@@ -263,7 +263,7 @@ int main(int argc, char** argv)
   	checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));
   	printf("gpu execution time = %.3f ms\n", elapsedTime);
   	getLastCudaError("kernel launch failure");
-  	cudaThreadSynchronize();
+  	cudaDeviceSynchronize();
   	checkCudaErrors(cudaEventDestroy(start));
   	checkCudaErrors(cudaEventDestroy(stop));
 	CleanupResources();

@@ -225,7 +225,7 @@ int main(int argc, char** argv)
     float elapsedTime = 0;
     checkCudaErrors(cudaEventCreate(&start));
     checkCudaErrors(cudaEventCreate(&stop));
-    cudaThreadSynchronize();
+    cudaDeviceSynchronize();
 
 	 //PowerKernalEmpty<<<dimGrid2,dimBlock2>>>(d_A3, N);
 
@@ -239,7 +239,7 @@ int main(int argc, char** argv)
     checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));
     printf("gpu execution time = %.3f ms\n", elapsedTime);
     getLastCudaError("kernel launch failure");
-    cudaThreadSynchronize();
+    cudaDeviceSynchronize();
 
     checkCudaErrors(cudaEventDestroy(start));
     checkCudaErrors(cudaEventDestroy(stop));

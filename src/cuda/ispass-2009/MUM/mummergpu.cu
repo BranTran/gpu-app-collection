@@ -1022,7 +1022,7 @@ int matchSubset(MatchContext* ctx,
 		
 	  }
 
-      cudaThreadSynchronize();
+      cudaDeviceSynchronize();
 	  
 	  // check if kernel execution generated an error
       cudaError_t err = cudaGetLastError();
@@ -1076,7 +1076,7 @@ int matchSubset(MatchContext* ctx,
 													   ctx->queries->d_lengths_array,
 													   numQueries,
 													   ctx->min_match_length);
-			cudaThreadSynchronize();
+			cudaDeviceSynchronize();
 		 }
 		 
 		 stopTimer(rctimer);

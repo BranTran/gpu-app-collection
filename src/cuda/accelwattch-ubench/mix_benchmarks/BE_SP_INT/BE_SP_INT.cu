@@ -317,19 +317,19 @@ int main(int argc, char** argv)
 	dim3 dimGrid2(1,1);
 	dim3 dimBlock2(1,1);
 
-	cudaThreadSynchronize();
+	cudaDeviceSynchronize();
 	PowerKernalEmpty<<<dimGrid2,dimBlock2>>>(d_A, d_B, d_C, N, iterations);
-	 cudaThreadSynchronize(); 
+	 cudaDeviceSynchronize(); 
 	//printf("execution time = %f\n", cutGetTimerValue(my_timer));
 
 	dimGrid.y = NUM_OF_BLOCKS;
 	for (int i=0; i<3; i++) {
 		dimGrid.y /= 3;
 		 PowerKernal1<<<dimGrid,dimBlock>>>(d_A, d_B, d_C, N, iterations);
-		 cudaThreadSynchronize();
+		 cudaDeviceSynchronize();
 		//printf("execution time = %f\n", cutGetTimerValue(my_timer));
 		 PowerKernalEmpty<<<dimGrid2,dimBlock2>>>(d_A, d_B, d_C, N, iterations);
-		 cudaThreadSynchronize();
+		 cudaDeviceSynchronize();
 		//printf("execution time = %f\n", cutGetTimerValue(my_timer));
 	}
 	 
@@ -338,11 +338,11 @@ int main(int argc, char** argv)
 		dimGrid.y /= 3;
 	 
 		 PowerKernal2<<<dimGrid,dimBlock>>>(d_A, d_B, d_C, N, iterations);
-		 cudaThreadSynchronize();
+		 cudaDeviceSynchronize();
 		//printf("execution time = %f\n", cutGetTimerValue(my_timer));
 		 
 		 PowerKernalEmpty<<<dimGrid2,dimBlock2>>>(d_A, d_B, d_C, N, iterations);
-		 cudaThreadSynchronize();
+		 cudaDeviceSynchronize();
 		//printf("execution time = %f\n", cutGetTimerValue(my_timer));
 	}
 	 
@@ -350,11 +350,11 @@ int main(int argc, char** argv)
 	for (int i=0; i<3; i++) {
 		dimGrid.y /= 3;
 		 PowerKernal3<<<dimGrid,dimBlock>>>(d_A, d_B, d_C, N, iterations);
-		 cudaThreadSynchronize();
+		 cudaDeviceSynchronize();
 		//printf("execution time = %f\n", cutGetTimerValue(my_timer));
 		 
 		 PowerKernalEmpty<<<dimGrid2,dimBlock2>>>(d_A, d_B, d_C, N, iterations);
-		 cudaThreadSynchronize(); 
+		 cudaDeviceSynchronize(); 
 		//printf("execution time = %f\n", cutGetTimerValue(my_timer));
 	}
 	 
@@ -362,14 +362,14 @@ int main(int argc, char** argv)
 	dimGrid.y = NUM_OF_BLOCKS;
 	for (int i=0; i<3; i++) {
 		 PowerKernal4<<<dimGrid,dimBlock>>>(d_A, d_B, d_C, N, iterations);
-		 cudaThreadSynchronize();
+		 cudaDeviceSynchronize();
 		//printf("execution time = %f\n", cutGetTimerValue(my_timer));
 		 PowerKernalEmpty<<<dimGrid2,dimBlock2>>>(d_A, d_B, d_C, N, iterations);
-		 cudaThreadSynchronize();
+		 cudaDeviceSynchronize();
 	}
 
 	getLastCudaError("kernel launch failure");
-	 cudaThreadSynchronize();
+	 cudaDeviceSynchronize();
 	//printf("execution time = %f\n", cutGetTimerValue(my_timer));
 
 	// Copy result from device memory to host memory

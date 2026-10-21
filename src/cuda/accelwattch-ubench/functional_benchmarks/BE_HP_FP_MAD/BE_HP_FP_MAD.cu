@@ -200,7 +200,7 @@ printf("after\n");
  checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));  
  printf("gpu execution time = %.3f ms\n", elapsedTime);  
  getLastCudaError("kernel launch failure");              
- cudaThreadSynchronize();
+ cudaDeviceSynchronize();
 
 /*CUT_SAFE_CALL(cutCreateTimer(&my_timer)); 
 TaskHandle taskhandle = LaunchDAQ();
@@ -210,12 +210,12 @@ printf("execution time = %f\n", cutGetTimerValue(my_timer));
 
 
 PowerKernal1<<<dimGrid,dimBlock>>>(d_A, d_B, d_C, N);
-CUDA_SAFE_CALL( cudaThreadSynchronize() );
+CUDA_SAFE_CALL( cudaDeviceSynchronize() );
 printf("execution time = %f\n", cutGetTimerValue(my_timer));
 
 
 getLastCudaError("kernel launch failure");
-CUDA_SAFE_CALL( cudaThreadSynchronize() );
+CUDA_SAFE_CALL( cudaDeviceSynchronize() );
 CUT_SAFE_CALL(cutStopTimer(my_timer));
 TurnOffDAQ(taskhandle, cutGetTimerValue(my_timer));
 printf("execution time = %f\n", cutGetTimerValue(my_timer));

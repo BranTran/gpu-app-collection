@@ -145,7 +145,7 @@ void runVLCTest(char *file_name, uint num_block_threads, uint num_blocks) {
 #endif
                     d_destData, d_cindex); //testedOK2
         }
-    cudaThreadSynchronize();
+    cudaDeviceSynchronize();
     cudaEventRecord( stop, 0 ) ;
     cudaEventSynchronize( stop ) ;
     float   elapsedTime;

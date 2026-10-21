@@ -163,7 +163,7 @@ int main(int argc, char** argv)
 	printf("gpu execution time = %.3f ms\n", elapsedTime);
 
 	getLastCudaError("kernel launch failure");
-	cudaThreadSynchronize();
+	cudaDeviceSynchronize();
 
 	// Copy result from device memory to host memory
 	// h_C contains the result in host memory

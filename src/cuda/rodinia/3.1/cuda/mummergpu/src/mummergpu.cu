@@ -1427,7 +1427,7 @@ void runPrintKernel(MatchContext* ctx,
 #endif
                                              );
                                              
-    cudaThreadSynchronize();
+    cudaDeviceSynchronize();
     
     
     
@@ -1445,7 +1445,7 @@ void runPrintKernel(MatchContext* ctx,
                               (void*)d_alignments,
                               alignmentSize,
                               cudaMemcpyDeviceToHost));   
-    cudaThreadSynchronize();
+    cudaDeviceSynchronize();
 	stopTimer(atimer);
 
 	float atime = getTimerValue(atimer);
@@ -2022,7 +2022,7 @@ void matchQueryBlockToReferencePage(MatchContext* ctx,
 	{
 
 		matchOnGPU(ctx, reverse_complement);
-		cudaThreadSynchronize();
+		cudaDeviceSynchronize();
 
 	}
 	stopTimer(ktimer);

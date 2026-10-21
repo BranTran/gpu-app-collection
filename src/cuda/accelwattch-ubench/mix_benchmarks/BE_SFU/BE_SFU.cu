@@ -325,7 +325,7 @@ int main(int argc, char** argv)
  checkCudaErrors(cudaEventSynchronize(stop));
  checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));
  printf("gpu execution time = %.3f ms\n", elapsedTime);
- checkCudaErrors( cudaThreadSynchronize() );
+ checkCudaErrors( cudaDeviceSynchronize() );
 
 dimGrid.y = NUM_OF_BLOCKS;
 for (int i=0; i<3; i++) {
@@ -340,7 +340,7 @@ for (int i=0; i<3; i++) {
     checkCudaErrors(cudaEventSynchronize(stop));
     checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));
     printf("gpu execution time = %.3f ms\n", elapsedTime);
-	checkCudaErrors( cudaThreadSynchronize() );
+	checkCudaErrors( cudaDeviceSynchronize() );
 
 	elapsedTime = 0;
     checkCudaErrors(cudaEventCreate(&start));
@@ -351,7 +351,7 @@ for (int i=0; i<3; i++) {
     checkCudaErrors(cudaEventSynchronize(stop));
     checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));
     printf("gpu execution time = %.3f ms\n", elapsedTime);
-    checkCudaErrors( cudaThreadSynchronize() );
+    checkCudaErrors( cudaDeviceSynchronize() );
 }
  
  
@@ -368,7 +368,7 @@ for (int i=0; i<3; i++) {
     checkCudaErrors(cudaEventSynchronize(stop));
     checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));
     printf("gpu execution time = %.3f ms\n", elapsedTime);
-    checkCudaErrors( cudaThreadSynchronize() );
+    checkCudaErrors( cudaDeviceSynchronize() );
 
     elapsedTime = 0;
     checkCudaErrors(cudaEventCreate(&start));
@@ -380,7 +380,7 @@ for (int i=0; i<3; i++) {
     checkCudaErrors(cudaEventSynchronize(stop));
     checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));
     printf("gpu execution time = %.3f ms\n", elapsedTime);
-    checkCudaErrors( cudaThreadSynchronize() );
+    checkCudaErrors( cudaDeviceSynchronize() );
 }
  
 dimGrid.y = NUM_OF_BLOCKS;
@@ -395,7 +395,7 @@ for (int i=0; i<3; i++) {
     checkCudaErrors(cudaEventSynchronize(stop));
     checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));
     printf("gpu execution time = %.3f ms\n", elapsedTime);
-	checkCudaErrors( cudaThreadSynchronize() );
+	checkCudaErrors( cudaDeviceSynchronize() );
 
     elapsedTime = 0;
     checkCudaErrors(cudaEventCreate(&start));
@@ -406,7 +406,7 @@ for (int i=0; i<3; i++) {
     checkCudaErrors(cudaEventSynchronize(stop));
     checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));
     printf("gpu execution time = %.3f ms\n", elapsedTime);
-    checkCudaErrors( cudaThreadSynchronize() );
+    checkCudaErrors( cudaDeviceSynchronize() );
 }
 
 dimGrid.y = NUM_OF_BLOCKS;
@@ -421,7 +421,7 @@ for (int i=0; i<3; i++) {
     checkCudaErrors(cudaEventSynchronize(stop));
     checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));
     printf("gpu execution time = %.3f ms\n", elapsedTime);
-    checkCudaErrors( cudaThreadSynchronize() );
+    checkCudaErrors( cudaDeviceSynchronize() );
 
     elapsedTime = 0;
     checkCudaErrors(cudaEventCreate(&start));
@@ -432,7 +432,7 @@ for (int i=0; i<3; i++) {
     checkCudaErrors(cudaEventSynchronize(stop));
     checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));
     printf("gpu execution time = %.3f ms\n", elapsedTime);
-    checkCudaErrors( cudaThreadSynchronize() );
+    checkCudaErrors( cudaDeviceSynchronize() );
 }
 	getLastCudaError("kernel launch failure");
 

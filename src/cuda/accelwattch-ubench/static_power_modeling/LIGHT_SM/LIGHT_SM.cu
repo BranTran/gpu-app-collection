@@ -158,11 +158,11 @@ printf("after\n");
 
 
 PowerKernal2<<<dimGrid,dimBlock>>>(d_A, d_B, d_C, N, iterations, div);
-cudaThreadSynchronize();
+cudaDeviceSynchronize();
 
 
 getLastCudaError("kernel launch failure");
-cudaThreadSynchronize();
+cudaDeviceSynchronize();
 
 #ifdef _DEBUG
  checkCudaErrors( cudaDeviceSynchronize() );

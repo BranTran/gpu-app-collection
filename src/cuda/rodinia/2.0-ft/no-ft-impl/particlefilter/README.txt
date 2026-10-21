@@ -26,7 +26,7 @@ now takes longer to execute than before. This is because when a kernel crashes, 
 subsequent CUDA API calls fail and immediately return, resulting in a shorter execution 
 time. 
 
-Also, since kernel calls are asynchronous, a call to cudaThreadSynchronize was added 
+Also, since kernel calls are asynchronous, a call to cudaDeviceSynchronize was added 
 before the timer call signifying the end of execution, in order to improve the accuracy of 
 the times reported in the output.  
 
